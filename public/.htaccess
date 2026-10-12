@@ -1,0 +1,15 @@
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule (^|/)\. - [F,L]
+RewriteRule ^assets/.*\.(css|js|svg|jpe?g|png|webp|woff2|ico)$ - [L,NC]
+RewriteRule ^ index.php [L,QSA]
+</IfModule>
+<FilesMatch "^(router\.php|.*\.(env|log|md|json))$">
+Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+Header always set X-Content-Type-Options "nosniff"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

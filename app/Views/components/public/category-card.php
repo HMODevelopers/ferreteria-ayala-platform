@@ -1,0 +1,1 @@
+<a class="category-card group" href="#productos" data-category-link="<?= e($category['id']) ?>"><div class="category-image"><img src="<?= e(asset('images/' . $category['image'])) ?>" alt="" loading="lazy" width="280" height="220"></div><div class="category-label"><h3><?= e($category['name']) ?></h3><?= icon('arrow') ?></div><p><?= e($category['description']) ?></p></a>

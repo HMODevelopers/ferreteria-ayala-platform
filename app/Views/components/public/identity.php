@@ -1,0 +1,1 @@
+<a href="/" class="identity" aria-label="Ferretería Ayala, inicio"><span class="identity-caption">FERRETERÍA</span><span class="identity-name">AYALA<span>.</span></span><span class="identity-tagline">CONSTRUYE LO MEJOR</span></a>

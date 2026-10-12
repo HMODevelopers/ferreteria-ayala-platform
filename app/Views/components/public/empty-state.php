@@ -1,0 +1,1 @@
+<div class="empty-state" id="empty-results" hidden><?= icon('search') ?><h3>No encontramos coincidencias.</h3><p>Prueba otra palabra o explora todas las categorías.</p><button type="button" id="reset-search" class="btn btn-secondary">Ver todos los productos</button></div>

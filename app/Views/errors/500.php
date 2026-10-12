@@ -1,0 +1,1 @@
+<section class="container section-pad"><p class="eyebrow">Error 500</p><h1 class="section-title">Volvemos en un momento.</h1><p class="mt-4">El servicio no está disponible temporalmente. Intenta nuevamente más tarde.</p><a class="btn mt-8" href="/">Volver al inicio</a></section>

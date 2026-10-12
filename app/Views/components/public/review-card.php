@@ -1,0 +1,1 @@
+<article class="review-card"><p class="stars" aria-label="<?= e($review['rating']) ?> de 5 estrellas">★★★★★</p><blockquote>“<?= e($review['comment']) ?>”</blockquote><div class="review-author"><span class="avatar"><?= e(substr($review['name'], 0, 1)) ?></span><div><p><?= e($review['name']) ?></p><span>Testimonio de demostración</span></div></div></article>

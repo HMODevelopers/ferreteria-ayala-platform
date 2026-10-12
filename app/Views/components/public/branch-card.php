@@ -1,0 +1,1 @@
+<article class="branch-card"><div class="branch-number"><?= e(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?><?= icon('pin') ?></div><h3><?= e($branch['name']) ?></h3><p>Dirección, teléfono y horarios<br>pendientes de confirmar.</p><span class="branch-status">Información por confirmar</span></article>

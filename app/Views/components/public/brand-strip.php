@@ -1,0 +1,1 @@
+<section class="brands" aria-label="Referencias de marcas"><div class="container brand-row"><p>MARCAS QUE<br><strong>CONOCES.</strong></p><?php foreach ($brands as $brand): ?><span class="brand-word"><?= e($brand) ?></span><?php endforeach ?><span class="brand-note">Nombres de referencia.<br>Sin logotipos oficiales.</span></div></section>

@@ -1,0 +1,13 @@
+<?php
+declare(strict_types=1);
+require_once dirname(__DIR__) . '/app/Core/helpers.php';
+spl_autoload_register(static function (string $class): void {
+    if (!str_starts_with($class, 'App\\')) return;
+    $file = dirname(__DIR__) . '/app/' . str_replace('\\', '/', substr($class, 4)) . '.php';
+    if (is_file($file)) require $file;
+});
+$config = require dirname(__DIR__) . '/config/app.php';
+date_default_timezone_set($config['timezone']);
+$router = new App\Core\Router();
+require dirname(__DIR__) . '/config/routes.php';
+return [$router, $config];

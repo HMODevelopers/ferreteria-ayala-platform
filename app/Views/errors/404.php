@@ -1,0 +1,1 @@
+<section class="container section-pad"><p class="eyebrow"><?= e($code ?? 404) ?></p><h1 class="section-title"><?= e($title) ?></h1><p class="mt-4 mb-8">Esta dirección no está disponible. Explora nuestra página de inicio.</p><?php component('button', ['href' => '/', 'label' => 'Volver al inicio']); ?></section>
