@@ -54,7 +54,7 @@ En esta fase el hero usa alineación izquierda y contraste oscuro; la administra
 - Usuarios, roles y permisos controlarán módulos administrativos; auditoría relacionará actor, acción, entidad y momento.
 - Configuración y páginas mantendrán contenido institucional y canales verificados.
 
-No existe todavía esquema SQL. Antes de diseñarlo se deben confirmar impuestos, unidades, variantes, stock por sucursal, precios, flujos de cotización y permisos.
+No existe todavía un esquema SQL aplicado. El levantamiento funcional y las entidades propuestas están documentados en [requisitos](requirements.md) y [modelo de datos](data-model.md). Antes de cargar información real, el negocio debe entregar los catálogos y valores concretos de impuestos, unidades, límites de descuento, productos, precios, existencias y sucursales.
 
 ## Seguridad futura
 

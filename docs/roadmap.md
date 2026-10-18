@@ -1,20 +1,22 @@
 # Roadmap
 
-## Fase 1 · Home pública (esta entrega)
+## Fase 1 · Home pública (aprobada)
 
-MVC, componentes, diseño responsive, contenido demo, búsqueda y lista local descargable; verificación y guía de cPanel. Se requiere aprobación expresa del diseño público antes de comenzar administrador o MySQL.
+MVC, componentes, diseño responsive, contenido demo, búsqueda y lista local descargable; verificación y guía de cPanel. La Home fue aprobada como base el 17 de octubre de 2026. Esta aprobación permite iniciar el levantamiento y diseño de persistencia; no confirma datos comerciales demostrativos como datos reales.
 
-## Fase 2 · Requisitos y contenido real
+## Fase 2 · Requisitos y contenido real (levantamiento aprobado)
 
 Confirmar logo y manual, fotografías autorizadas, contactos, redes, privacidad, productos/unidades/marcas, precios/impuestos, sucursales y flujo de cotización. Aprobar contratos y esquema de datos junto con el negocio. Preparar SEO/indexación del dominio definitivo.
+
+Las decisiones funcionales están consolidadas en [requisitos](requirements.md) y el diseño de persistencia en [modelo de datos](data-model.md). Permanecen pendientes los archivos y valores reales que debe entregar el negocio.
 
 ## Fase 3 · Persistencia y administración
 
 MySQL/PDO, repositorios, migraciones, usuarios, permisos, sesiones/CSRF y auditoría. Implementar por módulos: productos, categorías, marcas, banners, promociones, eventos, sucursales, reseñas, páginas y configuración. Nada de esta fase está implementado hoy.
 
-## Fase 4 · Cotización real y clientes
+## Fase 4 · Cotizaciones e inventario
 
-Carrito/lista persistente, clientes, partidas, cantidades, sucursal, estados, acuse real y seguimiento. Integraciones externas únicamente tras definir requisitos y autorizaciones. Evitar prometer stock o precio sin fuente confiable.
+Solicitudes públicas, versiones de cotización, clientes internos opcionales, precios, apartados, inventario por sucursal, transferencias, entradas por factura de proveedor, entregas y devoluciones. No incluye ventas financieras, pagos, facturación, contabilidad ni portal de clientes.
 
 ## AyalaTable (administración futura)
 
@@ -22,4 +24,4 @@ Componente propio, sin DataTables. Paginación server-side, búsqueda, ordenamie
 
 ## Fase 5 · Operación y calidad
 
-Dashboard y estadísticas basadas en datos reales; copias de seguridad, restauración, rendimiento, accesibilidad formal, límites de solicitudes y observabilidad. Inventario y pagos requieren proyectos aprobados aparte.
+Dashboard y estadísticas basadas en datos reales; copias de seguridad, restauración, rendimiento, accesibilidad formal, límites de solicitudes y observabilidad. Pagos, facturación y contabilidad requieren proyectos aprobados aparte.

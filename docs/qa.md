@@ -1,11 +1,11 @@
 # Verificación de la primera entrega
 
-Fecha de ejecución: 11 de octubre de 2026. Entorno: Ubuntu, Node 22.22.1, PHP CLI 8.5.4 extraído temporalmente en /tmp y Chrome mediante Playwright. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4.
+Fecha de última ejecución: 17 de octubre de 2026. Entorno: Ubuntu, Node 22.22.1, PHP CLI 8.5.4 y Google Chrome mediante Playwright. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4.
 
 ## Ejecutado
 
 - Sintaxis de todos los PHP: sin errores.
-- Pruebas PHP `tests/run.php`: **30 comprobaciones** correctas de rutas, escape, entradas array, redirecciones, rutas de vistas, unicidad, contratos demo y assets.
+- Pruebas PHP `tests/run.php`: **48 comprobaciones** correctas de rutas, escape, entradas array, redirecciones, rutas de vistas, unicidad, contratos demo y assets.
 - `npm run dev`: observación iniciada correctamente y detenida después de comprobar el modo desarrollo.
 - `npm run build`: Tailwind 4.3.3 y esbuild correctos; assets locales minificados y fuentes/licencias copiadas.
 - Instalación/auditoría npm: **0 vulnerabilidades reportadas** después del override de `@parcel/watcher` a 2.6.x. Tailwind CLI fijaba 2.5.1 vulnerable; override limitado a herramienta de observación local.
@@ -24,4 +24,4 @@ No se ha probado Apache/cPanel real, FTP, TLS, instalación en subdominio, iOS S
 
 ## Revisión de aprobación
 
-Abrir la aplicación local, revisar composición del hero y el catálogo en escritorio/móvil, claridad del contenido demo y los flujos de lista. Entregar logo oficial, fotos reales y datos de contacto verificados para reemplazar los placeholders. El administrador está fuera de alcance hasta aprobación expresa.
+La Home fue aprobada como base el 17 de octubre de 2026. Permanecen pendientes el logo oficial, fotos reales y datos de contacto verificados para reemplazar los placeholders. Persistencia y administrador se incorporarán por incrementos con pruebas específicas; no forman parte de la suite pública actual.
