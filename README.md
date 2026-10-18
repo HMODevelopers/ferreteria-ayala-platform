@@ -14,10 +14,19 @@ Primera etapa: una Home comercial en PHP puro, con arquitectura MVC mínima y as
 ```bash
 npm ci
 npm run build
+cp .env.example .env
+set -a
+. ./.env
+set +a
 php -S 127.0.0.1:8080 -t public public/router.php
 ```
 
 Abre **http://127.0.0.1:8080**. También puedes ejecutar `npm run serve`.
+
+PHP lee configuración del entorno con `getenv()`. El archivo `.env` local está
+ignorado por Git y no se carga automáticamente; las instrucciones `set -a` y
+`. ./.env` lo exportan de forma explícita en la terminal actual. En cPanel se
+deben definir las variables de producción en el entorno del sitio.
 
 En otra terminal, `npm run dev` observa cambios en CSS y JavaScript. PHP se recarga al actualizar el navegador. Tras cambiar fuentes o dependencias, reinicia el observador. Usa `npm run build` antes de subir los archivos: compila y minimiza Tailwind, empaqueta los ES Modules/Swiper y copia fuentes y licencias a `public/assets/`.
 
@@ -77,7 +86,7 @@ CHROME_PATH=/ruta/al/chrome npm run test:browser
 
 Las pruebas de navegador usan por defecto `/opt/google/chrome/chrome`. Las capturas quedan en `tests/artifacts/` (ignoradas por Git). No es necesario instalar un navegador adicional si Chrome está disponible.
 
-Consulta [resultados ejecutados](docs/qa.md), [arquitectura](docs/architecture.md), [sistema de diseño](docs/design-system.md), [despliegue cPanel](docs/deployment-cpanel.md), [roadmap](docs/roadmap.md) y [procedencia de assets](docs/assets.md).
+Consulta [resultados ejecutados](docs/qa.md), [diseño y maqueta visual](docs/design-system.md), [arquitectura](docs/architecture.md), [despliegue cPanel](docs/deployment-cpanel.md), [roadmap](docs/roadmap.md) y [procedencia de assets](docs/assets.md).
 
 ## Revisión para aprobar el diseño
 

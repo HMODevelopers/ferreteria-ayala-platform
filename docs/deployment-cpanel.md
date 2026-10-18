@@ -23,11 +23,33 @@ Los assets compilados están en `public/assets/`. Conservar fuentes, fotografía
 3. Configurar dominio o subdominio para apuntar exactamente a `/home/USUARIO/ayala-platform/public`. Un subdominio sirve en `/`, no es instalación bajo `/ayala`.
 4. Confirmar que `.htaccess` fue transferido como archivo oculto y mod_rewrite funciona. `Options -Indexes -MultiViews` debe estar autorizado; si el proveedor lo prohíbe, pedir configuración equivalente, no quitar protección sin comprobar directorios.
 5. Permisos usuales: carpetas 755, archivos 644; solo `storage/logs` requiere escritura por PHP. No usar 777. Ajustar propietario/grupo según el handler PHP del hosting.
-6. Configurar APP_ENV=production en el hosting. El proyecto usa getenv; `.env.example` es documentación, no loader. No hay secretos ni credenciales en esta fase.
+6. Configurar las variables del entorno de producción en Apache/cPanel. El proyecto usa `getenv()`; `.env.example` documenta el contrato y no es un loader. `.env` debe permanecer fuera de Git y nunca debe quedar bajo el document root.
 7. Activar certificado TLS y redirección HTTPS desde el panel del hosting. No usar el servidor PHP integrado en producción.
 8. Verificar `/` (200), ruta inexistente (404), assets y rutas privadas. `/.env`, `/config/app.php`, `/app/Data/DemoHomeData.php` y `/storage/logs/app.log` no deben devolver contenido privado. `/router.php` debe estar denegado o no encontrado.
 9. Revisar logs privados, los diálogos, las imágenes y CSP. Probar en teléfono real.
 10. Antes de publicación comercial, aprobar contenido real, privacidad, SEO, logo y contactos. Mantener noindex para el prototipo; después definir canonical y Open Graph con dominio absoluto.
+
+## Variables de entorno
+
+Para la revisión previa a producción usar como mínimo:
+
+```dotenv
+APP_NAME="Ferretería Ayala"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://DOMINIO-CONFIRMADO
+APP_TIMEZONE=America/Hermosillo
+APP_LOCALE=es_MX
+APP_INDEXING=false
+SESSION_SECURE_COOKIE=true
+```
+
+Las variables `DB_*` y el resto de `SESSION_*` ya están descritas en
+`.env.example`, pero no se usarán hasta implementar y aprobar persistencia y
+autenticación. Las credenciales reales de MySQL se obtendrán en cPanel y no se
+copiarán a documentación, Git ni archivos públicos. `APP_INDEXING` debe seguir
+en `false` mientras el sitio sea un prototipo; su activación requerirá la
+revisión de SEO y contenido comercial.
 
 No se soporta hoy despliegue bajo subcarpeta URL (`/ayala`). Los assets y enlaces parten de `/`; si se necesita, implementar base path en helpers, navegación y router y probarlo antes de desplegar.
 

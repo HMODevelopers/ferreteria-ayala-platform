@@ -10,7 +10,7 @@ View acepta rutas internas limitadas, mantiene buffers limpios incluso ante erro
 
 El router del servidor PHP solo permite servir extensiones de assets bajo `public/assets`, comprobando el camino real. Las reglas Apache limitan archivos directos; la protección principal es el document root correcto. Nunca arrancar `php -S` desde la raíz sin `-t public public/router.php`.
 
-Las excepciones se registran en `storage/logs/app.log`; no se muestran trazas al visitante. La respuesta 500 es independiente de los datos comerciales. APP_ENV es configuración descriptiva: no activa depuración visible. No hay carga automática de `.env`, sesiones, API ni conexiones SQL.
+Las excepciones se registran en `storage/logs/app.log`; no se muestran trazas al visitante. La respuesta 500 es independiente de los datos comerciales. `APP_ENV` y `APP_DEBUG` son configuración descriptiva: no activan trazas visibles. La aplicación consume variables mediante `getenv()` y no carga `.env` automáticamente. Los contratos de base de datos y sesión están preparados en `config/`, pero todavía no abren conexiones ni inician sesiones.
 
 ## Responsabilidades
 

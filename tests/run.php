@@ -30,4 +30,12 @@ foreach ($data['products'] as $product) {
     check(is_file(dirname(__DIR__) . '/public/assets/images/' . $product['image']), 'Local product asset');
 }
 check(count(array_unique(array_column($data['products'], 'id'))) === count($data['products']), 'Unique product IDs');
+$envExample = (string) file_get_contents(dirname(__DIR__) . '/.env.example');
+foreach ([
+    'APP_NAME', 'APP_ENV', 'APP_DEBUG', 'APP_URL', 'APP_TIMEZONE', 'APP_LOCALE', 'APP_INDEXING',
+    'DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD', 'DB_CHARSET',
+    'SESSION_NAME', 'SESSION_LIFETIME', 'SESSION_SECURE_COOKIE', 'SESSION_SAME_SITE',
+] as $variable) {
+    check((bool) preg_match('/^' . preg_quote($variable, '/') . '=/m', $envExample), 'Documented environment variable: ' . $variable);
+}
 echo "PASS: {$checks} checks (routes, private paths, escaping, input, redirect, views, demo contracts).\n";
