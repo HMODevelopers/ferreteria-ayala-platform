@@ -13,8 +13,11 @@ Las decisiones funcionales están consolidadas en [requisitos](requirements.md) 
 ## Fase 3 · Persistencia y administración (M00 en validación)
 
 La infraestructura M00 de MySQL/PDO y migraciones está implementada y probada
-de forma aislada; falta validarla contra una base MariaDB exclusiva antes de
-cerrarla. Repositorios comerciales, usuarios, permisos, sesiones/CSRF,
+de forma aislada. Sus barreras de integración e integridad del historial fueron
+reforzadas; falta validarla contra una base MariaDB exclusiva antes de cerrarla.
+La conexión y tabla técnica verificadas previamente en desarrollo son solo un
+antecedente, no la integración final. Repositorios comerciales, usuarios,
+permisos, sesiones/CSRF,
 auditoría, productos, categorías, marcas, banners, promociones, eventos,
 sucursales, reseñas, páginas y configuración siguen sin implementarse.
 

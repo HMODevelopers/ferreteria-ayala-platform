@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 use App\Core\Persistence\Connection;
 use App\Core\Persistence\DatabaseConfig;
+use App\Core\Persistence\IntegrationTestSafety;
 use App\Core\Persistence\Migration;
 use App\Core\Persistence\MigrationCommand;
 use App\Core\Persistence\MigrationDiscovery;
 use App\Core\Persistence\MigrationRunner;
 use App\Core\Persistence\MigrationStateStore;
 use App\Core\Persistence\Migrator;
+use App\Core\Persistence\MySqlMigrationStore;
 use App\Core\Persistence\PersistenceException;
 
 function expectException(callable $operation, string $message, string $exception = Throwable::class): void {
@@ -53,6 +55,32 @@ final class TransactionTestPdo extends PDO {
 final class FailingTransactionPdo extends PDO {
     public function __construct() {}
     public function beginTransaction(): bool { throw new PDOException('secret driver detail'); }
+}
+
+final class MigrationStoreMetadataStatement extends PDOStatement {
+    public function __construct(private readonly MigrationStoreTestPdo $pdo) {}
+    public function execute(?array $params = null): bool { return true; }
+    public function fetchColumn(int $column = 0): mixed { return $this->pdo->tableExists ? 1 : 0; }
+}
+
+final class MigrationStoreTestPdo extends PDO {
+    public bool $tableExists = false;
+    public bool $raceOnCreate = false;
+    public int $creates = 0;
+    public function __construct() {}
+    public function prepare(string $query, array $options = []): PDOStatement|false {
+        return new MigrationStoreMetadataStatement($this);
+    }
+    public function exec(string $statement): int|false {
+        if ($this->raceOnCreate) {
+            $this->tableExists = true;
+            throw new PDOException('concurrent table creation');
+        }
+        if ($this->tableExists) throw new PDOException('table already exists');
+        $this->tableExists = true;
+        $this->creates++;
+        return 0;
+    }
 }
 
 final class FakeMigrationStore implements MigrationStateStore {
@@ -175,6 +203,102 @@ foreach ([
     );
 }
 
+IntegrationTestSafety::assertConfiguration('ferreteria_ayala_test', 'test_user');
+expectException(
+    static fn() => IntegrationTestSafety::assertConfiguration('ferreteria_ayala_dev', 'test_user'),
+    'Integration database must use the _test suffix',
+    PersistenceException::class,
+);
+expectException(
+    static fn() => IntegrationTestSafety::assertConfiguration('ferreteria_ayala_test', 'ROOT'),
+    'Administrative integration users are rejected',
+    PersistenceException::class,
+);
+IntegrationTestSafety::assertConnectionIdentity(
+    'ferreteria_ayala_test', 'test_user', 'ferreteria_ayala_test', 'test_user@192.168.1.%'
+);
+expectException(
+    static fn() => IntegrationTestSafety::assertConnectionIdentity(
+        'ferreteria_ayala_test', 'test_user', 'ferreteria_ayala_dev', 'test_user@192.168.1.%'
+    ),
+    'Unexpected selected integration database is rejected',
+    PersistenceException::class,
+);
+expectException(
+    static fn() => IntegrationTestSafety::assertConnectionIdentity(
+        'ferreteria_ayala_test', 'test_user', 'ferreteria_ayala_test', 'root@localhost'
+    ),
+    'Unexpected effective integration account is rejected',
+    PersistenceException::class,
+);
+IntegrationTestSafety::assertDatabaseIsEmpty([]);
+expectException(
+    static fn() => IntegrationTestSafety::assertDatabaseIsEmpty(['BASE TABLE:existing']),
+    'Non-empty integration database is rejected',
+    PersistenceException::class,
+);
+IntegrationTestSafety::assertIsolationPrivileges(
+    ['TRIGGER', 'SELECT', 'DROP', 'EXECUTE', 'CREATE', 'INSERT', 'EVENT', 'DELETE'],
+    ['USAGE'],
+    false,
+);
+foreach ([
+    [['SELECT', 'INSERT', 'DELETE', 'CREATE', 'DROP'], ['USAGE'], false],
+    [['SELECT', 'INSERT', 'DELETE', 'CREATE', 'DROP', 'TRIGGER', 'EVENT', 'EXECUTE'], ['SUPER'], false],
+    [['SELECT', 'INSERT', 'DELETE', 'CREATE', 'DROP', 'TRIGGER', 'EVENT', 'EXECUTE'], ['USAGE'], true],
+] as [$schemaPrivileges, $globalPrivileges, $grantable]) {
+    expectException(
+        static fn() => IntegrationTestSafety::assertIsolationPrivileges(
+            $schemaPrivileges, $globalPrivileges, $grantable
+        ),
+        'Insufficient or excessive integration privileges are rejected',
+        PersistenceException::class,
+    );
+}
+IntegrationTestSafety::assertCleanupIsSafe(
+    true,
+    ['BASE TABLE:schema_migrations'],
+    [['id' => '20261018000000_probe', 'name' => 'Owned probe']],
+    '20261018000000_probe',
+    'Owned probe',
+);
+foreach ([
+    [false, ['BASE TABLE:schema_migrations'], []],
+    [true, ['BASE TABLE:schema_migrations', 'VIEW:foreign_view'], []],
+    [true, ['BASE TABLE:schema_migrations'], [['id' => '20261018000001_foreign', 'name' => 'Foreign']]],
+] as [$owned, $objects, $records]) {
+    expectException(
+        static fn() => IntegrationTestSafety::assertCleanupIsSafe(
+            $owned, $objects, $records, '20261018000000_probe', 'Owned probe'
+        ),
+        'Unsafe integration cleanup is rejected',
+        PersistenceException::class,
+    );
+}
+
+$storePdo = new MigrationStoreTestPdo();
+$owningStore = new MySqlMigrationStore($storePdo);
+$owningStore->initialize();
+check(
+    $owningStore->wasInitializedByCurrentInstance() && $storePdo->creates === 1,
+    'Migration storage records atomic ownership after creation',
+);
+$observingStore = new MySqlMigrationStore($storePdo);
+$observingStore->initialize();
+check(
+    !$observingStore->wasInitializedByCurrentInstance() && $storePdo->creates === 1,
+    'Pre-existing migration storage is never claimed by another instance',
+);
+$racingPdo = new MigrationStoreTestPdo();
+$racingPdo->raceOnCreate = true;
+$racingStore = new MySqlMigrationStore($racingPdo);
+expectException(
+    static fn() => $racingStore->initialize(),
+    'Concurrent migration storage creation fails safely',
+    PersistenceException::class,
+);
+check(!$racingStore->wasInitializedByCurrentInstance(), 'Concurrent storage is never claimed by the losing process');
+
 $connections = 0;
 $captured = [];
 $connection = new Connection(
@@ -250,6 +374,79 @@ try {
         '<?php use App\\Core\\Persistence\\Migration; return new Migration("20261018000001_first", "Duplicate", static function (PDO $pdo): void {}, null);'
     );
     expectException(static fn() => (new MigrationDiscovery($directory))->all(), 'Duplicate or mismatched migration identifier rejected', PersistenceException::class);
+} finally {
+    removeMigrationDirectory($directory);
+}
+
+$directory = migrationDirectory();
+try {
+    writeMigration($directory, '20261018000001_first', 'First');
+    writeMigration($directory, '20261018000002_second', 'Second');
+
+    $inconsistentHistories = [
+        'missing migration file' => [
+            '20261017000000_missing' => [
+                'id' => '20261017000000_missing', 'name' => 'Missing', 'batch' => 1,
+                'applied_at' => '2026-10-18 00:00:00',
+            ],
+        ],
+        'changed migration name' => [
+            '20261018000001_first' => [
+                'id' => '20261018000001_first', 'name' => 'Changed', 'batch' => 1,
+                'applied_at' => '2026-10-18 00:00:00',
+            ],
+        ],
+        'inconsistent migration identifier' => [
+            '20261018000001_first' => [
+                'id' => '20261018000002_second', 'name' => 'First', 'batch' => 1,
+                'applied_at' => '2026-10-18 00:00:00',
+            ],
+        ],
+        'invalid batch sequence' => [
+            '20261018000001_first' => [
+                'id' => '20261018000001_first', 'name' => 'First', 'batch' => 2,
+                'applied_at' => '2026-10-18 00:00:00',
+            ],
+            '20261018000002_second' => [
+                'id' => '20261018000002_second', 'name' => 'Second', 'batch' => 1,
+                'applied_at' => '2026-10-18 00:00:00',
+            ],
+        ],
+        'unsafe pending order' => [
+            '20261018000002_second' => [
+                'id' => '20261018000002_second', 'name' => 'Second', 'batch' => 1,
+                'applied_at' => '2026-10-18 00:00:00',
+            ],
+        ],
+    ];
+
+    foreach ($inconsistentHistories as $description => $records) {
+        $store = new FakeMigrationStore();
+        $store->initialized = true;
+        $store->records = $records;
+        $migrator = new Migrator(
+            new MigrationDiscovery($directory), $store, new PersistenceTestPdo(), 'ayala_test_lock', 10
+        );
+        expectException(
+            static fn() => $migrator->migrate(),
+            'Migrate rejects ' . $description,
+            PersistenceException::class,
+        );
+        check($store->records === $records && $store->releases === 1, 'Invalid history remains unchanged');
+    }
+
+    $store = new FakeMigrationStore();
+    $store->initialized = true;
+    $store->records = $inconsistentHistories['changed migration name'];
+    $migrator = new Migrator(
+        new MigrationDiscovery($directory), $store, new PersistenceTestPdo(), 'ayala_test_lock', 10
+    );
+    expectException(
+        static fn() => $migrator->rollback(),
+        'Rollback rejects inconsistent migration history',
+        PersistenceException::class,
+    );
+    check($store->records === $inconsistentHistories['changed migration name'], 'Rollback preserves inconsistent history');
 } finally {
     removeMigrationDirectory($directory);
 }

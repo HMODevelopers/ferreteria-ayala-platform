@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 @import "swiper/css" layer(base);
 @import "swiper/css/pagination" layer(base);
 @source "../../app/Views";

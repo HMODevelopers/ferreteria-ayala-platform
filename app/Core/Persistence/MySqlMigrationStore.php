@@ -9,6 +9,7 @@ use Throwable;
 final class MySqlMigrationStore implements MigrationStateStore
 {
     private const TABLE = 'schema_migrations';
+    private bool $initializedByCurrentInstance = false;
 
     public function __construct(private readonly PDO $pdo)
     {
@@ -27,9 +28,13 @@ final class MySqlMigrationStore implements MigrationStateStore
 
     public function initialize(): void
     {
+        if ($this->isInitialized()) {
+            return;
+        }
+
         $this->safely(function (): void {
-            $this->pdo->exec(
-                'CREATE TABLE IF NOT EXISTS schema_migrations ('
+            $created = $this->pdo->exec(
+                'CREATE TABLE schema_migrations ('
                 . 'id VARCHAR(95) NOT NULL PRIMARY KEY,'
                 . 'name VARCHAR(190) NOT NULL,'
                 . 'batch INT UNSIGNED NOT NULL,'
@@ -37,7 +42,16 @@ final class MySqlMigrationStore implements MigrationStateStore
                 . 'INDEX schema_migrations_batch_id (batch, id)'
                 . ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
             );
+            if ($created === false) {
+                throw new PersistenceException('Unable to initialize migration storage.');
+            }
+            $this->initializedByCurrentInstance = true;
         }, 'Unable to initialize migration storage.');
+    }
+
+    public function wasInitializedByCurrentInstance(): bool
+    {
+        return $this->initializedByCurrentInstance;
     }
 
     public function applied(): array

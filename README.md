@@ -121,10 +121,18 @@ CHROME_PATH=/ruta/al/chrome npm run test:browser
 
 Las pruebas de navegador usan por defecto `/opt/google/chrome/chrome`. Las capturas quedan en `tests/artifacts/` (ignoradas por Git). No es necesario instalar un navegador adicional si Chrome está disponible.
 
-La integración exige `TEST_DB_*` explícitas, una base cuyo nombre termine en
-`_test` y que `schema_migrations` no exista previamente. Nunca reutiliza `DB_*`,
-no crea ni elimina bases y solo crea y retira su propia tabla técnica. Obtén
-autorización antes de ejecutarla contra un servidor compartido.
+La integración exige `TEST_DB_*` explícitas, una base vacía cuyo nombre termine
+en `_test` y una cuenta no administrativa limitada a esa base. Nunca reutiliza
+`DB_*` ni crea o elimina bases. Antes de escribir comprueba identidad efectiva,
+privilegios e inventario de tablas, vistas, triggers, eventos y rutinas. Solo
+retira `schema_migrations` si conserva la exclusión y puede demostrar que esa
+ejecución creó la tabla y que no contiene registros ajenos. Obtén autorización
+antes de ejecutarla contra un servidor compartido.
+
+La cuenta de integración debe tener únicamente `SELECT`, `INSERT`, `DELETE`,
+`CREATE`, `DROP`, `TRIGGER`, `EVENT` y `EXECUTE` sobre la base de pruebas, sin
+`GRANT OPTION` ni privilegios globales distintos de `USAGE`. Los tres permisos
+de metadatos permiten demostrar que no existen objetos ocultos antes de probar.
 
 Consulta [resultados ejecutados](docs/qa.md), [diseño y maqueta visual](docs/design-system.md), [arquitectura](docs/architecture.md), [catálogo de módulos](docs/modules.md), [requisitos funcionales](docs/requirements.md), [modelo de datos](docs/data-model.md), [despliegue cPanel](docs/deployment-cpanel.md), [roadmap](docs/roadmap.md) y [procedencia de assets](docs/assets.md).
 

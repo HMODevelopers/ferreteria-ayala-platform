@@ -32,6 +32,17 @@ DDL de MySQL/MariaDB puede causar commits implícitos, un fallo puede dejar un
 esquema parcial; el comando se detiene y exige inspección en vez de afirmar
 atomicidad. No existen comandos destructivos ni migraciones comerciales.
 
+Antes de avanzar, `migrate` y `rollback` validan que cada registro conserve su
+archivo, identificador, nombre y secuencia de lote, y rechazan migraciones
+pendientes anteriores al último identificador aplicado. La tabla técnica se
+crea de forma atómica sin usar `IF NOT EXISTS` como evidencia de propiedad.
+
+La integración real añade una exclusión propia, valida la identidad efectiva y
+los privilegios limitados de la cuenta, exige inventario vacío de tablas,
+vistas, triggers, eventos y rutinas, y conserva cualquier objeto si no puede
+demostrar que fue creado por la ejecución actual y que sigue siendo seguro
+retirarlo.
+
 ## Responsabilidades
 
 | Carpeta | Responsabilidad |
@@ -76,7 +87,7 @@ En esta fase el hero usa alineación izquierda y contraste oscuro; la administra
 - Usuarios, roles y permisos controlarán módulos administrativos; auditoría relacionará actor, acción, entidad y momento.
 - Configuración y páginas mantendrán contenido institucional y canales verificados.
 
-No existe todavía un esquema comercial aplicado. M00 solo permite la tabla técnica `schema_migrations`; su integración real sigue pendiente. El levantamiento funcional y las entidades propuestas están documentados en [requisitos](requirements.md) y [modelo de datos](data-model.md). Antes de cargar información real, el negocio debe entregar los catálogos y valores concretos de impuestos, unidades, límites de descuento, productos, precios, existencias y sucursales.
+No existe todavía un esquema comercial aplicado. M00 solo permite la tabla técnica `schema_migrations`; existe el antecedente de su inicialización en desarrollo, pero la integración real en la base exclusiva de pruebas sigue pendiente. El levantamiento funcional y las entidades propuestas están documentados en [requisitos](requirements.md) y [modelo de datos](data-model.md). Antes de cargar información real, el negocio debe entregar los catálogos y valores concretos de impuestos, unidades, límites de descuento, productos, precios, existencias y sucursales.
 
 ## Seguridad futura
 

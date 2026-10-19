@@ -58,6 +58,7 @@ final class Migrator implements MigrationRunner
             $migrations = $this->discovery->all();
             $this->store->initialize();
             $applied = $this->store->applied();
+            $this->assertHistoryIsConsistent($migrations, $applied);
             $pending = array_diff_key($migrations, $applied);
             if ($pending === []) {
                 return [];
@@ -91,10 +92,11 @@ final class Migrator implements MigrationRunner
             if ($applied === []) {
                 return [];
             }
+            $migrations = $this->discovery->all();
+            $this->assertHistoryIsConsistent($migrations, $applied);
             $latestBatch = max(array_column($applied, 'batch'));
             $records = array_filter($applied, static fn(array $record): bool => $record['batch'] === $latestBatch);
             krsort($records, SORT_STRING);
-            $migrations = $this->discovery->all();
 
             foreach ($records as $id => $record) {
                 if (!isset($migrations[$id])) {
@@ -152,5 +154,55 @@ final class Migrator implements MigrationRunner
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<string, Migration> $migrations
+     * @param array<string, array{id: string, name: string, batch: int, applied_at: string}> $applied
+     */
+    private function assertHistoryIsConsistent(array $migrations, array $applied): void
+    {
+        ksort($applied, SORT_STRING);
+        $previousBatch = 0;
+        $latestAppliedId = null;
+
+        foreach ($applied as $key => $record) {
+            if (
+                !is_string($key)
+                || !isset($record['id'], $record['name'], $record['batch'], $record['applied_at'])
+                || !is_string($record['id'])
+                || !hash_equals($key, $record['id'])
+                || !is_string($record['name'])
+                || !is_int($record['batch'])
+                || $record['batch'] < 1
+                || !is_string($record['applied_at'])
+                || $record['applied_at'] === ''
+            ) {
+                throw new PersistenceException('Migration history is inconsistent and must be inspected before continuing.');
+            }
+            if (!isset($migrations[$key])) {
+                throw new PersistenceException('Migration history references a file that is no longer available.');
+            }
+            if (!hash_equals($migrations[$key]->name, $record['name'])) {
+                throw new PersistenceException('Migration history does not match the current migration definition.');
+            }
+            if ($record['batch'] < $previousBatch) {
+                throw new PersistenceException('Migration history contains an invalid batch sequence.');
+            }
+
+            $previousBatch = $record['batch'];
+            $latestAppliedId = $key;
+        }
+
+        if ($latestAppliedId !== null) {
+            foreach ($migrations as $id => $migration) {
+                if ($id >= $latestAppliedId) {
+                    break;
+                }
+                if (!isset($applied[$id])) {
+                    throw new PersistenceException('Migration history contains an unsafe pending migration order.');
+                }
+            }
+        }
     }
 }

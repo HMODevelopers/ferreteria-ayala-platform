@@ -1,13 +1,14 @@
 # Verificación de la plataforma
 
-Fecha de última ejecución: 18 de octubre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0 y PHP CLI 8.5.4. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO está habilitado, pero este entorno no tiene ningún controlador PDO ni `pdo_mysql`.
+Fecha de última ejecución: 19 de octubre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0 y PHP CLI 8.5.4. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO y el controlador `pdo_mysql` están disponibles en el PHP CLI de este entorno.
 
 ## Ejecutado
 
 - Sintaxis de todos los PHP: sin errores.
-- Pruebas PHP `tests/run.php`: **118 comprobaciones** correctas. Conservan las comprobaciones públicas y añaden carga/validación de configuración PDO, conexión diferida, transacciones, opciones seguras, ausencia del driver, descubrimiento, orden, lotes, doble aplicación, rollback, fallos parciales, bloqueos y CLI.
+- Pruebas PHP `tests/run.php`: **145 comprobaciones** correctas. Conservan las comprobaciones públicas y cubren configuración PDO, conexión diferida, transacciones, opciones seguras, ausencia del driver, descubrimiento, orden, lotes, doble aplicación, rollback, fallos parciales, bloqueos, CLI, integridad del historial y las barreras de seguridad de la integración.
 - `npm run dev`: observación iniciada correctamente y detenida después de comprobar el modo desarrollo.
 - `npm run build`: Tailwind 4.3.3 y esbuild correctos; assets locales minificados y fuentes/licencias copiadas.
+- Dos compilaciones consecutivas produjeron assets idénticos. Tailwind usa fuentes explícitas de vistas y JavaScript para impedir que clases incidentales de PHP técnico alteren el CSS.
 - Instalación/auditoría npm: **0 vulnerabilidades reportadas** después del override de `@parcel/watcher` a 2.6.x. Tailwind CLI fijaba 2.5.1 vulnerable; override limitado a herramienta de observación local.
 - Navegador a 360, 390, 768, 1024 y 1440px: sin overflow horizontal; todas las imágenes cargadas. Capturas completas y de viewport en tests/artifacts (ignoradas por Git).
 - Flechas/indicadores del hero con áreas táctiles mínimas de 44×44px, filtro por categoría, búsqueda, estado vacío y reset: correctos.
@@ -20,7 +21,9 @@ Fecha de última ejecución: 18 de octubre de 2026. Entorno: Ubuntu, Node 22.22.
 
 ## Pendiente / límite del alcance
 
-La integración `npm run test:mysql` no se ejecutó: falta `pdo_mysql` y no se ha autorizado modificar una base MariaDB de pruebas. M00 no está completo hasta que esa prueba pase. No se ha probado Docker/minilab, Apache/cPanel real, FTP, TLS, instalación en subdominio, iOS Safari, Android real ni lectores de pantalla. No se confirma stock, precios ni ningún flujo administrativo porque no existen en esta fase.
+La integración `npm run test:mysql` no se ejecutó porque no se ha autorizado modificar una base MariaDB de pruebas. La prueba ahora exige una base vacía terminada en `_test`, una cuenta no administrativa con privilegios exactos, identidad efectiva verificable, inventario visible de tablas, vistas, triggers, eventos y rutinas, exclusión durante el ciclo y propiedad demostrable antes de limpiar `schema_migrations`.
+
+Como antecedente informado, antes de esta tarea se verificó la conexión de la aplicación al minilab MariaDB y se inicializó `schema_migrations` en la base de desarrollo. Esa operación no se repitió aquí y no sustituye la integración en `ferreteria_ayala_test`. M00 no está completo hasta que dicha integración pase. Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio, iOS Safari, Android real ni lectores de pantalla. No se confirma stock, precios ni ningún flujo administrativo porque no existen en esta fase.
 
 ## Revisión de aprobación
 

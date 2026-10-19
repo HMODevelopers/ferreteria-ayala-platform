@@ -2,9 +2,11 @@
 
 Estado: **diseño funcional levantado** el 17 de octubre de 2026. La Home está
 aprobada y el alcance se detalla en [requisitos funcionales](requirements.md).
-M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. No se han
-aplicado migraciones a una base real y la integración MariaDB permanece
-pendiente de un entorno de pruebas autorizado.
+M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. Como
+antecedente informado, la conexión al minilab y la inicialización de la tabla
+técnica `schema_migrations` se verificaron previamente en desarrollo; no se
+repitieron en la corrección actual. La integración completa en una base de
+pruebas exclusiva y autorizada permanece pendiente.
 
 ## Reglas de persistencia
 
