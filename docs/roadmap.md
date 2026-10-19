@@ -10,9 +10,13 @@ Confirmar logo y manual, fotografías autorizadas, contactos, redes, privacidad,
 
 Las decisiones funcionales están consolidadas en [requisitos](requirements.md) y el diseño de persistencia en [modelo de datos](data-model.md). Permanecen pendientes los archivos y valores reales que debe entregar el negocio.
 
-## Fase 3 · Persistencia y administración
+## Fase 3 · Persistencia y administración (M00 en validación)
 
-MySQL/PDO, repositorios, migraciones, usuarios, permisos, sesiones/CSRF y auditoría. Implementar por módulos: productos, categorías, marcas, banners, promociones, eventos, sucursales, reseñas, páginas y configuración. Nada de esta fase está implementado hoy.
+La infraestructura M00 de MySQL/PDO y migraciones está implementada y probada
+de forma aislada; falta validarla contra una base MariaDB exclusiva antes de
+cerrarla. Repositorios comerciales, usuarios, permisos, sesiones/CSRF,
+auditoría, productos, categorías, marcas, banners, promociones, eventos,
+sucursales, reseñas, páginas y configuración siguen sin implementarse.
 
 ## Fase 4 · Cotizaciones e inventario
 

@@ -7,6 +7,7 @@
     "build": "node scripts/build.mjs",
     "serve": "php -S 127.0.0.1:8080 -t public public/router.php",
     "test": "php tests/run.php",
+    "test:mysql": "php tests/mysql-integration.php",
     "test:browser": "node tests/browser.mjs"
   },
   "devDependencies": {

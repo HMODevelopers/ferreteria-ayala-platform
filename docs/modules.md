@@ -4,8 +4,9 @@ Este archivo es el índice para solicitar trabajo a Codex. Los identificadores
 son estables: una tarea debe mencionar el módulo, sus fuentes y el incremento
 concreto que se desea implementar.
 
-Estado general al 17 de octubre de 2026: la Home demostrativa está aprobada;
-los módulos persistentes permanecen **planificados**, no implementados.
+Estado general al 18 de octubre de 2026: la Home demostrativa está aprobada.
+M00 tiene implementación y pruebas aisladas, pero permanece **pendiente de
+integración MariaDB real**; M01–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -30,7 +31,9 @@ los módulos persistentes permanecen **planificados**, no implementados.
 ### M00 · Persistencia
 
 Incluye conexión PDO, registro/ejecutor de migraciones, transacciones, errores
-seguros y pruebas. No incluye tablas comerciales ni autenticación.
+seguros y pruebas. La implementación local existe, pero M00 no se considera
+completo hasta ejecutar satisfactoriamente la integración en una base exclusiva
+autorizada. No incluye tablas comerciales ni autenticación.
 
 ### M01 · Sucursales y módulos
 

@@ -2,7 +2,9 @@
 
 Estado: **diseño funcional levantado** el 17 de octubre de 2026. La Home está
 aprobada y el alcance se detalla en [requisitos funcionales](requirements.md).
-Todavía no existe conexión PDO ni se han aplicado migraciones.
+M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. No se han
+aplicado migraciones a una base real y la integración MariaDB permanece
+pendiente de un entorno de pruebas autorizado.
 
 ## Reglas de persistencia
 
@@ -16,6 +18,8 @@ Todavía no existe conexión PDO ni se han aplicado migraciones.
 - Las vistas reciben arrays explícitos. Repositorios y servicios concentran
   consultas y reglas comerciales.
 - Los registros demo actuales no serán semillas de producción.
+- La infraestructura usa únicamente `schema_migrations` para identificador,
+  nombre, lote y fecha de aplicación. No existen todavía tablas comerciales.
 
 ## Áreas y tablas previstas
 
@@ -154,7 +158,8 @@ Administrador de la página es el perfil operativo que publica contenido.
 
 ## Orden de migraciones
 
-1. Control de migraciones y conexión PDO.
+1. Control de migraciones y conexión PDO (implementación aislada en M00;
+   integración real pendiente).
 2. Módulos, sucursales y configuración base.
 3. Usuarios, roles, permisos, sesiones y auditoría.
 4. Categorías, marcas, unidades, atributos, productos, variantes y medios.

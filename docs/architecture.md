@@ -10,19 +10,41 @@ View acepta rutas internas limitadas, mantiene buffers limpios incluso ante erro
 
 El router del servidor PHP solo permite servir extensiones de assets bajo `public/assets`, comprobando el camino real. Las reglas Apache limitan archivos directos; la protección principal es el document root correcto. Nunca arrancar `php -S` desde la raíz sin `-t public public/router.php`.
 
-Las excepciones se registran en `storage/logs/app.log`; no se muestran trazas al visitante. La respuesta 500 es independiente de los datos comerciales. `APP_ENV` y `APP_DEBUG` son configuración descriptiva: no activan trazas visibles. La aplicación consume variables mediante `getenv()` y no carga `.env` automáticamente. Los contratos de base de datos y sesión están preparados en `config/`, pero todavía no abren conexiones ni inician sesiones.
+Las excepciones HTTP se registran en `storage/logs/app.log`; no se muestran trazas al visitante. La respuesta 500 es independiente de los datos comerciales. `APP_ENV` y `APP_DEBUG` son configuración descriptiva: no activan trazas visibles. La aplicación consume variables mediante `getenv()` y no carga `.env` automáticamente. El contrato de sesión permanece preparado pero no inicia sesiones.
+
+## Persistencia M00
+
+`DatabaseConfig` valida el resultado de `config/database.php`; `Connection`
+comprueba `pdo_mysql` y crea una única instancia PDO solo al llamar `pdo()`.
+La Home no construye estas clases y continúa con `DemoHomeData`. Las opciones
+obligatorias activan excepciones, desactivan consultas preparadas emuladas y
+devuelven arrays asociativos; el DSN usa `utf8mb4` y un timeout acotado.
+
+`MigrationDiscovery` carga definiciones privadas desde `database/migrations/`
+en orden determinista. `Migrator` compara esas definiciones con
+`schema_migrations`, asigna lotes y serializa `migrate`/`rollback` mediante un
+bloqueo asesor ligado a la misma conexión. El índice primario sigue siendo la
+protección final contra registros duplicados. El bloqueo se libera aun cuando
+la operación falla.
+
+El registro ocurre después de `up()` y se elimina después de `down()`. Como el
+DDL de MySQL/MariaDB puede causar commits implícitos, un fallo puede dejar un
+esquema parcial; el comando se detiene y exige inspección en vez de afirmar
+atomicidad. No existen comandos destructivos ni migraciones comerciales.
 
 ## Responsabilidades
 
 | Carpeta | Responsabilidad |
 | --- | --- |
-| Core | HTTP, rutas, renderizado, escape |
+| Core | HTTP, rutas, renderizado, escape y persistencia técnica |
 | Controllers | Coordinación de petición y proveedor de contenido |
 | Data | Datos y contratos de demostración |
 | Views | Composición semántica y componentes con datos explícitos |
 | resources | Fuentes CSS/JS compilables |
 | public | Front controller y assets distribuibles |
 | storage | Logs privados, no contenido público |
+| database/migrations | Definiciones privadas de migración |
+| bin | Entradas CLI privadas |
 
 Solo se crean carpetas nuevas cuando una fase real las necesita. Un proveedor de contenido de MySQL podrá reemplazar DemoHomeData conservando los contratos; extraer una interfaz de repositorio al incorporar ese segundo proveedor, no antes. Services atenderá operaciones comerciales; Models/Repositories encapsulará persistencia PDO; Middleware añadirá controles al existir rutas protegidas.
 
@@ -54,7 +76,7 @@ En esta fase el hero usa alineación izquierda y contraste oscuro; la administra
 - Usuarios, roles y permisos controlarán módulos administrativos; auditoría relacionará actor, acción, entidad y momento.
 - Configuración y páginas mantendrán contenido institucional y canales verificados.
 
-No existe todavía un esquema SQL aplicado. El levantamiento funcional y las entidades propuestas están documentados en [requisitos](requirements.md) y [modelo de datos](data-model.md). Antes de cargar información real, el negocio debe entregar los catálogos y valores concretos de impuestos, unidades, límites de descuento, productos, precios, existencias y sucursales.
+No existe todavía un esquema comercial aplicado. M00 solo permite la tabla técnica `schema_migrations`; su integración real sigue pendiente. El levantamiento funcional y las entidades propuestas están documentados en [requisitos](requirements.md) y [modelo de datos](data-model.md). Antes de cargar información real, el negocio debe entregar los catálogos y valores concretos de impuestos, unidades, límites de descuento, productos, precios, existencias y sucursales.
 
 ## Seguridad futura
 

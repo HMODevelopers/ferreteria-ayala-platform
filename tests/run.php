@@ -13,7 +13,7 @@ check($router->dispatch(new Request('GET', '/'))->status === 200, 'Home response
 check($router->dispatch(new Request('HEAD', '/'))->status === 200, 'HEAD route');
 check($router->dispatch(new Request('POST', '/'))->status === 405, 'Method rejected');
 check($router->dispatch(new Request('GET', '/missing'))->status === 404, '404 response');
-foreach (['/.env', '/app/Core/Router.php', '/config/app.php', '/storage/logs/app.log'] as $path) check($router->dispatch(new Request('GET', $path))->status === 404, 'Private path: ' . $path);
+foreach (['/.env', '/app/Core/Router.php', '/config/app.php', '/storage/logs/app.log', '/bin/migrations.php', '/database/migrations/'] as $path) check($router->dispatch(new Request('GET', $path))->status === 404, 'Private path: ' . $path);
 check(e('<script>"&') === '&lt;script&gt;&quot;&amp;', 'Escape dynamic HTML');
 check((new Request('GET', '/', ['q' => ['bad']]))->query('q', 'default') === 'default', 'Array input rejected');
 check(Response::redirect('/#productos')->status === 303, 'Local redirect');
@@ -34,8 +34,11 @@ $envExample = (string) file_get_contents(dirname(__DIR__) . '/.env.example');
 foreach ([
     'APP_NAME', 'APP_ENV', 'APP_DEBUG', 'APP_URL', 'APP_TIMEZONE', 'APP_LOCALE', 'APP_INDEXING',
     'DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD', 'DB_CHARSET',
+    'DB_CONNECT_TIMEOUT', 'DB_MIGRATION_LOCK_TIMEOUT',
+    'TEST_DB_HOST', 'TEST_DB_PORT', 'TEST_DB_DATABASE', 'TEST_DB_USERNAME', 'TEST_DB_PASSWORD', 'TEST_DB_CHARSET',
     'SESSION_NAME', 'SESSION_LIFETIME', 'SESSION_SECURE_COOKIE', 'SESSION_SAME_SITE',
 ] as $variable) {
     check((bool) preg_match('/^' . preg_quote($variable, '/') . '=/m', $envExample), 'Documented environment variable: ' . $variable);
 }
+require __DIR__ . '/persistence.php';
 echo "PASS: {$checks} checks (routes, private paths, escaping, input, redirect, views, demo contracts).\n";

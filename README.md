@@ -4,7 +4,8 @@ Primera etapa: una Home comercial en PHP puro, con arquitectura MVC mínima y as
 
 ## Requisitos
 
-- PHP **8.2+**, extensión estándar `filter` y funciones estándar de PHP. Esta fase no requiere PDO ni MySQL; las siguientes usarán `pdo_mysql`.
+- PHP **8.2+**, extensiones estándar `filter` y `PDO`; `pdo_mysql` es obligatorio para usar la persistencia y los comandos de migración.
+- MariaDB 10.11 o MySQL compatible, con una base y un usuario de privilegios mínimos creados fuera de la aplicación.
 - Node.js 22+ y npm para compilar en desarrollo.
 - Apache 2.4, `mod_rewrite`, permiso `AllowOverride` y document root en `public/` para producción.
 - Chrome para las pruebas opcionales de navegador.
@@ -28,6 +29,35 @@ ignorado por Git y no se carga automáticamente; las instrucciones `set -a` y
 `. ./.env` lo exportan de forma explícita en la terminal actual. En cPanel se
 deben definir las variables de producción en el entorno del sitio.
 
+## Persistencia y migraciones
+
+La Home no solicita una conexión y continúa usando `DemoHomeData`. PDO se crea
+de forma diferida únicamente cuando un consumidor de persistencia lo solicita.
+Configura `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`,
+`DB_CHARSET=utf8mb4`, `DB_CONNECT_TIMEOUT` y `DB_MIGRATION_LOCK_TIMEOUT` en el
+entorno del proceso. No uses una cuenta `root` ni compartas usuarios entre
+desarrollo, pruebas y producción.
+
+Después de exportar las variables, los comandos privados son:
+
+```bash
+php bin/migrations.php status
+php bin/migrations.php migrate
+php bin/migrations.php rollback
+```
+
+`migrate` aplica pendientes en un lote nuevo; `rollback` revierte únicamente el
+último lote y se niega a comenzar si alguna migración de ese lote no tiene
+reversión. Fuera de `development` y `testing`, las dos operaciones exigen
+`--force`. MySQL/MariaDB puede confirmar DDL implícitamente: ante un error se
+debe inspeccionar el esquema antes de reintentar; el sistema no promete una
+reversión atómica de DDL.
+
+Los archivos privados de migración viven en `database/migrations/`, se nombran
+`YYYYMMDDHHMMSS_nombre_descriptivo.php` y devuelven una instancia de
+`App\Core\Persistence\Migration`. M00 no incluye migraciones comerciales; su
+única tabla técnica es `schema_migrations`.
+
 En otra terminal, `npm run dev` observa cambios en CSS y JavaScript. PHP se recarga al actualizar el navegador. Tras cambiar fuentes o dependencias, reinicia el observador. Usa `npm run build` antes de subir los archivos: compila y minimiza Tailwind, empaqueta los ES Modules/Swiper y copia fuentes y licencias a `public/assets/`.
 
 Los assets compilados se incluyen en Git para poder desplegar por FTP sin npm. Nunca uses el servidor integrado PHP en producción.
@@ -36,7 +66,7 @@ Los assets compilados se incluyen en Git para poder desplegar por FTP sin npm. N
 
 ```text
 app/
-  Core/                   Router, Request, Response, Controller, View y helpers
+  Core/                   HTTP, vistas y núcleo de persistencia PDO
   Controllers/Public/     HomeController
   Data/                   DemoHomeData: todos los contratos y ejemplos comerciales
   Views/
@@ -45,7 +75,9 @@ app/
     public/               Composición de la Home
     errors/               404/405 y 500
 bootstrap/                Autoload equivalente PSR-4 y arranque
+bin/                      Comandos CLI privados
 config/                   Configuración y registro de rutas
+database/migrations/      Migraciones privadas ordenadas por identificador
 resources/                CSS Tailwind y JavaScript fuente
 public/                   Único document root; front controller y assets compilados
 scripts/                  Build local
@@ -64,13 +96,14 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
 - Agregar materiales, ajustar cantidades de 1 a 999, quitar y descargar un TXT.
 - Categorías, productos, marcas, banners secundarios, sección editorial, eventos, testimonios y cuatro sucursales.
 - Contenido PHP visible sin JavaScript, imágenes locales responsive, fuentes locales, CSP y escape de salida.
+- Conexión PDO diferida y migraciones CLI con lotes, rollback y bloqueo asesor.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
 
 El logo es **tipográfico provisional**. Los productos usan SVG de referencia creados para el prototipo, sin marca ni especificaciones comerciales confirmadas. No hay precios ni stock real. Fotografías de stock no representan instalaciones de Ayala. Campañas, eventos y testimonios están marcados como demo. Las sucursales conocidas tienen direcciones, teléfonos, horarios y fotos pendientes de confirmar. No hay redes ni enlaces de contacto inventados.
 
-La lista solo vive en memoria en la pestaña y se pierde al recargar. Descargarla no equivale a solicitar una cotización. No recopila datos personales ni envía peticiones comerciales. No hay login, CRUD, MySQL, pagos ni administrador.
+La lista solo vive en memoria en la pestaña y se pierde al recargar. Descargarla no equivale a solicitar una cotización. No recopila datos personales ni envía peticiones comerciales. La Home no consulta MySQL; no hay login, CRUD comercial, pagos ni administrador.
 
 El prototipo usa `noindex, nofollow`; el dominio, URL absoluta Open Graph, SEO definitivo y aviso de privacidad se completarán antes de publicar.
 
@@ -80,11 +113,18 @@ El prototipo usa `noindex, nofollow`; el dominio, URL absoluta Open Graph, SEO d
 npm test
 find app bootstrap config public tests -name '*.php' -exec php -l {} \;
 npm run build
+# Solo con una base exclusiva autorizada y APP_ENV=testing:
+npm run test:mysql
 # Con el servidor iniciado y Chrome instalado:
 CHROME_PATH=/ruta/al/chrome npm run test:browser
 ```
 
 Las pruebas de navegador usan por defecto `/opt/google/chrome/chrome`. Las capturas quedan en `tests/artifacts/` (ignoradas por Git). No es necesario instalar un navegador adicional si Chrome está disponible.
+
+La integración exige `TEST_DB_*` explícitas, una base cuyo nombre termine en
+`_test` y que `schema_migrations` no exista previamente. Nunca reutiliza `DB_*`,
+no crea ni elimina bases y solo crea y retira su propia tabla técnica. Obtén
+autorización antes de ejecutarla contra un servidor compartido.
 
 Consulta [resultados ejecutados](docs/qa.md), [diseño y maqueta visual](docs/design-system.md), [arquitectura](docs/architecture.md), [catálogo de módulos](docs/modules.md), [requisitos funcionales](docs/requirements.md), [modelo de datos](docs/data-model.md), [despliegue cPanel](docs/deployment-cpanel.md), [roadmap](docs/roadmap.md) y [procedencia de assets](docs/assets.md).
 
