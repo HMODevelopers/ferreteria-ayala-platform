@@ -48,6 +48,12 @@ Las restricciones SQL protegen cada fila, claves, duplicados e integridad
 referencial; las reglas que comparan varias filas viven además en el dominio y
 deberán ejecutarse bajo una escritura transaccional en M01.4.
 
+M01.3 agrega `services` y `branch_services` mediante dos definiciones ordenadas.
+La clave compuesta impide repetir un servicio en una sucursal, las referencias
+usan `RESTRICT` y ambos estados nacen deshabilitados. Los rollbacks conservan el
+patrón de negarse a eliminar tablas con registros. No se añadieron repositorios:
+la conexión sigue siendo diferida y M01.4 incorporará consumidores PDO reales.
+
 La integración real añade una exclusión propia, valida la identidad efectiva y
 los privilegios limitados de la cuenta, exige inventario vacío de tablas,
 vistas, triggers, eventos y rutinas, y conserva cualquier objeto si no puede
@@ -87,6 +93,13 @@ anterior; si no existe excepción, sí se evalúa el intervalo nocturno originad
 el día previo. Un intervalo especial nocturno continúa al día siguiente salvo
 que ese siguiente día tenga su propia excepción.
 
+M01.3 añade `Domain/Services`. `Service` normaliza y valida el catálogo sin
+persistirlo; `BranchServiceConfiguration` valida identificadores, habilitación y
+orden con desempate estable; `ServiceAvailability` exige servicio activo,
+sucursal activa y relación habilitada. Esta regla no consulta ni combina el
+calendario de M01.2. Los identificadores numéricos permiten relacionar medios en
+M11 sin acoplar ahora el dominio a almacenamiento de archivos.
+
 ## Contratos actuales
 
 Todos se devuelven desde `DemoHomeData::all()`. Identificadores únicos y slugs estables. Vistas de contenido comercial reciben arrays; no conectan a SQL. Campos `null` indican datos no confirmados y deben tener presentación honesta.
@@ -116,7 +129,7 @@ En esta fase el hero usa alineación izquierda y contraste oscuro; la administra
 - Configuración y páginas mantendrán contenido institucional y canales verificados.
 
 No existe todavía un esquema comercial aplicado. M00 solo ha permitido la tabla
-técnica `schema_migrations`; M01.1 y M01.2 aportan archivos locales pendientes de
+técnica `schema_migrations`; M01.1, M01.2 y M01.3 aportan archivos locales pendientes de
 integración real en una base exclusiva de pruebas. Existe el antecedente de la
 inicialización técnica en desarrollo, que no cierra M00. El levantamiento
 funcional y las entidades propuestas están documentados en

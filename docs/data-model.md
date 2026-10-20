@@ -4,7 +4,8 @@ Estado: **diseño funcional levantado** el 17 de octubre de 2026. La Home está
 aprobada y el alcance se detalla en [requisitos funcionales](requirements.md).
 M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. M01.1
 define localmente las migraciones de `branches`, `modules` y `branch_modules`.
-M01.2 añade las definiciones de horarios regulares y excepcionales, pero
+M01.2 añade las definiciones de horarios regulares y excepcionales. M01.3
+incorpora el catálogo de servicios comerciales y su asociación por sucursal, pero
 ninguna tabla comercial se ha aplicado a MariaDB/MySQL. Como
 antecedente informado, la conexión al minilab y la inicialización de la tabla
 técnica `schema_migrations` se verificaron previamente en desarrollo; no se
@@ -48,6 +49,14 @@ pruebas exclusiva y autorizada permanece pendiente.
   `interval_order=0`); una apertura usa uno o más intervalos explícitos. La
   excepción de una fecha reemplaza el horario regular y cualquier arrastre del
   día previo durante ese día civil.
+- `services` (**M01.3 definido, no aplicado**): código técnico estable,
+  normalizado y único; nombre, descripción opcional, estado inactivo por defecto
+  y fechas técnicas. No contiene contacto, archivos ni datos específicos de una
+  sucursal.
+- `branch_services` (**M01.3 definido, no aplicado**): relación muchos-a-muchos
+  con clave primaria compuesta, referencias restrictivas, estado deshabilitado
+  por defecto y orden de presentación. El orden admite empates y se resuelve por
+  `display_order` y `service_id`; la ausencia de relación equivale a no disponible.
 - `users`, `roles`, `permissions`, `user_roles`, `role_permissions`,
   `user_branches`: acceso por acción y sucursal.
 - `user_sessions`, `password_reset_tokens`: sesiones y recuperación.
@@ -211,6 +220,14 @@ mezcla de cierre/apertura excepcional. Un `CHECK` no puede proteger reglas
 entre varias filas: M01.4 deberá leer y bloquear el calendario afectado dentro
 de la escritura para revalidar solapamientos y evitar mezclar un cierre con
 intervalos abiertos bajo concurrencia.
+
+M01.3 mantiene servicios comerciales separados de `modules` y de los horarios.
+Un servicio solo está disponible cuando servicio, sucursal y relación existen y
+los tres estados correspondientes están activos/habilitados; estar disponible
+no significa que la sucursal esté abierta. `services.id` y `branches.id` son los
+identificadores estables que permitirán a M11 agregar relaciones de medios sin
+guardar binarios, rutas improvisadas o tablas de medios en este incremento. Las
+consultas PDO y escrituras de estas entidades permanecen reservadas para M01.4.
 
 ## Insumos pendientes del negocio
 

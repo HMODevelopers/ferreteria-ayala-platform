@@ -43,4 +43,5 @@ foreach ([
 require __DIR__ . '/persistence.php';
 require __DIR__ . '/m01-branches-modules.php';
 require __DIR__ . '/m01-branch-hours.php';
-echo "PASS: {$checks} checks (public app, M00 persistence, M01.1 branches/modules, M01.2 branch hours).\n";
+require __DIR__ . '/m01-branch-services.php';
+echo "PASS: {$checks} checks (public app, M00 persistence, M01.1 branches/modules, M01.2 branch hours, M01.3 branch services).\n";

@@ -57,9 +57,10 @@ Los archivos privados de migración viven en `database/migrations/`, se nombran
 `YYYYMMDDHHMMSS_nombre_descriptivo.php` y devuelven una instancia de
 `App\Core\Persistence\Migration`. M00 administra la tabla técnica
 `schema_migrations`. M01.1 define `branches`, `modules` y `branch_modules`;
-M01.2 añade `branch_hours` y `branch_special_hours`. Son definiciones locales
-que no se han aplicado a una base real. Sus rollbacks rechazan tablas con
-registros antes de ejecutar un `DROP TABLE`.
+M01.2 añade `branch_hours` y `branch_special_hours`; M01.3 incorpora el catálogo
+`services` y su configuración `branch_services`. Son definiciones locales que
+no se han aplicado a una base real. Sus rollbacks rechazan tablas con registros
+antes de ejecutar un `DROP TABLE`.
 
 En otra terminal, `npm run dev` observa cambios en CSS y JavaScript. PHP se recarga al actualizar el navegador. Tras cambiar fuentes o dependencias, reinicia el observador. Usa `npm run build` antes de subir los archivos: compila y minimiza Tailwind, empaqueta los ES Modules/Swiper y copia fuentes y licencias a `public/assets/`.
 
@@ -72,7 +73,7 @@ app/
   Core/                   HTTP, vistas y núcleo de persistencia PDO
   Controllers/Public/     HomeController
   Data/                   DemoHomeData: todos los contratos y ejemplos comerciales
-  Domain/                 Reglas y objetos mínimos de sucursales y módulos
+  Domain/                 Reglas y objetos mínimos de sucursales, módulos y servicios
   Views/
     layouts/              Layout público
     components/public/    Header, navegación, tarjetas, slider, diálogos y footer
@@ -104,6 +105,8 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
 - Esquema local M01.1 para sucursales y módulos, con validación de dominio y disponibilidad determinista.
 - Horarios regulares y excepcionales M01.2, incluidos intervalos divididos,
   cruces de medianoche, cierres por fecha y evaluación en `America/Hermosillo`.
+- Catálogo técnico M01.3 de servicios comerciales, configuración independiente
+  por sucursal, orden determinista y disponibilidad separada de módulos y horarios.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
@@ -141,11 +144,12 @@ La cuenta de integración debe tener únicamente `SELECT`, `INSERT`, `DELETE`,
 `GRANT OPTION` ni privilegios globales distintos de `USAGE`. Los tres permisos
 de metadatos permiten demostrar que no existen objetos ocultos antes de probar.
 
-Las pruebas aisladas cubren M00, M01.1 y M01.2, incluida la inspección del SQL
+Las pruebas aisladas cubren M00 y M01.1–M01.3, incluida la inspección del SQL
 mediante dobles de PDO. Esto no equivale a ejecutar las nuevas restricciones en
 MariaDB/MySQL; esa integración sigue pendiente y requiere autorización. M01.2
-valida solapamientos en el dominio; las escrituras concurrentes y las
-invariantes entre filas deberán reforzarse en los repositorios de M01.4.
+valida solapamientos en el dominio. M01.3 no crea repositorios ni medios: las
+escrituras concurrentes, consultas PDO y relaciones con el futuro sistema de
+medios deberán incorporarse en M01.4 y M11 según corresponda.
 
 Consulta [resultados ejecutados](docs/qa.md), [diseño y maqueta visual](docs/design-system.md), [arquitectura](docs/architecture.md), [catálogo de módulos](docs/modules.md), [requisitos funcionales](docs/requirements.md), [modelo de datos](docs/data-model.md), [despliegue cPanel](docs/deployment-cpanel.md), [roadmap](docs/roadmap.md) y [procedencia de assets](docs/assets.md).
 
