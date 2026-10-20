@@ -10,13 +10,21 @@ Confirmar logo y manual, fotografías autorizadas, contactos, redes, privacidad,
 
 Las decisiones funcionales están consolidadas en [requisitos](requirements.md) y el diseño de persistencia en [modelo de datos](data-model.md). Permanecen pendientes los archivos y valores reales que debe entregar el negocio.
 
-## Fase 3 · Persistencia y administración (M00 en validación)
+## Fase 3 · Persistencia y administración (M00 en validación, M01.1 aislado)
 
 La infraestructura M00 de MySQL/PDO y migraciones está implementada y probada
 de forma aislada. Sus barreras de integración e integridad del historial fueron
 reforzadas; falta validarla contra una base MariaDB exclusiva antes de cerrarla.
 La conexión y tabla técnica verificadas previamente en desarrollo son solo un
-antecedente, no la integración final. Repositorios comerciales, usuarios,
+antecedente, no la integración final.
+
+M01.1 define localmente el esquema de sucursales, catálogo de módulos y su
+configuración por sucursal, además de validaciones y una regla de disponibilidad
+sin persistencia. Sus pruebas aisladas pasan, pero las migraciones no se han
+ejecutado contra MariaDB/MySQL. No hay semillas ni módulos activados.
+
+M01.2 (horarios), M01.3 (servicios de sucursal) y M01.4 (repositorios y
+servicios de aplicación) permanecen pendientes. Repositorios comerciales, usuarios,
 permisos, sesiones/CSRF,
 auditoría, productos, categorías, marcas, banners, promociones, eventos,
 sucursales, reseñas, páginas y configuración siguen sin implementarse.

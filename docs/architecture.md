@@ -37,6 +37,11 @@ archivo, identificador, nombre y secuencia de lote, y rechazan migraciones
 pendientes anteriores al último identificador aplicado. La tabla técnica se
 crea de forma atómica sin usar `IF NOT EXISTS` como evidencia de propiedad.
 
+M01.1 reutiliza esta infraestructura con tres definiciones ordenadas para
+`branches`, `modules` y `branch_modules`. Sus cierres `down()` consultan si la
+tabla contiene registros y rechazan una eliminación con datos. Los archivos
+están preparados, no ejecutados contra un motor real.
+
 La integración real añade una exclusión propia, valida la identidad efectiva y
 los privilegios limitados de la cuenta, exige inventario vacío de tablas,
 vistas, triggers, eventos y rutinas, y conserva cualquier objeto si no puede
@@ -50,6 +55,7 @@ retirarlo.
 | Core | HTTP, rutas, renderizado, escape y persistencia técnica |
 | Controllers | Coordinación de petición y proveedor de contenido |
 | Data | Datos y contratos de demostración |
+| Domain | Objetos y reglas puras de negocio sin acceso a PDO |
 | Views | Composición semántica y componentes con datos explícitos |
 | resources | Fuentes CSS/JS compilables |
 | public | Front controller y assets distribuibles |
@@ -57,7 +63,13 @@ retirarlo.
 | database/migrations | Definiciones privadas de migración |
 | bin | Entradas CLI privadas |
 
-Solo se crean carpetas nuevas cuando una fase real las necesita. Un proveedor de contenido de MySQL podrá reemplazar DemoHomeData conservando los contratos; extraer una interfaz de repositorio al incorporar ese segundo proveedor, no antes. Services atenderá operaciones comerciales; Models/Repositories encapsulará persistencia PDO; Middleware añadirá controles al existir rutas protegidas.
+Solo se crean carpetas nuevas cuando una fase real las necesita. M01.1 añade
+`Domain/Branches` y `Domain/Modules`: `Branch` valida y normaliza datos sin
+persistirlos; `Module` mantiene sus indicadores; `ModuleAvailability` evalúa
+existencia, habilitación global, contexto/estado de sucursal y relación por
+sucursal. Un proveedor de contenido de MySQL podrá reemplazar DemoHomeData
+conservando los contratos; los repositorios y servicios se extraerán en M01.4,
+cuando exista ese consumidor. Middleware se añadirá al existir rutas protegidas.
 
 ## Contratos actuales
 
@@ -87,7 +99,15 @@ En esta fase el hero usa alineación izquierda y contraste oscuro; la administra
 - Usuarios, roles y permisos controlarán módulos administrativos; auditoría relacionará actor, acción, entidad y momento.
 - Configuración y páginas mantendrán contenido institucional y canales verificados.
 
-No existe todavía un esquema comercial aplicado. M00 solo permite la tabla técnica `schema_migrations`; existe el antecedente de su inicialización en desarrollo, pero la integración real en la base exclusiva de pruebas sigue pendiente. El levantamiento funcional y las entidades propuestas están documentados en [requisitos](requirements.md) y [modelo de datos](data-model.md). Antes de cargar información real, el negocio debe entregar los catálogos y valores concretos de impuestos, unidades, límites de descuento, productos, precios, existencias y sucursales.
+No existe todavía un esquema comercial aplicado. M00 solo ha permitido la tabla
+técnica `schema_migrations`; M01.1 aporta archivos locales aún pendientes de
+integración real en una base exclusiva de pruebas. Existe el antecedente de la
+inicialización técnica en desarrollo, que no cierra M00. El levantamiento
+funcional y las entidades propuestas están documentados en
+[requisitos](requirements.md) y [modelo de datos](data-model.md). Antes de
+cargar información real, el negocio debe entregar los catálogos y valores
+concretos de impuestos, unidades, límites de descuento, productos, precios,
+existencias y sucursales.
 
 ## Seguridad futura
 

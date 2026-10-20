@@ -1,6 +1,6 @@
-# Ferretería Ayala · Plataforma pública
+# Ferretería Ayala · Plataforma
 
-Primera etapa: una Home comercial en PHP puro, con arquitectura MVC mínima y assets locales. Identidad naranja, negro y blanco; catálogo y campañas demostrativos. No requiere Node.js en producción.
+Home comercial y base modular en PHP puro, con arquitectura MVC mínima y assets locales. Identidad naranja, negro y blanco; catálogo y campañas demostrativos. No requiere Node.js en producción.
 
 ## Requisitos
 
@@ -55,8 +55,10 @@ reversión atómica de DDL.
 
 Los archivos privados de migración viven en `database/migrations/`, se nombran
 `YYYYMMDDHHMMSS_nombre_descriptivo.php` y devuelven una instancia de
-`App\Core\Persistence\Migration`. M00 no incluye migraciones comerciales; su
-única tabla técnica es `schema_migrations`.
+`App\Core\Persistence\Migration`. M00 administra la tabla técnica
+`schema_migrations`. M01.1 ya define, sin haberlas aplicado a una base real,
+las tablas `branches`, `modules` y `branch_modules`; sus rollbacks rechazan
+tablas con registros antes de ejecutar un `DROP TABLE`.
 
 En otra terminal, `npm run dev` observa cambios en CSS y JavaScript. PHP se recarga al actualizar el navegador. Tras cambiar fuentes o dependencias, reinicia el observador. Usa `npm run build` antes de subir los archivos: compila y minimiza Tailwind, empaqueta los ES Modules/Swiper y copia fuentes y licencias a `public/assets/`.
 
@@ -69,6 +71,7 @@ app/
   Core/                   HTTP, vistas y núcleo de persistencia PDO
   Controllers/Public/     HomeController
   Data/                   DemoHomeData: todos los contratos y ejemplos comerciales
+  Domain/                 Reglas y objetos mínimos de sucursales y módulos
   Views/
     layouts/              Layout público
     components/public/    Header, navegación, tarjetas, slider, diálogos y footer
@@ -97,6 +100,7 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
 - Categorías, productos, marcas, banners secundarios, sección editorial, eventos, testimonios y cuatro sucursales.
 - Contenido PHP visible sin JavaScript, imágenes locales responsive, fuentes locales, CSP y escape de salida.
 - Conexión PDO diferida y migraciones CLI con lotes, rollback y bloqueo asesor.
+- Esquema local M01.1 para sucursales y módulos, con validación de dominio y disponibilidad determinista.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
@@ -133,6 +137,10 @@ La cuenta de integración debe tener únicamente `SELECT`, `INSERT`, `DELETE`,
 `CREATE`, `DROP`, `TRIGGER`, `EVENT` y `EXECUTE` sobre la base de pruebas, sin
 `GRANT OPTION` ni privilegios globales distintos de `USAGE`. Los tres permisos
 de metadatos permiten demostrar que no existen objetos ocultos antes de probar.
+
+Las pruebas aisladas cubren M00 y M01.1, incluida la inspección del SQL mediante
+dobles de PDO. Esto no equivale a ejecutar las nuevas restricciones en
+MariaDB/MySQL; esa integración sigue pendiente y requiere autorización.
 
 Consulta [resultados ejecutados](docs/qa.md), [diseño y maqueta visual](docs/design-system.md), [arquitectura](docs/architecture.md), [catálogo de módulos](docs/modules.md), [requisitos funcionales](docs/requirements.md), [modelo de datos](docs/data-model.md), [despliegue cPanel](docs/deployment-cpanel.md), [roadmap](docs/roadmap.md) y [procedencia de assets](docs/assets.md).
 

@@ -4,9 +4,11 @@ Este archivo es el índice para solicitar trabajo a Codex. Los identificadores
 son estables: una tarea debe mencionar el módulo, sus fuentes y el incremento
 concreto que se desea implementar.
 
-Estado general al 18 de octubre de 2026: la Home demostrativa está aprobada.
+Estado general al 19 de octubre de 2026: la Home demostrativa está aprobada.
 M00 tiene implementación y pruebas aisladas, pero permanece **pendiente de
-integración MariaDB real**; M01–M14 no están implementados.
+integración MariaDB real**. M01.1 tiene esquema, dominio mínimo y pruebas
+aisladas implementados localmente; sus migraciones no se han aplicado. M01.2,
+M01.3, M01.4 y M02–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -40,6 +42,21 @@ autorizada. No incluye tablas comerciales ni autenticación.
 Incluye altas ilimitadas de sucursales, datos de contacto, horarios,
 geolocalización y habilitación de funciones. No incluye inventario ni mapas de
 rutas de entrega.
+
+Incrementos:
+
+- **M01.1 implementado y validado de forma aislada:** migraciones de
+  `branches`, `modules` y `branch_modules`; validación de claves, nombres y
+  coordenadas; estados deshabilitados por defecto y regla pura de
+  disponibilidad. No hay semillas, rutas ni escrituras públicas.
+- **M01.2 no implementado:** horarios normales y excepcionales.
+- **M01.3 no implementado:** servicios comerciales por sucursal.
+- **M01.4 no implementado:** repositorios, servicios de aplicación y consultas
+  reales de disponibilidad.
+
+La integración de M01.1 en MariaDB/MySQL permanece pendiente de resolver y
+autorizar la validación real de M00. Ningún módulo del catálogo se inserta o
+activa automáticamente.
 
 ### M02 · Acceso y auditoría
 

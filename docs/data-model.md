@@ -2,7 +2,9 @@
 
 Estado: **diseño funcional levantado** el 17 de octubre de 2026. La Home está
 aprobada y el alcance se detalla en [requisitos funcionales](requirements.md).
-M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. Como
+M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. M01.1
+define localmente las migraciones de `branches`, `modules` y `branch_modules`,
+pero todavía no se han aplicado a MariaDB/MySQL. Como
 antecedente informado, la conexión al minilab y la inicialización de la tabla
 técnica `schema_migrations` se verificaron previamente en desarrollo; no se
 repitieron en la corrección actual. La integración completa en una base de
@@ -20,16 +22,23 @@ pruebas exclusiva y autorizada permanece pendiente.
 - Las vistas reciben arrays explícitos. Repositorios y servicios concentran
   consultas y reglas comerciales.
 - Los registros demo actuales no serán semillas de producción.
-- La infraestructura usa únicamente `schema_migrations` para identificador,
-  nombre, lote y fecha de aplicación. No existen todavía tablas comerciales.
+- La infraestructura aplicada usa únicamente `schema_migrations` para
+  identificador, nombre, lote y fecha de aplicación. Las primeras tablas de
+  negocio están definidas en archivos de migración M01.1, no aplicadas.
 
 ## Áreas y tablas previstas
 
 ### Plataforma, acceso y sucursales
 
-- `modules`, `branch_modules`: módulos habilitados globalmente y por sucursal.
-- `branches`, `branch_hours`, `branch_special_hours`: datos, coordenadas,
-  servicios y horarios.
+- `branches` (**M01.1 definido, no aplicado**): clave comercial normalizada,
+  nombre, dirección y contacto opcionales, coordenadas decimales emparejadas,
+  estado y fechas técnicas. Las altas nacen inactivas.
+- `modules` (**M01.1 definido, no aplicado**): código `M00`–`M99`, nombre,
+  descripción opcional, habilitación global, requisito por sucursal y fechas.
+- `branch_modules` (**M01.1 definido, no aplicado**): clave primaria compuesta,
+  referencias restrictivas a sucursal/módulo, estado y fechas. La ausencia de
+  relación equivale a deshabilitado para módulos que la requieren.
+- `branch_hours`, `branch_special_hours`: horarios previstos para M01.2.
 - `users`, `roles`, `permissions`, `user_roles`, `role_permissions`,
   `user_branches`: acceso por acción y sucursal.
 - `user_sessions`, `password_reset_tokens`: sesiones y recuperación.
@@ -176,6 +185,13 @@ Administrador de la página es el perfil operativo que publica contenido.
 Cada bloque tendrá migración hacia adelante, reversión segura cuando sea
 posible y pruebas en una base vacía. Se probará primero localmente, después en
 el minilab y finalmente en producción.
+
+Las migraciones M01.1 usan InnoDB, `utf8mb4`, claves `BIGINT UNSIGNED`, índices
+de disponibilidad, `CHECK` para estados/coordenadas y `RESTRICT` en las claves
+foráneas. No incluyen semillas. La reversión solo elimina una tabla vacía; si
+contiene registros, falla de forma explícita. DDL en MySQL/MariaDB puede causar
+confirmaciones implícitas, por lo que una reversión de lote no se considera
+atómica.
 
 ## Insumos pendientes del negocio
 

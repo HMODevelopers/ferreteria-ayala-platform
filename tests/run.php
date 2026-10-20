@@ -41,4 +41,5 @@ foreach ([
     check((bool) preg_match('/^' . preg_quote($variable, '/') . '=/m', $envExample), 'Documented environment variable: ' . $variable);
 }
 require __DIR__ . '/persistence.php';
-echo "PASS: {$checks} checks (routes, private paths, escaping, input, redirect, views, demo contracts).\n";
+require __DIR__ . '/m01-branches-modules.php';
+echo "PASS: {$checks} checks (public app, M00 persistence, M01.1 branches and modules).\n";
