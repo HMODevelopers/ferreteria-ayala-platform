@@ -42,6 +42,12 @@ M01.1 reutiliza esta infraestructura con tres definiciones ordenadas para
 tabla contiene registros y rechazan una eliminación con datos. Los archivos
 están preparados, no ejecutados contra un motor real.
 
+M01.2 agrega dos definiciones ordenadas para `branch_hours` y
+`branch_special_hours`, también con rollbacks que se niegan a eliminar datos.
+Las restricciones SQL protegen cada fila, claves, duplicados e integridad
+referencial; las reglas que comparan varias filas viven además en el dominio y
+deberán ejecutarse bajo una escritura transaccional en M01.4.
+
 La integración real añade una exclusión propia, valida la identidad efectiva y
 los privilegios limitados de la cuenta, exige inventario vacío de tablas,
 vistas, triggers, eventos y rutinas, y conserva cualquier objeto si no puede
@@ -70,6 +76,16 @@ existencia, habilitación global, contexto/estado de sucursal y relación por
 sucursal. Un proveedor de contenido de MySQL podrá reemplazar DemoHomeData
 conservando los contratos; los repositorios y servicios se extraerán en M01.4,
 cuando exista ese consumidor. Middleware se añadirá al existir rutas protegidas.
+
+M01.2 amplía `Domain/Branches` con intervalos regulares, excepciones por fecha,
+un calendario validado, un resultado que separa estado programado y operativo,
+y `BranchScheduleService`. El servicio convierte cada instante con
+`DateTimeImmutable` y `DateTimeZone('America/Hermosillo')`, usa intervalos
+semiabiertos `[apertura, cierre)` y no consulta PDO. Una excepción controla su
+día civil completo: reemplaza el horario regular y suprime arrastres del día
+anterior; si no existe excepción, sí se evalúa el intervalo nocturno originado
+el día previo. Un intervalo especial nocturno continúa al día siguiente salvo
+que ese siguiente día tenga su propia excepción.
 
 ## Contratos actuales
 
@@ -100,7 +116,7 @@ En esta fase el hero usa alineación izquierda y contraste oscuro; la administra
 - Configuración y páginas mantendrán contenido institucional y canales verificados.
 
 No existe todavía un esquema comercial aplicado. M00 solo ha permitido la tabla
-técnica `schema_migrations`; M01.1 aporta archivos locales aún pendientes de
+técnica `schema_migrations`; M01.1 y M01.2 aportan archivos locales pendientes de
 integración real en una base exclusiva de pruebas. Existe el antecedente de la
 inicialización técnica en desarrollo, que no cierra M00. El levantamiento
 funcional y las entidades propuestas están documentados en

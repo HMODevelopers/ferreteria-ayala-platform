@@ -3,8 +3,9 @@
 Estado: **diseño funcional levantado** el 17 de octubre de 2026. La Home está
 aprobada y el alcance se detalla en [requisitos funcionales](requirements.md).
 M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. M01.1
-define localmente las migraciones de `branches`, `modules` y `branch_modules`,
-pero todavía no se han aplicado a MariaDB/MySQL. Como
+define localmente las migraciones de `branches`, `modules` y `branch_modules`.
+M01.2 añade las definiciones de horarios regulares y excepcionales, pero
+ninguna tabla comercial se ha aplicado a MariaDB/MySQL. Como
 antecedente informado, la conexión al minilab y la inicialización de la tabla
 técnica `schema_migrations` se verificaron previamente en desarrollo; no se
 repitieron en la corrección actual. La integración completa en una base de
@@ -38,7 +39,15 @@ pruebas exclusiva y autorizada permanece pendiente.
 - `branch_modules` (**M01.1 definido, no aplicado**): clave primaria compuesta,
   referencias restrictivas a sucursal/módulo, estado y fechas. La ausencia de
   relación equivale a deshabilitado para módulos que la requieren.
-- `branch_hours`, `branch_special_hours`: horarios previstos para M01.2.
+- `branch_hours` (**M01.2 definido, no aplicado**): intervalos semanales por
+  sucursal y día ISO 1–7, hora inicial/final, cruce de medianoche explícito y
+  orden. Días sin filas están cerrados. Claves únicas evitan repetir orden o
+  intervalo, y la FK restrictiva conserva horarios al desactivar sucursales.
+- `branch_special_hours` (**M01.2 definido, no aplicado**): excepción por fecha
+  local. Un cierre usa una sola fila canónica (`is_closed=1`, horas nulas,
+  `interval_order=0`); una apertura usa uno o más intervalos explícitos. La
+  excepción de una fecha reemplaza el horario regular y cualquier arrastre del
+  día previo durante ese día civil.
 - `users`, `roles`, `permissions`, `user_roles`, `role_permissions`,
   `user_branches`: acceso por acción y sucursal.
 - `user_sessions`, `password_reset_tokens`: sesiones y recuperación.
@@ -192,6 +201,16 @@ foráneas. No incluyen semillas. La reversión solo elimina una tabla vacía; si
 contiene registros, falla de forma explícita. DDL en MySQL/MariaDB puede causar
 confirmaciones implícitas, por lo que una reversión de lote no se considera
 atómica.
+
+M01.2 conserva esas decisiones. SQL protege tipos, rangos por fila, horas de
+reloj, duración no nula, representación canónica de cierres, duplicados
+cubiertos por claves únicas, llaves foráneas e índices de consulta. El dominio
+rechaza formatos inválidos, horarios invertidos sin cruce explícito,
+solapamientos del mismo día, conflictos nocturnos entre días consecutivos y
+mezcla de cierre/apertura excepcional. Un `CHECK` no puede proteger reglas
+entre varias filas: M01.4 deberá leer y bloquear el calendario afectado dentro
+de la escritura para revalidar solapamientos y evitar mezclar un cierre con
+intervalos abiertos bajo concurrencia.
 
 ## Insumos pendientes del negocio
 

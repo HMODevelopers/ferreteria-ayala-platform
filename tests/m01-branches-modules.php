@@ -111,12 +111,13 @@ check(ModuleAvailability::isAvailable($enabledGlobalModule, $activeBranch), 'An 
 check(!ModuleAvailability::isAvailable($enabledGlobalModule, $branch), 'Inactive branch context blocks even a global module');
 
 $migrationDirectory = dirname(__DIR__) . '/database/migrations';
-$migrations = (new MigrationDiscovery($migrationDirectory))->all();
+$allMigrations = (new MigrationDiscovery($migrationDirectory))->all();
 $expectedMigrationIds = [
     '20261019010000_create_branches',
     '20261019010100_create_modules',
     '20261019010200_create_branch_modules',
 ];
+$migrations = array_intersect_key($allMigrations, array_flip($expectedMigrationIds));
 check(array_keys($migrations) === $expectedMigrationIds, 'M01.1 migrations are discovered in dependency order without M00 conflicts');
 check(count(array_unique(array_keys($migrations))) === 3, 'M01.1 migration identifiers are unique');
 

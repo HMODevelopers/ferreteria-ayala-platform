@@ -7,8 +7,9 @@ concreto que se desea implementar.
 Estado general al 19 de octubre de 2026: la Home demostrativa está aprobada.
 M00 tiene implementación y pruebas aisladas, pero permanece **pendiente de
 integración MariaDB real**. M01.1 tiene esquema, dominio mínimo y pruebas
-aisladas implementados localmente; sus migraciones no se han aplicado. M01.2,
-M01.3, M01.4 y M02–M14 no están implementados.
+aisladas implementados localmente; sus migraciones no se han aplicado. M01.2
+tiene esquema, dominio y pruebas aisladas implementados localmente. M01.3,
+M01.4 y M02–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -49,7 +50,11 @@ Incrementos:
   `branches`, `modules` y `branch_modules`; validación de claves, nombres y
   coordenadas; estados deshabilitados por defecto y regla pura de
   disponibilidad. No hay semillas, rutas ni escrituras públicas.
-- **M01.2 no implementado:** horarios normales y excepcionales.
+- **M01.2 implementado y validado de forma aislada:** horarios semanales y
+  excepcionales, múltiples intervalos, cruces de medianoche, cierres por fecha,
+  precedencia determinista y separación entre horario programado, habilitación
+  operativa y disponibilidad pública. Sus migraciones no se han aplicado y las
+  invariantes entre filas deberán revalidarse al escribir desde M01.4.
 - **M01.3 no implementado:** servicios comerciales por sucursal.
 - **M01.4 no implementado:** repositorios, servicios de aplicación y consultas
   reales de disponibilidad.
