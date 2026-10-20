@@ -10,7 +10,7 @@ integración MariaDB real**. M01.1 tiene esquema, dominio mínimo y pruebas
 aisladas implementados localmente; sus migraciones no se han aplicado. M01.2
 tiene esquema, dominio y pruebas aisladas implementados localmente. M01.3
 define servicios comerciales por sucursal y está validado de forma aislada.
-M01.4 y M02–M14 no están implementados.
+M01.4 está implementado y validado de forma aislada. M02–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -60,8 +60,11 @@ Incrementos:
   comerciales, configuración independiente por sucursal, desactivación lógica,
   orden determinista y regla pura de disponibilidad. No hay semillas,
   repositorios, rutas, medios ni publicación de datos comerciales.
-- **M01.4 no implementado:** repositorios, servicios de aplicación y consultas
-  reales de disponibilidad.
+- **M01.4 implementado y validado de forma aislada:** contratos de repositorio,
+  adaptadores PDO, servicios de aplicación, lecturas paginadas/acotadas,
+  activación lógica y disponibilidad efectiva. Las escrituras de horarios
+  bloquean la fila de sucursal, releen el calendario y validan antes del DML.
+  No hay rutas administrativas y la concurrencia real del motor está pendiente.
 
 La integración de M01.1 en MariaDB/MySQL permanece pendiente de resolver y
 autorizar la validación real de M00. Ningún módulo del catálogo se inserta o

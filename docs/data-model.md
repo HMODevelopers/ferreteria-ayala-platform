@@ -5,7 +5,8 @@ aprobada y el alcance se detalla en [requisitos funcionales](requirements.md).
 M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. M01.1
 define localmente las migraciones de `branches`, `modules` y `branch_modules`.
 M01.2 añade las definiciones de horarios regulares y excepcionales. M01.3
-incorpora el catálogo de servicios comerciales y su asociación por sucursal, pero
+incorpora el catálogo de servicios comerciales y su asociación por sucursal.
+M01.4 añade repositorios PDO y servicios internos sobre esas siete tablas, pero
 ninguna tabla comercial se ha aplicado a MariaDB/MySQL. Como
 antecedente informado, la conexión al minilab y la inicialización de la tabla
 técnica `schema_migrations` se verificaron previamente en desarrollo; no se
@@ -23,6 +24,10 @@ pruebas exclusiva y autorizada permanece pendiente.
   o revierten; no se borran físicamente desde la operación normal.
 - Las vistas reciben arrays explícitos. Repositorios y servicios concentran
   consultas y reglas comerciales.
+- Los adaptadores PDO usan consultas preparadas, orden estable y límites de
+  lectura. Los códigos comerciales no se modifican desde las actualizaciones.
+- Las altas de sucursales, módulos y servicios nacen deshabilitadas. Las bajas
+  operativas actualizan estados y no eliminan entidades ni relaciones.
 - Los registros demo actuales no serán semillas de producción.
 - La infraestructura aplicada usa únicamente `schema_migrations` para
   identificador, nombre, lote y fecha de aplicación. Las primeras tablas de
@@ -217,17 +222,33 @@ cubiertos por claves únicas, llaves foráneas e índices de consulta. El domini
 rechaza formatos inválidos, horarios invertidos sin cruce explícito,
 solapamientos del mismo día, conflictos nocturnos entre días consecutivos y
 mezcla de cierre/apertura excepcional. Un `CHECK` no puede proteger reglas
-entre varias filas: M01.4 deberá leer y bloquear el calendario afectado dentro
-de la escritura para revalidar solapamientos y evitar mezclar un cierre con
-intervalos abiertos bajo concurrencia.
+entre varias filas: M01.4 inicia una transacción, bloquea la fila de `branches`
+mediante `SELECT ... FOR UPDATE`, relee horarios normales y excepciones,
+construye `BranchSchedule` y ejecuta el DML solo si las invariantes siguen siendo
+válidas. Todas las escrituras de horarios usan ese coordinador.
 
 M01.3 mantiene servicios comerciales separados de `modules` y de los horarios.
 Un servicio solo está disponible cuando servicio, sucursal y relación existen y
 los tres estados correspondientes están activos/habilitados; estar disponible
 no significa que la sucursal esté abierta. `services.id` y `branches.id` son los
 identificadores estables que permitirán a M11 agregar relaciones de medios sin
-guardar binarios, rutas improvisadas o tablas de medios en este incremento. Las
-consultas PDO y escrituras de estas entidades permanecen reservadas para M01.4.
+guardar binarios, rutas improvisadas o tablas de medios en este incremento.
+M01.4 implementa sus consultas y escrituras internas. La lectura efectiva une
+`branches`, `services` y `branch_services`, filtra los tres estados necesarios y
+ordena por `display_order, service_id`; no consulta `modules` ni combina horarios.
+
+### Supuestos transaccionales de M01.4
+
+El bloqueo de la fila padre serializa las escrituras de calendario por sucursal
+si todas usan el servicio de aplicación. La fila se bloquea antes de releer el
+calendario porque bajo `REPEATABLE READ` de InnoDB una lectura consistente previa
+podría conservar una versión antigua. `SELECT ... FOR UPDATE` es una lectura de
+bloqueo y el estado se valida mientras la transacción sigue activa. Sucursales
+diferentes no comparten ese bloqueo. No hay reintentos automáticos: timeouts,
+deadlocks o fallos PDO producen rollback y un error seguro para que el consumidor
+decida. La recarga de excepciones para validación se limita a 10 000 filas y
+rechaza de forma segura calendarios mayores. Esto es diseño implementado y probado con dobles, no evidencia todavía
+de serialización real en MariaDB/MySQL.
 
 ## Insumos pendientes del negocio
 

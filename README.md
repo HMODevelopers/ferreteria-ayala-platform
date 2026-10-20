@@ -62,6 +62,13 @@ M01.2 añade `branch_hours` y `branch_special_hours`; M01.3 incorpora el catálo
 no se han aplicado a una base real. Sus rollbacks rechazan tablas con registros
 antes de ejecutar un `DROP TABLE`.
 
+M01.4 incorpora contratos de repositorio, adaptadores PDO y servicios de
+aplicación internos para sucursales, módulos, horarios y servicios comerciales.
+Las escrituras no están expuestas por HTTP. Los horarios se modifican dentro de
+una transacción que bloquea primero la sucursal con `SELECT ... FOR UPDATE`,
+relee y valida el calendario, y solo entonces ejecuta el DML. Esta estrategia se
+verifica con dobles; su serialización real sigue pendiente de MariaDB.
+
 En otra terminal, `npm run dev` observa cambios en CSS y JavaScript. PHP se recarga al actualizar el navegador. Tras cambiar fuentes o dependencias, reinicia el observador. Usa `npm run build` antes de subir los archivos: compila y minimiza Tailwind, empaqueta los ES Modules/Swiper y copia fuentes y licencias a `public/assets/`.
 
 Los assets compilados se incluyen en Git para poder desplegar por FTP sin npm. Nunca uses el servidor integrado PHP en producción.
@@ -70,10 +77,12 @@ Los assets compilados se incluyen en Git para poder desplegar por FTP sin npm. N
 
 ```text
 app/
+  Application/            Contratos, lecturas y servicios de aplicación internos
   Core/                   HTTP, vistas y núcleo de persistencia PDO
   Controllers/Public/     HomeController
   Data/                   DemoHomeData: todos los contratos y ejemplos comerciales
   Domain/                 Reglas y objetos mínimos de sucursales, módulos y servicios
+  Infrastructure/         Adaptadores PDO de los repositorios
   Views/
     layouts/              Layout público
     components/public/    Header, navegación, tarjetas, slider, diálogos y footer
@@ -107,6 +116,8 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
   cruces de medianoche, cierres por fecha y evaluación en `America/Hermosillo`.
 - Catálogo técnico M01.3 de servicios comerciales, configuración independiente
   por sucursal, orden determinista y disponibilidad separada de módulos y horarios.
+- Repositorios y servicios internos M01.4 con lecturas acotadas, activación
+  lógica, disponibilidad efectiva y coordinación transaccional de horarios.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
@@ -144,12 +155,12 @@ La cuenta de integración debe tener únicamente `SELECT`, `INSERT`, `DELETE`,
 `GRANT OPTION` ni privilegios globales distintos de `USAGE`. Los tres permisos
 de metadatos permiten demostrar que no existen objetos ocultos antes de probar.
 
-Las pruebas aisladas cubren M00 y M01.1–M01.3, incluida la inspección del SQL
+Las pruebas aisladas cubren M00 y M01.1–M01.4, incluida la inspección del SQL
 mediante dobles de PDO. Esto no equivale a ejecutar las nuevas restricciones en
-MariaDB/MySQL; esa integración sigue pendiente y requiere autorización. M01.2
-valida solapamientos en el dominio. M01.3 no crea repositorios ni medios: las
-escrituras concurrentes, consultas PDO y relaciones con el futuro sistema de
-medios deberán incorporarse en M01.4 y M11 según corresponda.
+MariaDB/MySQL; esa integración sigue pendiente y requiere autorización. M01.4
+comprueba de forma aislada el protocolo de bloqueo y rollback, pero no demuestra
+la serialización, los timeouts ni los deadlocks del motor real. El futuro sistema
+de medios permanece reservado para M11.
 
 Consulta [resultados ejecutados](docs/qa.md), [diseño y maqueta visual](docs/design-system.md), [arquitectura](docs/architecture.md), [catálogo de módulos](docs/modules.md), [requisitos funcionales](docs/requirements.md), [modelo de datos](docs/data-model.md), [despliegue cPanel](docs/deployment-cpanel.md), [roadmap](docs/roadmap.md) y [procedencia de assets](docs/assets.md).
 

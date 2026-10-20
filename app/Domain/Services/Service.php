@@ -8,6 +8,7 @@ use InvalidArgumentException;
 final class Service
 {
     private function __construct(
+        public readonly ?int $id,
         public readonly string $code,
         public readonly string $name,
         public readonly ?string $description,
@@ -18,6 +19,7 @@ final class Service
     public static function create(string $code, string $name, ?string $description = null): self
     {
         return new self(
+            null,
             self::normalizeCode($code),
             self::requiredText($name, 150, 'Service name'),
             self::optionalText($description, 5000, 'Service description'),
@@ -25,9 +27,29 @@ final class Service
         );
     }
 
+    public static function rehydrate(
+        int $id,
+        string $code,
+        string $name,
+        ?string $description,
+        bool $active,
+    ): self {
+        if ($id < 1) {
+            throw new InvalidArgumentException('Service identifier is invalid.');
+        }
+        $service = self::create($code, $name, $description);
+        return new self($id, $service->code, $service->name, $service->description, $active);
+    }
+
+    public function withDetails(string $name, ?string $description = null): self
+    {
+        $updated = self::create($this->code, $name, $description);
+        return new self($this->id, $this->code, $updated->name, $updated->description, $this->active);
+    }
+
     public function withActive(bool $active): self
     {
-        return new self($this->code, $this->name, $this->description, $active);
+        return new self($this->id, $this->code, $this->name, $this->description, $active);
     }
 
     private static function normalizeCode(string $code): string

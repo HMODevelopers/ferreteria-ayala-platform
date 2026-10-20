@@ -8,6 +8,7 @@ use InvalidArgumentException;
 final class Module
 {
     private function __construct(
+        public readonly ?int $id,
         public readonly string $code,
         public readonly string $name,
         public readonly ?string $description,
@@ -28,6 +29,7 @@ final class Module
         }
 
         return new self(
+            null,
             $code,
             self::requiredText($name, 150, 'Module name'),
             self::optionalText($description, 500, 'Module description'),
@@ -36,9 +38,45 @@ final class Module
         );
     }
 
+    public static function rehydrate(
+        int $id,
+        string $code,
+        string $name,
+        ?string $description,
+        bool $globallyEnabled,
+        bool $requiresBranchEnablement,
+    ): self {
+        if ($id < 1) {
+            throw new InvalidArgumentException('Module identifier is invalid.');
+        }
+        $module = self::create($code, $name, $description, $requiresBranchEnablement);
+        return new self(
+            $id,
+            $module->code,
+            $module->name,
+            $module->description,
+            $globallyEnabled,
+            $module->requiresBranchEnablement,
+        );
+    }
+
+    public function withDetails(string $name, ?string $description = null): self
+    {
+        $updated = self::create($this->code, $name, $description, $this->requiresBranchEnablement);
+        return new self(
+            $this->id,
+            $this->code,
+            $updated->name,
+            $updated->description,
+            $this->globallyEnabled,
+            $this->requiresBranchEnablement,
+        );
+    }
+
     public function withGlobalEnabled(bool $enabled): self
     {
         return new self(
+            $this->id,
             $this->code,
             $this->name,
             $this->description,

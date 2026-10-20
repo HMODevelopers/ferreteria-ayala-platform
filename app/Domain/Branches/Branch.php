@@ -8,6 +8,7 @@ use InvalidArgumentException;
 final class Branch
 {
     private function __construct(
+        public readonly ?int $id,
         public readonly string $code,
         public readonly string $name,
         public readonly ?string $address,
@@ -31,6 +32,7 @@ final class Branch
         string|int|null $longitude = null,
     ): self {
         return new self(
+            null,
             self::normalizeCode($code),
             self::requiredText($name, 150, 'Branch name'),
             self::optionalText($address, 500, 'Branch address'),
@@ -42,9 +44,75 @@ final class Branch
         );
     }
 
+    public static function rehydrate(
+        int $id,
+        string $code,
+        string $name,
+        ?string $address,
+        ?string $phone,
+        ?string $email,
+        ?string $whatsapp,
+        string|int|null $latitude,
+        string|int|null $longitude,
+        bool $active,
+    ): self {
+        if ($id < 1) {
+            throw new InvalidArgumentException('Branch identifier is invalid.');
+        }
+
+        $branch = self::create($code, $name, $address, $phone, $email, $whatsapp, $latitude, $longitude);
+        return new self(
+            $id,
+            $branch->code,
+            $branch->name,
+            $branch->address,
+            $branch->phone,
+            $branch->email,
+            $branch->whatsapp,
+            $branch->latitude,
+            $branch->longitude,
+            $active,
+        );
+    }
+
+    public function withDetails(
+        string $name,
+        ?string $address = null,
+        ?string $phone = null,
+        ?string $email = null,
+        ?string $whatsapp = null,
+        string|int|null $latitude = null,
+        string|int|null $longitude = null,
+    ): self {
+        $updated = self::create(
+            $this->code,
+            $name,
+            $address,
+            $phone,
+            $email,
+            $whatsapp,
+            $latitude,
+            $longitude,
+        );
+
+        return new self(
+            $this->id,
+            $this->code,
+            $updated->name,
+            $updated->address,
+            $updated->phone,
+            $updated->email,
+            $updated->whatsapp,
+            $updated->latitude,
+            $updated->longitude,
+            $this->active,
+        );
+    }
+
     public function withActive(bool $active): self
     {
         return new self(
+            $this->id,
             $this->code,
             $this->name,
             $this->address,

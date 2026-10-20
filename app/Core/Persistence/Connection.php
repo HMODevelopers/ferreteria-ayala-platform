@@ -8,7 +8,7 @@ use PDO;
 use PDOException;
 use Throwable;
 
-final class Connection
+final class Connection implements TransactionManager
 {
     private ?PDO $pdo = null;
     private readonly ?Closure $connector;

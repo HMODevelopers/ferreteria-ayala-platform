@@ -4,9 +4,13 @@ Fecha de última ejecución: 19 de octubre de 2026. Entorno: Ubuntu, Node 22.22.
 
 ## Ejecutado
 
-- Sintaxis de los 74 archivos PHP: sin errores.
-- Pruebas PHP `tests/run.php`: **406 comprobaciones** correctas. Conservan las
-  324 comprobaciones previas; las 82 nuevas de M01.3 cubren códigos, nombres,
+- Sintaxis de los archivos PHP: sin errores.
+- Pruebas PHP `tests/run.php`: **477 comprobaciones** correctas. Conservan las
+  406 comprobaciones previas; las 71 nuevas de M01.4 cubren conexión diferida,
+  consultas preparadas, parámetros, paginación, rehidratación, duplicados
+  controlados, orden estable, matrices de disponibilidad, transacciones,
+  rollback y el protocolo de bloqueo/recarga/validación de horarios. Las 82 de
+  M01.3 continúan cubriendo códigos, nombres,
   descripciones opcionales, límites, estados lógicos, identificadores y orden de
   asociaciones, desempate determinista, matriz de disponibilidad, ausencia de
   entidades/relación, descubrimiento, SQL, claves, índices y rollbacks
@@ -32,8 +36,9 @@ Las migraciones M01.1, M01.2 y M01.3 tampoco se ejecutaron. Las pruebas aisladas
 SQL y el comportamiento de sus callbacks, pero no sustituyen la validación de
 `CHECK`, claves foráneas, índices, precisión decimal, creación ni rollback en
 MariaDB 10.11/MySQL. Los `CHECK` no sustituyen la validación entre varias filas;
-las futuras escrituras de M01.4 deberán revalidar el calendario bajo control de
-concurrencia. Las claves foráneas, unicidad y restricciones de M01.3 también
+las escrituras de M01.4 ya revalidan el calendario bajo un bloqueo de sucursal,
+pero los dobles no prueban serialización, timeouts ni deadlocks reales. Las
+claves foráneas, unicidad y restricciones de M01.3 también
 requieren integración real. Esa integración solo procede después de resolver M00 y con
 autorización expresa sobre una base exclusiva.
 
@@ -44,6 +49,6 @@ Como antecedente informado, antes de esta tarea se verificó la conexión de la 
 La Home fue aprobada como base el 17 de octubre de 2026. Permanecen pendientes
 el logo oficial, fotos reales y datos de contacto verificados para reemplazar
 los placeholders. La infraestructura de persistencia está implementada. M01.1,
-M01.2 y M01.3 están implementados y validados únicamente de forma aislada, sin
-tablas comerciales aplicadas. El administrador, M01.4 y M02–M14 permanecen
+M01.2, M01.3 y M01.4 están implementados y validados únicamente de forma aislada,
+sin tablas comerciales aplicadas. El administrador y M02–M14 permanecen
 fuera del alcance.

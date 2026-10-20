@@ -46,13 +46,33 @@ M01.2 agrega dos definiciones ordenadas para `branch_hours` y
 `branch_special_hours`, también con rollbacks que se niegan a eliminar datos.
 Las restricciones SQL protegen cada fila, claves, duplicados e integridad
 referencial; las reglas que comparan varias filas viven además en el dominio y
-deberán ejecutarse bajo una escritura transaccional en M01.4.
+se ejecutan bajo una escritura transaccional en M01.4.
 
 M01.3 agrega `services` y `branch_services` mediante dos definiciones ordenadas.
 La clave compuesta impide repetir un servicio en una sucursal, las referencias
 usan `RESTRICT` y ambos estados nacen deshabilitados. Los rollbacks conservan el
-patrón de negarse a eliminar tablas con registros. No se añadieron repositorios:
-la conexión sigue siendo diferida y M01.4 incorporará consumidores PDO reales.
+patrón de negarse a eliminar tablas con registros. M01.4 añade consumidores PDO
+sin alterar la conexión diferida.
+
+Los contratos viven en `Application/Repositories`, los adaptadores en
+`Infrastructure/Persistence` y los coordinadores en `Application/Services`.
+Construir un adaptador no solicita `pdo()`. Todas las consultas son preparadas;
+la rehidratación vuelve a aplicar invariantes de dominio y los errores de
+duplicado o restricción se traducen sin filtrar detalles del controlador.
+`Page` limita listados generales a 100 filas y conserva desempates estables.
+La recarga integral necesaria para validar escrituras de horarios especiales
+tiene un máximo explícito de 10 000 filas; superar el límite cancela y revierte
+la operación en vez de validar un calendario parcial.
+
+`Connection` implementa `TransactionManager`. El servicio que inicia una
+operación de varios pasos es dueño de commit/rollback; ningún repositorio
+confirma transacciones. Para horarios, el coordinador inicia la transacción,
+bloquea primero `branches.id` con `SELECT ... FOR UPDATE`, relee el calendario,
+crea un `BranchSchedule` y ejecuta el DML. El orden siempre comienza por la
+sucursal. Así se evita decidir sobre una lectura consistente antigua bajo el
+aislamiento habitual `REPEATABLE READ` de InnoDB, siempre que todos los escritores
+usen el mismo protocolo. No hay reintentos automáticos de deadlocks o timeouts.
+Las pruebas aisladas verifican el orden y rollback; falta probar el motor real.
 
 La integración real añade una exclusión propia, valida la identidad efectiva y
 los privilegios limitados de la cuenta, exige inventario vacío de tablas,
@@ -68,6 +88,8 @@ retirarlo.
 | Controllers | Coordinación de petición y proveedor de contenido |
 | Data | Datos y contratos de demostración |
 | Domain | Objetos y reglas puras de negocio sin acceso a PDO |
+| Application | Casos de uso internos, contratos de repositorio y lecturas |
+| Infrastructure | Implementaciones PDO de los contratos de persistencia |
 | Views | Composición semántica y componentes con datos explícitos |
 | resources | Fuentes CSS/JS compilables |
 | public | Front controller y assets distribuibles |
@@ -80,8 +102,7 @@ Solo se crean carpetas nuevas cuando una fase real las necesita. M01.1 añade
 persistirlos; `Module` mantiene sus indicadores; `ModuleAvailability` evalúa
 existencia, habilitación global, contexto/estado de sucursal y relación por
 sucursal. Un proveedor de contenido de MySQL podrá reemplazar DemoHomeData
-conservando los contratos; los repositorios y servicios se extraerán en M01.4,
-cuando exista ese consumidor. Middleware se añadirá al existir rutas protegidas.
+conservando los contratos. Middleware se añadirá al existir rutas protegidas.
 
 M01.2 amplía `Domain/Branches` con intervalos regulares, excepciones por fecha,
 un calendario validado, un resultado que separa estado programado y operativo,
@@ -99,6 +120,18 @@ orden con desempate estable; `ServiceAvailability` exige servicio activo,
 sucursal activa y relación habilitada. Esta regla no consulta ni combina el
 calendario de M01.2. Los identificadores numéricos permiten relacionar medios en
 M11 sin acoplar ahora el dominio a almacenamiento de archivos.
+
+M01.4 conserva esa separación. `BranchManagementService` coordina sucursales;
+`ModuleAvailabilityService` reutiliza `ModuleAvailability`;
+`BranchServiceManagementService` mantiene catálogo/relaciones y reutiliza
+`ServiceAvailability`; `BranchScheduleManagementService` reutiliza
+`BranchSchedule` y `BranchScheduleService`. Ninguno conoce Request, Response,
+sesiones, cookies o vistas.
+
+Sus contratos internos devuelven entidades de dominio, `Page` para listados que
+pueden crecer, listas ordenadas y `BranchScheduleStatus`, que separa apertura
+programada, activación operativa y disponibilidad pública. No existe API pública
+ni AyalaTable en este incremento.
 
 ## Contratos actuales
 
