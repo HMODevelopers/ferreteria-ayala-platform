@@ -12,6 +12,11 @@ use App\Core\Persistence\MigrationStateStore;
 use App\Core\Persistence\Migrator;
 use App\Core\Persistence\MySqlMigrationStore;
 use App\Core\Persistence\PersistenceException;
+use App\Core\Config\EnvironmentFile;
+use Tests\Support\JsonWorkerProcess;
+
+require_once __DIR__ . '/support/JsonWorkerProcess.php';
+require_once dirname(__DIR__) . '/app/Core/Config/EnvironmentFile.php';
 
 function expectException(callable $operation, string $message, string $exception = Throwable::class): void {
     $caught = null;
@@ -135,13 +140,26 @@ function migrationDirectory(): string {
     return $directory;
 }
 
-function writeMigration(string $directory, string $id, string $name, string $up = '', ?string $down = ''): void {
+function writeMigration(
+    string $directory,
+    string $id,
+    string $name,
+    string $up = '',
+    ?string $down = '',
+    ?string $rollbackPreflight = '',
+): void {
+    if ($down === null) {
+        $rollbackPreflight = null;
+    }
     $downCode = $down === null
         ? 'null'
         : 'static function (PDO $pdo): void {' . $down . '}';
+    $preflightCode = $rollbackPreflight === null
+        ? 'null'
+        : 'static function (PDO $pdo): void {' . $rollbackPreflight . '}';
     $source = '<?php declare(strict_types=1); use App\\Core\\Persistence\\Migration; return new Migration('
         . var_export($id, true) . ', ' . var_export($name, true)
-        . ', static function (PDO $pdo): void {' . $up . '}, ' . $downCode . ');';
+        . ', static function (PDO $pdo): void {' . $up . '}, ' . $downCode . ', ' . $preflightCode . ');';
     file_put_contents($directory . '/' . $id . '.php', $source);
 }
 
@@ -149,6 +167,82 @@ function removeMigrationDirectory(string $directory): void {
     foreach (glob($directory . '/*') ?: [] as $file) unlink($file);
     rmdir($directory);
 }
+
+$environmentFixture = sys_get_temp_dir() . '/ayala-env-' . bin2hex(random_bytes(6));
+file_put_contents($environmentFixture, implode("\n", [
+    '# data-only fixture',
+    'AYALA_ENV_UNQUOTED=value # comment',
+    'AYALA_ENV_SINGLE=\'literal $HOME `command`\'',
+    'AYALA_ENV_DOUBLE="quoted value"',
+    'AYALA_ENV_EMPTY=',
+    'AYALA_ENV_PRECEDENCE=from-file',
+]) . "\n");
+putenv('AYALA_ENV_PRECEDENCE=from-process');
+try {
+    $loadedEnvironment = EnvironmentFile::load($environmentFixture);
+    check(getenv('AYALA_ENV_UNQUOTED') === 'value', 'Environment loader supports unquoted data and comments');
+    check(getenv('AYALA_ENV_SINGLE') === 'literal $HOME `command`', 'Environment loader never evaluates shell syntax');
+    check(getenv('AYALA_ENV_DOUBLE') === 'quoted value' && getenv('AYALA_ENV_EMPTY') === '', 'Environment loader supports quoted and empty values');
+    check(getenv('AYALA_ENV_PRECEDENCE') === 'from-process', 'Explicit process variables take precedence over .env');
+    check(!in_array('AYALA_ENV_PRECEDENCE', $loadedEnvironment, true), 'Environment loader reports only values loaded from file');
+} finally {
+    foreach (['AYALA_ENV_UNQUOTED', 'AYALA_ENV_SINGLE', 'AYALA_ENV_DOUBLE', 'AYALA_ENV_EMPTY', 'AYALA_ENV_PRECEDENCE'] as $name) {
+        putenv($name);
+        unset($_ENV[$name]);
+    }
+    unlink($environmentFixture);
+}
+
+$driverFailure = IntegrationTestSafety::formatM01Failure(
+    'overlap concurrency',
+    new PDOException('SQLSTATE secret SELECT password FROM credentials'),
+);
+IntegrationTestSafety::assertRecoveryInspectionPrivileges(
+    ['CREATE', 'DELETE', 'DROP', 'EVENT', 'EXECUTE', 'INSERT', 'SELECT', 'TRIGGER'],
+    ['USAGE'],
+    false,
+);
+IntegrationTestSafety::assertRecoveryInspectionPrivileges(
+    ['CREATE', 'DELETE', 'DROP', 'EVENT', 'EXECUTE', 'INSERT', 'SELECT', 'TRIGGER', 'UPDATE'],
+    ['USAGE'],
+    false,
+);
+check(true, 'Recovery inspection accepts either exact dedicated M00 or M01 privileges');
+check(
+    str_contains($driverFailure, 'overlap concurrency [database-driver]'),
+    'M01 diagnostics identify the failed stage and safe driver error type',
+);
+check(
+    !str_contains($driverFailure, 'SELECT') && !str_contains($driverFailure, 'password'),
+    'M01 diagnostics never expose raw PDO error details',
+);
+$safeFailure = IntegrationTestSafety::formatM01Failure(
+    'cleanup ownership and inventory preflight',
+    new PersistenceException('Cleanup ownership could not be verified.'),
+);
+check(
+    str_contains($safeFailure, 'persistence') && str_contains($safeFailure, 'Cleanup ownership could not be verified.'),
+    'M01 diagnostics retain deliberately safe persistence details',
+);
+
+$workerCode = <<<'PHP'
+while (($line = fgets(STDIN)) !== false) {
+    $message = json_decode(trim($line), true);
+    if (($message['action'] ?? null) === 'stop') {
+        echo "{\"stopped\":true}\n";
+        exit(0);
+    }
+    echo json_encode(['echo' => $message['value'] ?? null]) . "\n";
+}
+PHP;
+$isolatedWorker = JsonWorkerProcess::start([PHP_BINARY, '-r', $workerCode]);
+$isolatedWorker->send(['action' => 'echo', 'value' => 'separate-process']);
+check(
+    ($isolatedWorker->receive()['echo'] ?? null) === 'separate-process',
+    'M01 concurrency protocol exchanges verified JSON with an isolated PHP process',
+);
+$isolatedWorker->stop();
+check(true, 'M01 isolated worker confirms a clean shutdown');
 
 $configurationEnvironment = [
     'DB_CONNECTION' => 'mysql',
@@ -241,6 +335,20 @@ IntegrationTestSafety::assertIsolationPrivileges(
     ['TRIGGER', 'SELECT', 'DROP', 'EXECUTE', 'CREATE', 'INSERT', 'EVENT', 'DELETE'],
     ['USAGE'],
     false,
+);
+IntegrationTestSafety::assertM01IsolationPrivileges(
+    ['UPDATE', 'TRIGGER', 'SELECT', 'DROP', 'EXECUTE', 'CREATE', 'INSERT', 'EVENT', 'DELETE'],
+    ['USAGE'],
+    false,
+);
+expectException(
+    static fn() => IntegrationTestSafety::assertM01IsolationPrivileges(
+        ['TRIGGER', 'SELECT', 'DROP', 'EXECUTE', 'CREATE', 'INSERT', 'EVENT', 'DELETE'],
+        ['USAGE'],
+        false,
+    ),
+    'M01 integration privileges require UPDATE without broadening global access',
+    PersistenceException::class,
 );
 foreach ([
     [['SELECT', 'INSERT', 'DELETE', 'CREATE', 'DROP'], ['USAGE'], false],
@@ -482,11 +590,64 @@ try {
     check(array_column($migrator->status(), 'state') === ['applied', 'applied'], 'Applied migration status calculated');
     check($migrator->rollback() === ['20261018000002_second', '20261018000001_first'], 'Latest batch rolled back in reverse order');
     check($store->records === [], 'Migration records removed after successful rollback');
-    check($GLOBALS['migration_events'] === ['up-first', 'up-second', 'down-second', 'down-first'], 'Migration down callbacks executed in reverse order');
+    check(
+        $GLOBALS['migration_events'] === ['up-first', 'up-second', 'down-second', 'down-first'],
+        'Migration down callbacks execute in reverse order after successful preflight'
+    );
     check($store->acquisitions === 3 && $store->releases === 3 && !$store->locked, 'Migration lock always released');
 } finally {
     removeMigrationDirectory($directory);
 }
+
+$GLOBALS['migration_events'] = [];
+$directory = migrationDirectory();
+try {
+    writeMigration(
+        $directory,
+        '20261018000001_data_bearing',
+        'Data bearing',
+        '',
+        '$GLOBALS["migration_events"][] = "down-data-bearing";',
+        '$GLOBALS["migration_events"][] = "preflight-data-bearing"; throw new RuntimeException("private row count");',
+    );
+    writeMigration(
+        $directory,
+        '20261018000002_empty_table',
+        'Empty table',
+        '',
+        '$GLOBALS["migration_events"][] = "down-empty";',
+        '$GLOBALS["migration_events"][] = "preflight-empty";',
+    );
+    $store = new FakeMigrationStore();
+    $migrator = new Migrator(
+        new MigrationDiscovery($directory), $store, new PersistenceTestPdo(), 'ayala_test_lock', 10
+    );
+    $migrator->migrate();
+    try {
+        $migrator->rollback();
+        check(false, 'Rollback preflight failure expected');
+    } catch (PersistenceException $error) {
+        check(
+            $GLOBALS['migration_events'] === ['preflight-empty', 'preflight-data-bearing'],
+            'Entire latest batch is preflighted before any down callback'
+        );
+        check(count($store->records) === 2, 'Failed rollback preflight preserves every migration record');
+        check(!str_contains($error->getMessage(), 'private row count'), 'Rollback preflight errors are sanitized');
+    }
+} finally {
+    removeMigrationDirectory($directory);
+}
+
+expectException(
+    static fn() => new Migration(
+        '20261018000001_missing_preflight',
+        'Missing preflight',
+        static function (PDO $pdo): void {},
+        static function (PDO $pdo): void {},
+    ),
+    'Reversible migrations without an explicit rollback preflight are rejected',
+    PersistenceException::class,
+);
 
 $directory = migrationDirectory();
 try {

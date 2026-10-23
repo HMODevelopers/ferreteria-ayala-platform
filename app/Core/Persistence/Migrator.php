@@ -107,6 +107,16 @@ final class Migrator implements MigrationRunner
                 }
             }
 
+            foreach ($records as $id => $record) {
+                try {
+                    $migrations[$id]->assertCanRollback($this->pdo);
+                } catch (Throwable) {
+                    throw new PersistenceException(
+                        'Rollback preflight failed for migration ' . $id . '; no migrations from the batch were reverted.'
+                    );
+                }
+            }
+
             $completed = [];
             foreach ($records as $id => $record) {
                 try {

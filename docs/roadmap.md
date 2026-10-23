@@ -10,34 +10,18 @@ Confirmar logo y manual, fotografías autorizadas, contactos, redes, privacidad,
 
 Las decisiones funcionales están consolidadas en [requisitos](requirements.md) y el diseño de persistencia en [modelo de datos](data-model.md). Permanecen pendientes los archivos y valores reales que debe entregar el negocio.
 
-## Fase 3 · Persistencia y administración (M00 en validación, M01.1–M01.4 aislados)
+## Fase 3 · Persistencia y administración (M00 + M01 integrados)
 
-La infraestructura M00 de MySQL/PDO y migraciones está implementada y probada
-de forma aislada. Sus barreras de integración e integridad del historial fueron
-reforzadas; falta validarla contra una base MariaDB exclusiva antes de cerrarla.
-La conexión y tabla técnica verificadas previamente en desarrollo son solo un
-antecedente, no la integración final.
+M00 y M01.1–M01.4 están implementados y pasan pruebas aisladas e integración
+real en MariaDB 10.11. La primera ejecución M01 falló porque un hijo de
+`pcntl_fork()` heredó la conexión PDO del padre. El estado sintético exacto fue
+respaldado, restaurado en una base temporal y recuperado con el ejecutor
+protegido. La repetición usa procesos independientes y demostró restricciones,
+repositorios, transacciones, serialización de horarios, timeout y deadlock.
 
-M01.1 define localmente el esquema de sucursales, catálogo de módulos y su
-configuración por sucursal, además de validaciones y una regla de disponibilidad
-sin persistencia. Sus pruebas aisladas pasan, pero las migraciones no se han
-ejecutado contra MariaDB/MySQL. No hay semillas ni módulos activados.
-
-M01.2 define localmente horarios regulares y excepcionales, validación de
-intervalos y evaluación temporal determinista. Sus pruebas aisladas pasan y
-sus migraciones no se han ejecutado contra MariaDB/MySQL. La protección de
-invariantes entre filas bajo concurrencia queda para las escrituras de M01.4.
-
-M01.3 define localmente el catálogo de servicios comerciales, su configuración
-por sucursal, orden y disponibilidad pura. Sus pruebas aisladas pasan y sus
-migraciones no se han ejecutado contra MariaDB/MySQL. No incluye semillas,
-medios, repositorios ni publicación.
-
-M01.4 implementa localmente repositorios PDO, servicios de aplicación y
-disponibilidad funcional para el alcance de M01. Las escrituras de horarios se
-serializan por sucursal mediante un bloqueo de fila y revalidación dentro de la
-transacción. Las pruebas aisladas pasan; las consultas, restricciones y
-concurrencia reales siguen pendientes de una integración MariaDB autorizada.
+La base exclusiva de pruebas quedó vacía. Las siete migraciones permanecen
+aplicadas en `ferreteria_ayala` sin semillas ni datos comerciales. M01 no expone
+rutas públicas o administrativas y no activa módulos automáticamente.
 
 Usuarios, permisos, sesiones/CSRF,
 auditoría, productos, categorías, marcas, banners, promociones, eventos,

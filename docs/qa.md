@@ -1,12 +1,16 @@
 # Verificación de la plataforma
 
-Fecha de última ejecución: 19 de octubre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0 y PHP CLI 8.5.4. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO y el controlador `pdo_mysql` están disponibles en el PHP CLI de este entorno.
+Fecha de última ejecución local: 23 de octubre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0, PHP CLI 8.5.4 de 64 bits y MariaDB 10.11.15. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO, `pdo_mysql` y `proc_open` están disponibles.
 
 ## Ejecutado
 
-- Sintaxis de los archivos PHP: sin errores.
-- Pruebas PHP `tests/run.php`: **477 comprobaciones** correctas. Conservan las
-  406 comprobaciones previas; las 71 nuevas de M01.4 cubren conexión diferida,
+- Sintaxis de **106 archivos PHP**: sin errores.
+- Pruebas PHP `tests/run.php`: **537 comprobaciones** correctas. Las nuevas
+  regresiones cubren la comparación binaria de los tres códigos, el contrato de
+  preflight de migraciones y que un fallo en cualquier elemento del último lote
+  ocurra antes de ejecutar el primer `down()`. También verifican el protocolo
+  JSON del proceso aislado y que el diagnóstico incluya etapa/tipo sin filtrar
+  el mensaje de `PDOException`. Las 71 comprobaciones de M01.4 cubren conexión diferida,
   consultas preparadas, parámetros, paginación, rehidratación, duplicados
   controlados, orden estable, matrices de disponibilidad, transacciones,
   rollback y el protocolo de bloqueo/recarga/validación de horarios. Las 82 de
@@ -15,6 +19,18 @@ Fecha de última ejecución: 19 de octubre de 2026. Entorno: Ubuntu, Node 22.22.
   asociaciones, desempate determinista, matriz de disponibilidad, ausencia de
   entidades/relación, descubrimiento, SQL, claves, índices y rollbacks
   protegidos mediante dobles de PDO.
+- El recuperador M01 quedó validado con pruebas aisladas y ejecución real: modo destructivo
+  apagado por defecto, endpoint/base/cuenta exactos, inventario y estructura,
+  historial, sesiones/bloqueos visibles, propiedad fila por fila, prueba del
+  respaldo, orden FK, rollback ante fallo DML y diagnósticos sin secretos. Los
+  modos `inspect` y `recover` pasaron contra MariaDB después de verificar el dump
+  con una restauración independiente.
+- `npm run test:mysql`: PASS con `ayala_m00_test`; dejó inventario vacío.
+- `npm run test:mysql:m01`: PASS con `ayala_m01_test`; validó esquema,
+  repositorios, transacciones, solapamiento serializado, timeout y deadlock, y
+  dejó inventario vacío.
+- Las siete migraciones quedaron aplicadas en lote 1 sobre `ferreteria_ayala`;
+  sus siete tablas comerciales permanecen vacías y no se cargaron semillas.
 - `npm run dev`: observación iniciada correctamente y detenida después de comprobar el modo desarrollo.
 - `npm run build`: Tailwind 4.3.3 y esbuild correctos; assets locales minificados y fuentes/licencias copiadas.
 - Dos compilaciones consecutivas produjeron assets idénticos. Tailwind usa fuentes explícitas de vistas y JavaScript para impedir que clases incidentales de PHP técnico alteren el CSS.
@@ -30,25 +46,16 @@ Fecha de última ejecución: 19 de octubre de 2026. Entorno: Ubuntu, Node 22.22.
 
 ## Pendiente / límite del alcance
 
-La integración `npm run test:mysql` no se ejecutó porque no se ha autorizado modificar una base MariaDB de pruebas. La prueba ahora exige una base vacía terminada en `_test`, una cuenta no administrativa con privilegios exactos, identidad efectiva verificable, inventario visible de tablas, vistas, triggers, eventos y rutinas, exclusión durante el ciclo y propiedad demostrable antes de limpiar `schema_migrations`.
-
-Las migraciones M01.1, M01.2 y M01.3 tampoco se ejecutaron. Las pruebas aisladas verifican el
-SQL y el comportamiento de sus callbacks, pero no sustituyen la validación de
-`CHECK`, claves foráneas, índices, precisión decimal, creación ni rollback en
-MariaDB 10.11/MySQL. Los `CHECK` no sustituyen la validación entre varias filas;
-las escrituras de M01.4 ya revalidan el calendario bajo un bloqueo de sucursal,
-pero los dobles no prueban serialización, timeouts ni deadlocks reales. Las
-claves foráneas, unicidad y restricciones de M01.3 también
-requieren integración real. Esa integración solo procede después de resolver M00 y con
-autorización expresa sobre una base exclusiva.
-
-Como antecedente informado, antes de esta tarea se verificó la conexión de la aplicación al minilab MariaDB y se inicializó `schema_migrations` en la base de desarrollo. Esa operación no se repitió aquí y no sustituye la integración en `ferreteria_ayala_test`. M00 no está completo hasta que dicha integración pase. Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio, iOS Safari, Android real ni lectores de pantalla. No se confirma stock, precios ni ningún flujo administrativo porque no existen en esta fase.
+El DDL de MariaDB conserva commits implícitos; las guardas reducen el riesgo,
+pero una caída durante un rollback futuro todavía exigiría inspección manual.
+Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio,
+iOS Safari, Android real ni lectores de pantalla. No se confirma stock, precios
+ni ningún flujo administrativo porque no existen en esta fase.
 
 ## Revisión de aprobación
 
 La Home fue aprobada como base el 17 de octubre de 2026. Permanecen pendientes
 el logo oficial, fotos reales y datos de contacto verificados para reemplazar
-los placeholders. La infraestructura de persistencia está implementada. M01.1,
-M01.2, M01.3 y M01.4 están implementados y validados únicamente de forma aislada,
-sin tablas comerciales aplicadas. El administrador y M02–M14 permanecen
-fuera del alcance.
+los placeholders. M00 y M01.1–M01.4 están integrados y listos para revisión
+final; las tablas de desarrollo están aplicadas sin datos comerciales. El
+administrador y M02–M14 permanecen fuera del alcance.

@@ -3,8 +3,46 @@ declare(strict_types=1);
 
 namespace App\Core\Persistence;
 
+use PDOException;
+use Throwable;
+
 final class IntegrationTestSafety
 {
+    public static function failureType(Throwable $error): string
+    {
+        return match (true) {
+            $error instanceof PDOException => 'database-driver',
+            $error instanceof PersistenceException => 'persistence',
+            $error instanceof \InvalidArgumentException => 'validation',
+            $error instanceof \RuntimeException => 'runtime',
+            $error instanceof \Error => 'runtime-engine',
+            default => 'unexpected',
+        };
+    }
+
+    public static function formatM01Failure(string $stage, Throwable $error): string
+    {
+        return self::formatFailure('M01 integration', $stage, $error);
+    }
+
+    public static function formatM01RecoveryFailure(string $stage, Throwable $error): string
+    {
+        return self::formatFailure('M01 recovery', $stage, $error);
+    }
+
+    private static function formatFailure(string $operation, string $stage, Throwable $error): string
+    {
+        $stage = preg_replace('/[^a-z0-9._ -]/i', '', $stage) ?? '';
+        if ($stage === '') {
+            $stage = 'unknown';
+        }
+        $message = $operation . ' failed during ' . $stage . ' [' . self::failureType($error) . '].';
+        if ($error instanceof PersistenceException || $error instanceof \InvalidArgumentException) {
+            $message .= ' ' . $error->getMessage();
+        }
+        return $message;
+    }
+
     public static function assertConfiguration(string $database, string $username): void
     {
         if (!str_ends_with($database, '_test')) {
@@ -71,6 +109,50 @@ final class IntegrationTestSafety
                 'The test account does not have the exact limited privileges required to verify database isolation.'
             );
         }
+    }
+
+    /**
+     * M01 exercises repository updates in addition to the M00 migration cycle.
+     *
+     * @param list<string> $schemaPrivileges
+     * @param list<string> $globalPrivileges
+     */
+    public static function assertM01IsolationPrivileges(
+        array $schemaPrivileges,
+        array $globalPrivileges,
+        bool $hasGrantOption,
+    ): void {
+        $required = ['CREATE', 'DELETE', 'DROP', 'EVENT', 'EXECUTE', 'INSERT', 'SELECT', 'TRIGGER', 'UPDATE'];
+        $schemaPrivileges = array_values(array_unique($schemaPrivileges));
+        $globalPrivileges = array_values(array_unique($globalPrivileges));
+        sort($schemaPrivileges, SORT_STRING);
+        sort($globalPrivileges, SORT_STRING);
+
+        if ($schemaPrivileges !== $required || array_diff($globalPrivileges, ['USAGE']) !== [] || $hasGrantOption) {
+            throw new PersistenceException(
+                'The M01 test account does not have the exact limited privileges required for isolated integration.'
+            );
+        }
+    }
+
+    /**
+     * Read-only recovery inspection can use either dedicated integration
+     * identity, while destructive recovery still requires M01 explicitly.
+     *
+     * @param list<string> $schemaPrivileges
+     * @param list<string> $globalPrivileges
+     */
+    public static function assertRecoveryInspectionPrivileges(
+        array $schemaPrivileges,
+        array $globalPrivileges,
+        bool $hasGrantOption,
+    ): void {
+        try {
+            self::assertIsolationPrivileges($schemaPrivileges, $globalPrivileges, $hasGrantOption);
+            return;
+        } catch (PersistenceException) {
+        }
+        self::assertM01IsolationPrivileges($schemaPrivileges, $globalPrivileges, $hasGrantOption);
     }
 
     /**

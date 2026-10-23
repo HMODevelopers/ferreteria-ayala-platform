@@ -4,6 +4,12 @@ declare(strict_types=1);
 use App\Core\Persistence\Migration;
 use App\Core\Persistence\PersistenceException;
 
+$assertTableIsEmpty = static function (PDO $pdo): void {
+    if ((int) $pdo->query('SELECT COUNT(*) FROM branches')->fetchColumn() !== 0) {
+        throw new PersistenceException('Rollback refused because branches contains data.');
+    }
+};
+
 return new Migration(
     '20261019010000_create_branches',
     'Create branches table',
@@ -25,7 +31,7 @@ CREATE TABLE branches (
     PRIMARY KEY (id),
     CONSTRAINT branches_code_unique UNIQUE (code),
     CONSTRAINT branches_code_format_check CHECK (
-        code = UPPER(code)
+        CAST(code AS BINARY) = CAST(UPPER(code) AS BINARY)
         AND code REGEXP '^[A-Z0-9]([A-Z0-9_-]{0,48}[A-Z0-9])?$'
     ),
     CONSTRAINT branches_name_not_blank_check CHECK (CHAR_LENGTH(TRIM(name)) > 0),
@@ -40,10 +46,9 @@ CREATE TABLE branches (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
     },
-    static function (PDO $pdo): void {
-        if ((int) $pdo->query('SELECT COUNT(*) FROM branches')->fetchColumn() !== 0) {
-            throw new PersistenceException('Rollback refused because branches contains data.');
-        }
+    static function (PDO $pdo) use ($assertTableIsEmpty): void {
+        $assertTableIsEmpty($pdo);
         $pdo->exec('DROP TABLE branches');
     },
+    $assertTableIsEmpty,
 );

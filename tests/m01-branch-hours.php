@@ -226,12 +226,18 @@ foreach ($hoursMigrations as $migration) {
     check($migration->isReversible(), 'M01.2 migration declares a guarded rollback');
     $nonEmptyPdo = new M01SchemaPdo([$table => 1]);
     expectException(
+        static fn() => $migration->assertCanRollback($nonEmptyPdo),
+        'M01.2 rollback preflight rejects data-bearing table: ' . $table,
+        PersistenceException::class,
+    );
+    expectException(
         static fn() => $migration->down($nonEmptyPdo),
         'M01.2 rollback rejects data-bearing table: ' . $table,
         PersistenceException::class,
     );
     check($nonEmptyPdo->executed === [], 'Rejected M01.2 rollback preserves table: ' . $table);
     $emptyPdo = new M01SchemaPdo([$table => 0]);
+    $migration->assertCanRollback($emptyPdo);
     $migration->down($emptyPdo);
     check($emptyPdo->executed === ['DROP TABLE ' . $table], 'Empty M01.2 table rollback is explicit: ' . $table);
 }

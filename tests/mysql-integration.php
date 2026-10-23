@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\Core\Persistence\Connection;
 use App\Core\Persistence\DatabaseConfig;
 use App\Core\Persistence\IntegrationTestSafety;
+use App\Core\Persistence\IntegrationDatabaseEnvironment;
 use App\Core\Persistence\MigrationDiscovery;
 use App\Core\Persistence\Migrator;
 use App\Core\Persistence\MySqlMigrationStore;
@@ -14,6 +15,8 @@ if (PHP_SAPI !== 'cli') {
     exit(2);
 }
 
+$cliEnvironment = 'testing';
+require dirname(__DIR__) . '/bootstrap/cli.php';
 require dirname(__DIR__) . '/bootstrap/app.php';
 
 if (getenv('APP_ENV') !== 'testing') {
@@ -21,24 +24,11 @@ if (getenv('APP_ENV') !== 'testing') {
     exit(2);
 }
 
-$required = [
-    'TEST_DB_HOST', 'TEST_DB_PORT', 'TEST_DB_DATABASE', 'TEST_DB_USERNAME',
-    'TEST_DB_PASSWORD', 'TEST_DB_CHARSET',
-];
-$values = [];
-foreach ($required as $name) {
-    $value = getenv($name);
-    if ($value === false || ($value === '' && $name !== 'TEST_DB_PASSWORD')) {
-        fwrite(STDERR, "ERROR: All TEST_DB_* variables must be supplied explicitly.\n");
-        exit(2);
-    }
-    $values[$name] = $value;
-}
-
 try {
+    $values = IntegrationDatabaseEnvironment::forSuite('m00');
     IntegrationTestSafety::assertConfiguration(
-        $values['TEST_DB_DATABASE'],
-        $values['TEST_DB_USERNAME'],
+        $values['database'],
+        $values['username'],
     );
 } catch (PersistenceException $error) {
     fwrite(STDERR, 'ERROR: ' . $error->getMessage() . "\n");
@@ -120,12 +110,12 @@ $name = 'M00 integration probe ' . bin2hex(random_bytes(12));
 try {
     $config = DatabaseConfig::fromArray([
         'connection' => 'mysql',
-        'host' => $values['TEST_DB_HOST'],
-        'port' => $values['TEST_DB_PORT'],
-        'database' => $values['TEST_DB_DATABASE'],
-        'username' => $values['TEST_DB_USERNAME'],
-        'password' => $values['TEST_DB_PASSWORD'],
-        'charset' => $values['TEST_DB_CHARSET'],
+        'host' => $values['host'],
+        'port' => $values['port'],
+        'database' => $values['database'],
+        'username' => $values['username'],
+        'password' => $values['password'],
+        'charset' => $values['charset'],
         'connect_timeout' => 5,
         'migration_lock_timeout' => 10,
     ]);
@@ -171,7 +161,8 @@ try {
     }
     $source = '<?php declare(strict_types=1); use App\\Core\\Persistence\\Migration; '
         . 'return new Migration(' . var_export($id, true) . ', ' . var_export($name, true) . ', '
-        . 'static function (PDO $pdo): void {}, static function (PDO $pdo): void {});';
+        . 'static function (PDO $pdo): void {}, static function (PDO $pdo): void {}, '
+        . 'static function (PDO $pdo): void {});';
     file_put_contents($directory . '/' . $id . '.php', $source);
 
     $migrator = new Migrator(

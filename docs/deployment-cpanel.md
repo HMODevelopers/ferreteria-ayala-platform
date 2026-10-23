@@ -23,7 +23,7 @@ Los assets compilados están en `public/assets/`. Conservar fuentes, fotografía
 3. Configurar dominio o subdominio para apuntar exactamente a `/home/USUARIO/ayala-platform/public`. Un subdominio sirve en `/`, no es instalación bajo `/ayala`.
 4. Confirmar que `.htaccess` fue transferido como archivo oculto y mod_rewrite funciona. `Options -Indexes -MultiViews` debe estar autorizado; si el proveedor lo prohíbe, pedir configuración equivalente, no quitar protección sin comprobar directorios.
 5. Permisos usuales: carpetas 755, archivos 644; solo `storage/logs` requiere escritura por PHP. No usar 777. Ajustar propietario/grupo según el handler PHP del hosting.
-6. Configurar las variables del entorno de producción en Apache/cPanel. El proyecto usa `getenv()`; `.env.example` documenta el contrato y no es un loader. `.env` debe permanecer fuera de Git y nunca debe quedar bajo el document root.
+6. Configurar las variables del entorno de producción en Apache/cPanel. El proyecto usa `getenv()`; el cargador de `.env` es exclusivo de CLI local. `.env` debe permanecer fuera de Git y nunca debe quedar bajo el document root.
 7. Activar certificado TLS y redirección HTTPS desde el panel del hosting. No usar el servidor PHP integrado en producción.
 8. Verificar `/` (200), ruta inexistente (404), assets y rutas privadas. `/.env`, `/config/app.php`, `/app/Data/DemoHomeData.php` y `/storage/logs/app.log` no deben devolver contenido privado. `/router.php` debe estar denegado o no encontrado.
 9. Revisar logs privados, los diálogos, las imágenes y CSP. Probar en teléfono real.
@@ -65,9 +65,11 @@ php bin/migrations.php migrate --force
 ```
 
 `rollback --force` solo revierte el último lote si todas sus migraciones tienen
-reversión segura. El flag confirma el ambiente; no omite validación ni elige una
-base automáticamente. Ante un fallo DDL no reintentes a ciegas: MySQL/MariaDB
-puede haber confirmado cambios parciales.
+reversión segura. Antes del primer cambio valida las precondiciones del lote
+completo y cada reversión repite su guarda. El flag confirma el ambiente; no
+omite validación ni elige una base automáticamente. El DDL no es atómico: una
+carrera, caída o fallo posterior al preflight aún puede dejar cambios parciales.
+Ante un fallo no reintentes a ciegas.
 
 En local se exportan las variables desde la terminal. Para el minilab actual,
 `DB_HOST=192.168.1.12` solo es válido cuando la laptop puede alcanzar ese host.
@@ -81,11 +83,17 @@ el CLI desde la raíz privada del proyecto, nunca desde `public/`. Confirma ante
 la versión de PHP CLI y `php -m | grep -i pdo_mysql`, porque puede diferir de la
 versión seleccionada para Apache.
 
-La integración se ejecuta únicamente con `APP_ENV=testing` y `TEST_DB_*`
-explícitas mediante `npm run test:mysql`. Rechaza una base sin sufijo `_test` o
+La integración carga `TEST_DB_*` desde el `.env` local y fuerza `APP_ENV=testing`
+solo en el proceso mediante `npm run test:mysql`. M00 y M01 usan credenciales
+separadas con sufijos `_M00` y `_M01`. Rechaza una base sin sufijo `_test` o
 que ya contenga `schema_migrations`; no usa `DB_*`, no crea bases y retira solo
 la tabla técnica que creó. En servidores compartidos requiere autorización
 previa y una cuenta limitada a la base de pruebas.
+
+La integración M01 no usa el comando normal de migraciones: dispone de
+`npm run test:mysql:m01`, exige además `M01_TEST_AUTHORIZATION` y `UPDATE`, y
+debe ejecutarse únicamente después de que M00 deje la base vacía. No es un
+comando de despliegue. Consulta `docs/integration-m00-m01.md` antes de usarlo.
 
 No se soporta hoy despliegue bajo subcarpeta URL (`/ayala`). Los assets y enlaces parten de `/`; si se necesita, implementar base path en helpers, navegación y router y probarlo antes de desplegar.
 

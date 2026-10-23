@@ -4,6 +4,12 @@ declare(strict_types=1);
 use App\Core\Persistence\Migration;
 use App\Core\Persistence\PersistenceException;
 
+$assertTableIsEmpty = static function (PDO $pdo): void {
+    if ((int) $pdo->query('SELECT COUNT(*) FROM modules')->fetchColumn() !== 0) {
+        throw new PersistenceException('Rollback refused because modules contains data.');
+    }
+};
+
 return new Migration(
     '20261019010100_create_modules',
     'Create modules table',
@@ -20,7 +26,9 @@ CREATE TABLE modules (
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (id),
     CONSTRAINT modules_code_unique UNIQUE (code),
-    CONSTRAINT modules_code_format_check CHECK (code = UPPER(code) AND code REGEXP '^M[0-9]{2}$'),
+    CONSTRAINT modules_code_format_check CHECK (
+        CAST(code AS BINARY) = CAST(UPPER(code) AS BINARY) AND code REGEXP '^M[0-9]{2}$'
+    ),
     CONSTRAINT modules_name_not_blank_check CHECK (CHAR_LENGTH(TRIM(name)) > 0),
     CONSTRAINT modules_global_boolean_check CHECK (is_globally_enabled IN (0, 1)),
     CONSTRAINT modules_branch_requirement_boolean_check CHECK (requires_branch_enablement IN (0, 1)),
@@ -28,10 +36,9 @@ CREATE TABLE modules (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
     },
-    static function (PDO $pdo): void {
-        if ((int) $pdo->query('SELECT COUNT(*) FROM modules')->fetchColumn() !== 0) {
-            throw new PersistenceException('Rollback refused because modules contains data.');
-        }
+    static function (PDO $pdo) use ($assertTableIsEmpty): void {
+        $assertTableIsEmpty($pdo);
         $pdo->exec('DROP TABLE modules');
     },
+    $assertTableIsEmpty,
 );

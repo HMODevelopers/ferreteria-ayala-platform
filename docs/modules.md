@@ -4,13 +4,12 @@ Este archivo es el índice para solicitar trabajo a Codex. Los identificadores
 son estables: una tarea debe mencionar el módulo, sus fuentes y el incremento
 concreto que se desea implementar.
 
-Estado general al 19 de octubre de 2026: la Home demostrativa está aprobada.
-M00 tiene implementación y pruebas aisladas, pero permanece **pendiente de
-integración MariaDB real**. M01.1 tiene esquema, dominio mínimo y pruebas
-aisladas implementados localmente; sus migraciones no se han aplicado. M01.2
-tiene esquema, dominio y pruebas aisladas implementados localmente. M01.3
-define servicios comerciales por sucursal y está validado de forma aislada.
-M01.4 está implementado y validado de forma aislada. M02–M14 no están implementados.
+Estado general al 23 de octubre de 2026: la Home demostrativa está aprobada.
+M00 y M01.1–M01.4 están implementados y pasan sus pruebas aisladas e integración
+real en MariaDB 10.11. La ejecución M01 fallida fue respaldada, restaurada en un
+destino temporal y recuperada de forma controlada; la repetición completa pasó
+con trabajadores independientes y dejó la base de pruebas vacía. Las siete
+migraciones están aplicadas en desarrollo sin semillas. M02–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -35,9 +34,8 @@ M01.4 está implementado y validado de forma aislada. M02–M14 no están implem
 ### M00 · Persistencia
 
 Incluye conexión PDO, registro/ejecutor de migraciones, transacciones, errores
-seguros y pruebas. La implementación local existe, pero M00 no se considera
-completo hasta ejecutar satisfactoriamente la integración en una base exclusiva
-autorizada. No incluye tablas comerciales ni autenticación.
+seguros y pruebas. M00 pasó la integración en una base exclusiva autorizada y
+confirmó limpieza final. No incluye tablas comerciales ni autenticación.
 
 ### M01 · Sucursales y módulos
 
@@ -47,27 +45,28 @@ rutas de entrega.
 
 Incrementos:
 
-- **M01.1 implementado y validado de forma aislada:** migraciones de
+- **M01.1 integrado:** migraciones de
   `branches`, `modules` y `branch_modules`; validación de claves, nombres y
   coordenadas; estados deshabilitados por defecto y regla pura de
   disponibilidad. No hay semillas, rutas ni escrituras públicas.
-- **M01.2 implementado y validado de forma aislada:** horarios semanales y
+- **M01.2 integrado:** horarios semanales y
   excepcionales, múltiples intervalos, cruces de medianoche, cierres por fecha,
   precedencia determinista y separación entre horario programado, habilitación
-  operativa y disponibilidad pública. Sus migraciones no se han aplicado y las
+  operativa y disponibilidad pública. Las
   invariantes entre filas deberán revalidarse al escribir desde M01.4.
-- **M01.3 implementado y validado de forma aislada:** catálogo de servicios
+- **M01.3 integrado:** catálogo de servicios
   comerciales, configuración independiente por sucursal, desactivación lógica,
   orden determinista y regla pura de disponibilidad. No hay semillas,
   repositorios, rutas, medios ni publicación de datos comerciales.
-- **M01.4 implementado y validado de forma aislada:** contratos de repositorio,
+- **M01.4 integrado:** contratos de repositorio,
   adaptadores PDO, servicios de aplicación, lecturas paginadas/acotadas,
   activación lógica y disponibilidad efectiva. Las escrituras de horarios
   bloquean la fila de sucursal, releen el calendario y validan antes del DML.
-  No hay rutas administrativas y la concurrencia real del motor está pendiente.
+  No hay rutas administrativas; la concurrencia real pasó con conexiones
+  independientes en MariaDB 10.11.
 
-La integración de M01.1 en MariaDB/MySQL permanece pendiente de resolver y
-autorizar la validación real de M00. Ningún módulo del catálogo se inserta o
+M01 está integrado para revisión final: esquema, repositorios, restricciones y
+concurrencia pasaron en MariaDB 10.11. Ningún módulo del catálogo se inserta o
 activa automáticamente.
 
 ### M02 · Acceso y auditoría

@@ -104,10 +104,11 @@ check(count($schemaPdo->executed) === 2, 'Each M01.3 isolated migration defines 
 foreach ([
     'CREATE TABLE services',
     'BIGINT UNSIGNED',
-    'code VARCHAR(50)',
+    'code VARCHAR(50) CHARACTER SET ascii COLLATE ascii_general_ci',
     'description TEXT NULL',
     'DEFAULT 0',
     'services_code_unique',
+    'CAST(code AS BINARY) = CAST(UPPER(code) AS BINARY)',
     'services_code_format_check',
     'services_name_not_blank_check',
     'services_description_not_blank_check',
@@ -150,12 +151,18 @@ foreach ($serviceMigrations as $migration) {
     check($migration->isReversible(), 'M01.3 migration declares a guarded rollback');
     $nonEmptyPdo = new M01SchemaPdo([$table => 1]);
     expectException(
+        static fn() => $migration->assertCanRollback($nonEmptyPdo),
+        'M01.3 rollback preflight rejects data-bearing table: ' . $table,
+        PersistenceException::class,
+    );
+    expectException(
         static fn() => $migration->down($nonEmptyPdo),
         'M01.3 rollback rejects data-bearing table: ' . $table,
         PersistenceException::class,
     );
     check($nonEmptyPdo->executed === [], 'Rejected M01.3 rollback preserves table: ' . $table);
     $emptyPdo = new M01SchemaPdo([$table => 0]);
+    $migration->assertCanRollback($emptyPdo);
     $migration->down($emptyPdo);
     check($emptyPdo->executed === ['DROP TABLE ' . $table], 'Empty M01.3 table rollback is explicit: ' . $table);
 }

@@ -128,10 +128,10 @@ foreach ($migrations as $migration) {
 check(count($schemaPdo->executed) === 3, 'Each isolated migration defines one table');
 
 [$branchesSql, $modulesSql, $branchModulesSql] = $schemaPdo->executed;
-foreach (['CREATE TABLE branches', 'BIGINT UNSIGNED', 'DEFAULT 0', 'DECIMAL(9,6)', 'DECIMAL(10,6)', 'branches_code_unique', 'branches_coordinates_pair_check', 'branches_active_name_idx', 'ENGINE=InnoDB', 'utf8mb4'] as $fragment) {
+foreach (['CREATE TABLE branches', 'BIGINT UNSIGNED', 'code VARCHAR(50) CHARACTER SET ascii COLLATE ascii_general_ci', 'DEFAULT 0', 'DECIMAL(9,6)', 'DECIMAL(10,6)', 'branches_code_unique', 'CAST(code AS BINARY) = CAST(UPPER(code) AS BINARY)', 'branches_coordinates_pair_check', 'branches_active_name_idx', 'ENGINE=InnoDB', 'utf8mb4'] as $fragment) {
     check(str_contains($branchesSql, $fragment), 'Branches schema contains required definition: ' . $fragment);
 }
-foreach (['CREATE TABLE modules', 'modules_code_unique', 'is_globally_enabled', 'requires_branch_enablement', 'DEFAULT 0', 'DEFAULT 1', 'modules_availability_idx', 'ENGINE=InnoDB', 'utf8mb4'] as $fragment) {
+foreach (['CREATE TABLE modules', 'code VARCHAR(20) CHARACTER SET ascii COLLATE ascii_general_ci', 'modules_code_unique', 'CAST(code AS BINARY) = CAST(UPPER(code) AS BINARY)', 'is_globally_enabled', 'requires_branch_enablement', 'DEFAULT 0', 'DEFAULT 1', 'modules_availability_idx', 'ENGINE=InnoDB', 'utf8mb4'] as $fragment) {
     check(str_contains($modulesSql, $fragment), 'Modules schema contains required definition: ' . $fragment);
 }
 foreach (['CREATE TABLE branch_modules', 'PRIMARY KEY (branch_id, module_id)', 'branch_modules_branch_fk', 'branch_modules_module_fk', 'ON DELETE RESTRICT', 'branch_modules_module_enabled_branch_idx', 'DEFAULT 0', 'ENGINE=InnoDB', 'utf8mb4'] as $fragment) {
@@ -151,6 +151,11 @@ foreach ($migrations as $migration) {
     };
     $nonEmptyPdo = new M01SchemaPdo([$table => 1]);
     expectException(
+        static fn() => $migration->assertCanRollback($nonEmptyPdo),
+        'Rollback preflight rejects data-bearing table: ' . $table,
+        PersistenceException::class,
+    );
+    expectException(
         static fn() => $migration->down($nonEmptyPdo),
         'Rollback rejects data-bearing table: ' . $table,
         PersistenceException::class,
@@ -158,6 +163,7 @@ foreach ($migrations as $migration) {
     check($nonEmptyPdo->executed === [], 'Rejected rollback does not drop data-bearing table: ' . $table);
 
     $emptyPdo = new M01SchemaPdo([$table => 0]);
+    $migration->assertCanRollback($emptyPdo);
     $migration->down($emptyPdo);
     check($emptyPdo->executed === ['DROP TABLE ' . $table], 'Empty table rollback is explicit: ' . $table);
 }

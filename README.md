@@ -16,18 +16,16 @@ Home comercial y base modular en PHP puro, con arquitectura MVC mínima y assets
 npm ci
 npm run build
 cp .env.example .env
-set -a
-. ./.env
-set +a
 php -S 127.0.0.1:8080 -t public public/router.php
 ```
 
 Abre **http://127.0.0.1:8080**. También puedes ejecutar `npm run serve`.
 
-PHP lee configuración del entorno con `getenv()`. El archivo `.env` local está
-ignorado por Git y no se carga automáticamente; las instrucciones `set -a` y
-`. ./.env` lo exportan de forma explícita en la terminal actual. En cPanel se
-deben definir las variables de producción en el entorno del sitio.
+PHP lee configuración con `getenv()`. Los comandos CLI privados cargan el archivo
+`.env` local mediante un parser de datos que no evalúa shell; las variables ya
+exportadas tienen precedencia. Las integraciones fuerzan `APP_ENV=testing` solo
+en su proceso. La aplicación web no carga `.env`; en cPanel se definen las
+variables de producción en el entorno del sitio.
 
 ## Persistencia y migraciones
 
@@ -48,26 +46,34 @@ php bin/migrations.php rollback
 
 `migrate` aplica pendientes en un lote nuevo; `rollback` revierte únicamente el
 último lote y se niega a comenzar si alguna migración de ese lote no tiene
-reversión. Fuera de `development` y `testing`, las dos operaciones exigen
-`--force`. MySQL/MariaDB puede confirmar DDL implícitamente: ante un error se
-debe inspeccionar el esquema antes de reintentar; el sistema no promete una
-reversión atómica de DDL.
+reversión. Antes del primer `down()`, valida integralmente las precondiciones de
+todas las migraciones del lote; cada `down()` vuelve a comprobar su protección
+inmediatamente antes del DDL. Fuera de `development` y `testing`, las dos
+operaciones exigen `--force`. MySQL/MariaDB puede confirmar DDL implícitamente:
+el preflight evita reversiones parciales previsibles por datos existentes, pero
+una carrera, caída o error DDL posterior todavía puede dejar cambios parciales.
+Ante un error se debe inspeccionar el esquema antes de reintentar.
 
 Los archivos privados de migración viven en `database/migrations/`, se nombran
 `YYYYMMDDHHMMSS_nombre_descriptivo.php` y devuelven una instancia de
 `App\Core\Persistence\Migration`. M00 administra la tabla técnica
 `schema_migrations`. M01.1 define `branches`, `modules` y `branch_modules`;
 M01.2 añade `branch_hours` y `branch_special_hours`; M01.3 incorpora el catálogo
-`services` y su configuración `branch_services`. Son definiciones locales que
-no se han aplicado a una base real. Sus rollbacks rechazan tablas con registros
-antes de ejecutar un `DROP TABLE`.
+`services` y su configuración `branch_services`. Una integración M01 fallida
+las dejó aplicadas temporalmente en la base exclusiva de pruebas; ese estado se
+respaldó, verificó y recuperó antes de repetir la suite con éxito. Los códigos conservan
+unicidad ASCII sin distinguir mayúsculas y sus `CHECK` fuerzan mayúsculas
+mediante comparación binaria. Sus rollbacks rechazan tablas con registros antes
+de ejecutar un `DROP TABLE`.
 
 M01.4 incorpora contratos de repositorio, adaptadores PDO y servicios de
 aplicación internos para sucursales, módulos, horarios y servicios comerciales.
 Las escrituras no están expuestas por HTTP. Los horarios se modifican dentro de
 una transacción que bloquea primero la sucursal con `SELECT ... FOR UPDATE`,
-relee y valida el calendario, y solo entonces ejecuta el DML. Esta estrategia se
-verifica con dobles; su serialización real sigue pendiente de MariaDB.
+relee y valida el calendario, y solo entonces ejecuta el DML. La primera
+ejecución real inicial falló por herencia de PDO al bifurcar. El estado fallido
+se respaldó, restauró en un destino temporal, recuperó de forma controlada y la
+suite se repitió satisfactoriamente con procesos independientes.
 
 En otra terminal, `npm run dev` observa cambios en CSS y JavaScript. PHP se recarga al actualizar el navegador. Tras cambiar fuentes o dependencias, reinicia el observador. Usa `npm run build` antes de subir los archivos: compila y minimiza Tailwind, empaqueta los ES Modules/Swiper y copia fuentes y licencias a `public/assets/`.
 
@@ -134,15 +140,20 @@ El prototipo usa `noindex, nofollow`; el dominio, URL absoluta Open Graph, SEO d
 npm test
 find app bootstrap config public tests -name '*.php' -exec php -l {} \;
 npm run build
-# Solo con una base exclusiva autorizada y APP_ENV=testing:
+# Con una base exclusiva autorizada; el CLI limita APP_ENV=testing a su proceso:
 npm run test:mysql
+# Sólo después de que M00 pase y con autorización separada para M01:
+npm run test:mysql:m01
+# Sólo ante una recuperación expresamente autorizada:
+npm run inspect:mysql:m01-recovery
+npm run recover:mysql:m01-recovery
 # Con el servidor iniciado y Chrome instalado:
 CHROME_PATH=/ruta/al/chrome npm run test:browser
 ```
 
 Las pruebas de navegador usan por defecto `/opt/google/chrome/chrome`. Las capturas quedan en `tests/artifacts/` (ignoradas por Git). No es necesario instalar un navegador adicional si Chrome está disponible.
 
-La integración exige `TEST_DB_*` explícitas, una base vacía cuyo nombre termine
+La integración exige `TEST_DB_*` configuradas, una base vacía cuyo nombre termine
 en `_test` y una cuenta no administrativa limitada a esa base. Nunca reutiliza
 `DB_*` ni crea o elimina bases. Antes de escribir comprueba identidad efectiva,
 privilegios e inventario de tablas, vistas, triggers, eventos y rutinas. Solo
@@ -150,17 +161,29 @@ retira `schema_migrations` si conserva la exclusión y puede demostrar que esa
 ejecución creó la tabla y que no contiene registros ajenos. Obtén autorización
 antes de ejecutarla contra un servidor compartido.
 
-La cuenta de integración debe tener únicamente `SELECT`, `INSERT`, `DELETE`,
+`TEST_DB_USERNAME_M00`/`TEST_DB_PASSWORD_M00` identifican M00 y
+`TEST_DB_USERNAME_M01`/`TEST_DB_PASSWORD_M01` identifican M01. La cuenta de
+integración M00 debe tener únicamente `SELECT`, `INSERT`, `DELETE`,
 `CREATE`, `DROP`, `TRIGGER`, `EVENT` y `EXECUTE` sobre la base de pruebas, sin
-`GRANT OPTION` ni privilegios globales distintos de `USAGE`. Los tres permisos
-de metadatos permiten demostrar que no existen objetos ocultos antes de probar.
+`GRANT OPTION` ni privilegios globales distintos de `USAGE`. M01 usa un ejecutor
+independiente y exige además `UPDATE`; requiere `M01_TEST_AUTHORIZATION` igual
+al nombre exacto de la base. Los tres permisos de metadatos permiten demostrar
+que no existen objetos ocultos antes de probar. Consulta el
+[punto de control M00 + M01](docs/integration-m00-m01.md) antes de autorizar.
+
+La recuperación de una integración fallida usa un ejecutor independiente con
+modos `inspect` y `recover`. El segundo permanece deshabilitado por defecto,
+exige dos confirmaciones exactas, constancia administrativa de que no quedan
+sesiones anteriores y prueba de un respaldo externo restaurado de forma
+independiente. No usa `DROP DATABASE`, `TRUNCATE`, desactivación de FKs ni una
+cuenta administrativa. El DML se revierte como transacción ante errores; el DDL
+posterior conserva la limitación de commits implícitos de MariaDB/MySQL.
 
 Las pruebas aisladas cubren M00 y M01.1–M01.4, incluida la inspección del SQL
-mediante dobles de PDO. Esto no equivale a ejecutar las nuevas restricciones en
-MariaDB/MySQL; esa integración sigue pendiente y requiere autorización. M01.4
-comprueba de forma aislada el protocolo de bloqueo y rollback, pero no demuestra
-la serialización, los timeouts ni los deadlocks del motor real. El futuro sistema
-de medios permanece reservado para M11.
+mediante dobles de PDO. M00 y M01 pasan contra MariaDB 10.11; M01 demuestra con
+conexiones independientes la serialización, timeout, deadlock y rollback. La
+base exclusiva queda vacía y el esquema permanente de desarrollo conserva las
+siete migraciones sin semillas. El futuro sistema de medios permanece reservado para M11.
 
 Consulta [resultados ejecutados](docs/qa.md), [diseño y maqueta visual](docs/design-system.md), [arquitectura](docs/architecture.md), [catálogo de módulos](docs/modules.md), [requisitos funcionales](docs/requirements.md), [modelo de datos](docs/data-model.md), [despliegue cPanel](docs/deployment-cpanel.md), [roadmap](docs/roadmap.md) y [procedencia de assets](docs/assets.md).
 

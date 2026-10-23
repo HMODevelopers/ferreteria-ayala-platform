@@ -6,12 +6,11 @@ M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. M01.1
 define localmente las migraciones de `branches`, `modules` y `branch_modules`.
 M01.2 añade las definiciones de horarios regulares y excepcionales. M01.3
 incorpora el catálogo de servicios comerciales y su asociación por sucursal.
-M01.4 añade repositorios PDO y servicios internos sobre esas siete tablas, pero
-ninguna tabla comercial se ha aplicado a MariaDB/MySQL. Como
-antecedente informado, la conexión al minilab y la inicialización de la tabla
-técnica `schema_migrations` se verificaron previamente en desarrollo; no se
-repitieron en la corrección actual. La integración completa en una base de
-pruebas exclusiva y autorizada permanece pendiente.
+M01.4 añade repositorios PDO y servicios internos sobre esas siete tablas. La
+integración fallida fue respaldada, restaurada y recuperada de forma controlada.
+M00 y M01 pasaron después contra MariaDB 10.11; la base exclusiva de pruebas
+quedó vacía y las siete migraciones están aplicadas permanentemente en
+desarrollo sin datos comerciales.
 
 ## Reglas de persistencia
 
@@ -29,36 +28,37 @@ pruebas exclusiva y autorizada permanece pendiente.
 - Las altas de sucursales, módulos y servicios nacen deshabilitadas. Las bajas
   operativas actualizan estados y no eliminan entidades ni relaciones.
 - Los registros demo actuales no serán semillas de producción.
-- La infraestructura aplicada usa únicamente `schema_migrations` para
+- La infraestructura de migración usa `schema_migrations` para
   identificador, nombre, lote y fecha de aplicación. Las primeras tablas de
-  negocio están definidas en archivos de migración M01.1, no aplicadas.
+  negocio están definidas e integradas en M01; las siete migraciones permanecen
+  aplicadas en desarrollo y la base de pruebas se conserva vacía.
 
 ## Áreas y tablas previstas
 
 ### Plataforma, acceso y sucursales
 
-- `branches` (**M01.1 definido, no aplicado**): clave comercial normalizada,
+- `branches` (**M01.1 integrado**): clave comercial normalizada,
   nombre, dirección y contacto opcionales, coordenadas decimales emparejadas,
   estado y fechas técnicas. Las altas nacen inactivas.
-- `modules` (**M01.1 definido, no aplicado**): código `M00`–`M99`, nombre,
+- `modules` (**M01.1 integrado**): código `M00`–`M99`, nombre,
   descripción opcional, habilitación global, requisito por sucursal y fechas.
-- `branch_modules` (**M01.1 definido, no aplicado**): clave primaria compuesta,
+- `branch_modules` (**M01.1 integrado**): clave primaria compuesta,
   referencias restrictivas a sucursal/módulo, estado y fechas. La ausencia de
   relación equivale a deshabilitado para módulos que la requieren.
-- `branch_hours` (**M01.2 definido, no aplicado**): intervalos semanales por
+- `branch_hours` (**M01.2 integrado**): intervalos semanales por
   sucursal y día ISO 1–7, hora inicial/final, cruce de medianoche explícito y
   orden. Días sin filas están cerrados. Claves únicas evitan repetir orden o
   intervalo, y la FK restrictiva conserva horarios al desactivar sucursales.
-- `branch_special_hours` (**M01.2 definido, no aplicado**): excepción por fecha
+- `branch_special_hours` (**M01.2 integrado**): excepción por fecha
   local. Un cierre usa una sola fila canónica (`is_closed=1`, horas nulas,
   `interval_order=0`); una apertura usa uno o más intervalos explícitos. La
   excepción de una fecha reemplaza el horario regular y cualquier arrastre del
   día previo durante ese día civil.
-- `services` (**M01.3 definido, no aplicado**): código técnico estable,
+- `services` (**M01.3 integrado**): código técnico estable,
   normalizado y único; nombre, descripción opcional, estado inactivo por defecto
   y fechas técnicas. No contiene contacto, archivos ni datos específicos de una
   sucursal.
-- `branch_services` (**M01.3 definido, no aplicado**): relación muchos-a-muchos
+- `branch_services` (**M01.3 integrado**): relación muchos-a-muchos
   con clave primaria compuesta, referencias restrictivas, estado deshabilitado
   por defecto y orden de presentación. El orden admite empates y se resuelve por
   `display_order` y `service_id`; la ausencia de relación equivale a no disponible.
@@ -192,8 +192,7 @@ Administrador de la página es el perfil operativo que publica contenido.
 
 ## Orden de migraciones
 
-1. Control de migraciones y conexión PDO (implementación aislada en M00;
-   integración real pendiente).
+1. Control de migraciones y conexión PDO (M00 integrado en MariaDB 10.11).
 2. Módulos, sucursales y configuración base.
 3. Usuarios, roles, permisos, sesiones y auditoría.
 4. Categorías, marcas, unidades, atributos, productos, variantes y medios.
@@ -211,10 +210,13 @@ el minilab y finalmente en producción.
 
 Las migraciones M01.1 usan InnoDB, `utf8mb4`, claves `BIGINT UNSIGNED`, índices
 de disponibilidad, `CHECK` para estados/coordenadas y `RESTRICT` en las claves
-foráneas. No incluyen semillas. La reversión solo elimina una tabla vacía; si
-contiene registros, falla de forma explícita. DDL en MySQL/MariaDB puede causar
-confirmaciones implícitas, por lo que una reversión de lote no se considera
-atómica.
+foráneas. Los índices únicos de código conservan `ascii_general_ci`, mientras
+los `CHECK` de mayúsculas usan `CAST(... AS BINARY)` para que la comparación sí
+distinga el caso. No incluyen semillas. Antes de revertir, el ejecutor valida
+todas las tablas del último lote y cada `down()` vuelve a exigir que su tabla
+esté vacía. DDL en MySQL/MariaDB puede causar confirmaciones implícitas, por lo
+que una reversión de lote no se considera atómica ante carreras, caídas o fallos
+posteriores al preflight.
 
 M01.2 conserva esas decisiones. SQL protege tipos, rangos por fila, horas de
 reloj, duración no nula, representación canónica de cierres, duplicados

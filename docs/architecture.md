@@ -10,7 +10,7 @@ View acepta rutas internas limitadas, mantiene buffers limpios incluso ante erro
 
 El router del servidor PHP solo permite servir extensiones de assets bajo `public/assets`, comprobando el camino real. Las reglas Apache limitan archivos directos; la protección principal es el document root correcto. Nunca arrancar `php -S` desde la raíz sin `-t public public/router.php`.
 
-Las excepciones HTTP se registran en `storage/logs/app.log`; no se muestran trazas al visitante. La respuesta 500 es independiente de los datos comerciales. `APP_ENV` y `APP_DEBUG` son configuración descriptiva: no activan trazas visibles. La aplicación consume variables mediante `getenv()` y no carga `.env` automáticamente. El contrato de sesión permanece preparado pero no inicia sesiones.
+Las excepciones HTTP se registran en `storage/logs/app.log`; no se muestran trazas al visitante. La respuesta 500 es independiente de los datos comerciales. `APP_ENV` y `APP_DEBUG` son configuración descriptiva: no activan trazas visibles. La aplicación web consume variables mediante `getenv()` y no carga `.env`. Los comandos CLI usan `bootstrap/cli.php` y un parser de datos sin evaluación de shell; respetan variables ya exportadas y las integraciones fuerzan `testing` solo durante su proceso. El contrato de sesión permanece preparado pero no inicia sesiones.
 
 ## Persistencia M00
 
@@ -27,10 +27,13 @@ bloqueo asesor ligado a la misma conexión. El índice primario sigue siendo la
 protección final contra registros duplicados. El bloqueo se libera aun cuando
 la operación falla.
 
-El registro ocurre después de `up()` y se elimina después de `down()`. Como el
-DDL de MySQL/MariaDB puede causar commits implícitos, un fallo puede dejar un
-esquema parcial; el comando se detiene y exige inspección en vez de afirmar
-atomicidad. No existen comandos destructivos ni migraciones comerciales.
+El registro ocurre después de `up()` y se elimina después de `down()`. Toda
+migración reversible declara también un preflight. `Migrator` ejecuta los
+preflights del último lote completo, en orden de reversión, antes del primer
+`down()`; el propio `down()` repite la misma guarda justo antes del DDL. Como el
+DDL de MySQL/MariaDB puede causar commits implícitos, una carrera, caída o fallo
+posterior todavía puede dejar un esquema parcial; el comando se detiene y exige
+inspección en vez de afirmar atomicidad.
 
 Antes de avanzar, `migrate` y `rollback` validan que cada registro conserve su
 archivo, identificador, nombre y secuencia de lote, y rechazan migraciones
@@ -38,9 +41,13 @@ pendientes anteriores al último identificador aplicado. La tabla técnica se
 crea de forma atómica sin usar `IF NOT EXISTS` como evidencia de propiedad.
 
 M01.1 reutiliza esta infraestructura con tres definiciones ordenadas para
-`branches`, `modules` y `branch_modules`. Sus cierres `down()` consultan si la
-tabla contiene registros y rechazan una eliminación con datos. Los archivos
-están preparados, no ejecutados contra un motor real.
+`branches`, `modules` y `branch_modules`. `branches.code` y `modules.code`
+conservan colación y unicidad ASCII existentes; sus `CHECK` comparan mediante
+`CAST(... AS BINARY)` para exigir mayúsculas. Sus preflights y cierres `down()`
+consultan si la tabla contiene registros y rechazan una eliminación con datos.
+Una ejecución inicial fallida dejó el esquema de pruebas preservado. Se verificó
+un dump mediante restauración aislada, se recuperó el estado sintético exacto y
+la suite M01 completa pasó posteriormente en MariaDB 10.11.
 
 M01.2 agrega dos definiciones ordenadas para `branch_hours` y
 `branch_special_hours`, también con rollbacks que se niegan a eliminar datos.
@@ -50,9 +57,10 @@ se ejecutan bajo una escritura transaccional en M01.4.
 
 M01.3 agrega `services` y `branch_services` mediante dos definiciones ordenadas.
 La clave compuesta impide repetir un servicio en una sucursal, las referencias
-usan `RESTRICT` y ambos estados nacen deshabilitados. Los rollbacks conservan el
-patrón de negarse a eliminar tablas con registros. M01.4 añade consumidores PDO
-sin alterar la conexión diferida.
+usan `RESTRICT` y ambos estados nacen deshabilitados. `services.code` aplica la
+misma comparación binaria de mayúsculas sin alterar su índice único. Los
+rollbacks conservan el patrón de negarse a eliminar tablas con registros. M01.4
+añade consumidores PDO sin alterar la conexión diferida.
 
 Los contratos viven en `Application/Repositories`, los adaptadores en
 `Infrastructure/Persistence` y los coordinadores en `Application/Services`.
@@ -72,13 +80,16 @@ crea un `BranchSchedule` y ejecuta el DML. El orden siempre comienza por la
 sucursal. Así se evita decidir sobre una lectura consistente antigua bajo el
 aislamiento habitual `REPEATABLE READ` de InnoDB, siempre que todos los escritores
 usen el mismo protocolo. No hay reintentos automáticos de deadlocks o timeouts.
-Las pruebas aisladas verifican el orden y rollback; falta probar el motor real.
+Las pruebas aisladas verifican el orden y rollback. La integración real demuestra
+serialización, timeout y deadlock con conexiones independientes.
 
 La integración real añade una exclusión propia, valida la identidad efectiva y
 los privilegios limitados de la cuenta, exige inventario vacío de tablas,
 vistas, triggers, eventos y rutinas, y conserva cualquier objeto si no puede
 demostrar que fue creado por la ejecución actual y que sigue siendo seguro
-retirarlo.
+retirarlo. Sus pruebas de concurrencia usan un proceso PHP aislado iniciado
+antes de abrir la conexión PDO principal; ningún trabajador hereda la sesión
+que mantiene el bloqueo asesor de integración.
 
 ## Responsabilidades
 
@@ -161,10 +172,9 @@ En esta fase el hero usa alineación izquierda y contraste oscuro; la administra
 - Usuarios, roles y permisos controlarán módulos administrativos; auditoría relacionará actor, acción, entidad y momento.
 - Configuración y páginas mantendrán contenido institucional y canales verificados.
 
-No existe todavía un esquema comercial aplicado. M00 solo ha permitido la tabla
-técnica `schema_migrations`; M01.1, M01.2 y M01.3 aportan archivos locales pendientes de
-integración real en una base exclusiva de pruebas. Existe el antecedente de la
-inicialización técnica en desarrollo, que no cierra M00. El levantamiento
+El esquema M01 aprobado está aplicado en desarrollo con `schema_migrations` y
+las siete tablas vacías; la base exclusiva de pruebas quedó sin objetos después
+de las integraciones. El levantamiento
 funcional y las entidades propuestas están documentados en
 [requisitos](requirements.md) y [modelo de datos](data-model.md). Antes de
 cargar información real, el negocio debe entregar los catálogos y valores

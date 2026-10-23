@@ -4,6 +4,12 @@ declare(strict_types=1);
 use App\Core\Persistence\Migration;
 use App\Core\Persistence\PersistenceException;
 
+$assertTableIsEmpty = static function (PDO $pdo): void {
+    if ((int) $pdo->query('SELECT COUNT(*) FROM branch_hours')->fetchColumn() !== 0) {
+        throw new PersistenceException('Rollback refused because branch_hours contains data.');
+    }
+};
+
 return new Migration(
     '20261019010300_create_branch_hours',
     'Create branch hours table',
@@ -42,10 +48,9 @@ CREATE TABLE branch_hours (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
     },
-    static function (PDO $pdo): void {
-        if ((int) $pdo->query('SELECT COUNT(*) FROM branch_hours')->fetchColumn() !== 0) {
-            throw new PersistenceException('Rollback refused because branch_hours contains data.');
-        }
+    static function (PDO $pdo) use ($assertTableIsEmpty): void {
+        $assertTableIsEmpty($pdo);
         $pdo->exec('DROP TABLE branch_hours');
     },
+    $assertTableIsEmpty,
 );

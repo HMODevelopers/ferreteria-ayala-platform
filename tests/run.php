@@ -35,7 +35,12 @@ foreach ([
     'APP_NAME', 'APP_ENV', 'APP_DEBUG', 'APP_URL', 'APP_TIMEZONE', 'APP_LOCALE', 'APP_INDEXING',
     'DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD', 'DB_CHARSET',
     'DB_CONNECT_TIMEOUT', 'DB_MIGRATION_LOCK_TIMEOUT',
-    'TEST_DB_HOST', 'TEST_DB_PORT', 'TEST_DB_DATABASE', 'TEST_DB_USERNAME', 'TEST_DB_PASSWORD', 'TEST_DB_CHARSET',
+    'TEST_DB_HOST', 'TEST_DB_PORT', 'TEST_DB_DATABASE',
+    'TEST_DB_USERNAME_M00', 'TEST_DB_PASSWORD_M00', 'TEST_DB_USERNAME_M01', 'TEST_DB_PASSWORD_M01',
+    'TEST_DB_CHARSET',
+    'M01_TEST_AUTHORIZATION',
+    'M01_RECOVERY_AUTHORIZATION', 'M01_RECOVERY_CONFIRMATION', 'M01_RECOVERY_SESSION_CONFIRMATION',
+    'M01_RECOVERY_BACKUP_PATH', 'M01_RECOVERY_BACKUP_MANIFEST', 'M01_RECOVERY_BACKUP_SHA256',
     'SESSION_NAME', 'SESSION_LIFETIME', 'SESSION_SECURE_COOKIE', 'SESSION_SAME_SITE',
 ] as $variable) {
     check((bool) preg_match('/^' . preg_quote($variable, '/') . '=/m', $envExample), 'Documented environment variable: ' . $variable);
@@ -45,4 +50,5 @@ require __DIR__ . '/m01-branches-modules.php';
 require __DIR__ . '/m01-branch-hours.php';
 require __DIR__ . '/m01-branch-services.php';
 require __DIR__ . '/m01-repositories-services.php';
-echo "PASS: {$checks} checks (public app, M00 persistence, M01.1-M01.4 branches, modules, hours, repositories and services).\n";
+require __DIR__ . '/m01-recovery.php';
+echo "PASS: {$checks} checks (public app, M00 persistence, M01.1-M01.4 and guarded M01 recovery).\n";

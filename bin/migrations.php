@@ -14,6 +14,7 @@ if (PHP_SAPI !== 'cli') {
     exit(2);
 }
 
+require dirname(__DIR__) . '/bootstrap/cli.php';
 [, $appConfig] = require dirname(__DIR__) . '/bootstrap/app.php';
 
 $runnerFactory = static function (): MigrationRunner {

@@ -8,6 +8,9 @@
     "serve": "php -S 127.0.0.1:8080 -t public public/router.php",
     "test": "php tests/run.php",
     "test:mysql": "php tests/mysql-integration.php",
+    "test:mysql:m01": "php tests/mysql-m01-integration.php",
+    "inspect:mysql:m01-recovery": "php tests/mysql-m01-recovery.php inspect",
+    "recover:mysql:m01-recovery": "php tests/mysql-m01-recovery.php recover",
     "test:browser": "node tests/browser.mjs"
   },
   "devDependencies": {
