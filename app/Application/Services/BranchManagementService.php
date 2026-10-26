@@ -17,14 +17,18 @@ final class BranchManagementService
     ) {
     }
 
-    public function create(Branch $branch): Branch
+    public function create(Branch $branch, ?callable $afterWrite = null): Branch
     {
-        return $this->transactions->transaction(fn(): Branch => $this->branches->create($branch));
+        return $this->transactions->transaction(function () use ($branch, $afterWrite): Branch {
+            $created = $this->branches->create($branch);
+            if ($afterWrite !== null) $afterWrite($created);
+            return $created;
+        });
     }
 
-    public function update(int $id, Branch $changes): Branch
+    public function update(int $id, Branch $changes, ?callable $afterWrite = null): Branch
     {
-        return $this->transactions->transaction(function () use ($id, $changes): Branch {
+        return $this->transactions->transaction(function () use ($id, $changes, $afterWrite): Branch {
             $current = $this->branches->lockById($id);
             if ($current === null) {
                 throw new EntityNotFound('Branch was not found.');
@@ -37,19 +41,22 @@ final class BranchManagementService
                 $changes->whatsapp, $changes->latitude, $changes->longitude,
             );
             $this->branches->updateDetails($updated);
+            if ($afterWrite !== null) $afterWrite($updated);
             return $updated;
         });
     }
 
-    public function setActive(int $id, bool $active): Branch
+    public function setActive(int $id, bool $active, ?callable $afterWrite = null): Branch
     {
-        return $this->transactions->transaction(function () use ($id, $active): Branch {
+        return $this->transactions->transaction(function () use ($id, $active, $afterWrite): Branch {
             $branch = $this->branches->lockById($id);
             if ($branch === null) {
                 throw new EntityNotFound('Branch was not found.');
             }
             $this->branches->setActive($id, $active);
-            return $branch->withActive($active);
+            $updated = $branch->withActive($active);
+            if ($afterWrite !== null) $afterWrite($updated);
+            return $updated;
         });
     }
 }

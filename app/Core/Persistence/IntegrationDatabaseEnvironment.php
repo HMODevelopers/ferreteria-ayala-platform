@@ -11,6 +11,7 @@ final class IntegrationDatabaseEnvironment
         $suffix = match ($suite) {
             'm00' => 'M00',
             'm01' => 'M01',
+            'm02' => 'M02',
             default => throw new PersistenceException('Integration database suite is invalid.'),
         };
         $names = [

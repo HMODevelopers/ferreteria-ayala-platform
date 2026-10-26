@@ -29,7 +29,8 @@ variables de producción en el entorno del sitio.
 
 ## Persistencia y migraciones
 
-La Home no solicita una conexión y continúa usando `DemoHomeData`. PDO se crea
+La Home no solicita una conexión y continúa usando `DemoHomeData`. El panel
+`/admin` sí requiere M02 migrado y una cuenta creada por CLI. PDO se crea
 de forma diferida únicamente cuando un consumidor de persistencia lo solicita.
 Configura `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`,
 `DB_CHARSET=utf8mb4`, `DB_CONNECT_TIMEOUT` y `DB_MIGRATION_LOCK_TIMEOUT` en el
@@ -43,6 +44,16 @@ php bin/migrations.php status
 php bin/migrations.php migrate
 php bin/migrations.php rollback
 ```
+
+Después de aplicar M02, el propietario crea la primera cuenta una sola vez con:
+
+```bash
+php bin/create-initial-admin.php
+```
+
+El comando exige una terminal, solicita correo, nombre, contraseña oculta y la
+confirmación exacta `CREAR ADMINISTRADOR`. Se niega a continuar si ya existe un
+Administrador global y nunca muestra ni registra la contraseña.
 
 `migrate` aplica pendientes en un lote nuevo; `rollback` revierte únicamente el
 último lote y se niega a comenzar si alguna migración de ese lote no tiene
@@ -124,13 +135,22 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
   por sucursal, orden determinista y disponibilidad separada de módulos y horarios.
 - Repositorios y servicios internos M01.4 con lecturas acotadas, activación
   lógica, disponibilidad efectiva y coordinación transaccional de horarios.
+- M02 integrado: usuarios, contraseñas Argon2id cuando está disponible, roles,
+  permisos globales/por sucursal, sesiones revocables, CSRF, límite de acceso,
+  auditoría y panel responsive. Su integración aislada y HTTP autenticada pasa
+  con una cuenta M02 propia; las ocho migraciones están aplicadas en desarrollo.
+- Administración real de usuarios, roles y sucursales; horarios y servicios de
+  M01 se consultan desde el panel sin insertar datos comerciales ficticios.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
 
 El logo es **tipográfico provisional**. Los productos usan SVG de referencia creados para el prototipo, sin marca ni especificaciones comerciales confirmadas. No hay precios ni stock real. Fotografías de stock no representan instalaciones de Ayala. Campañas, eventos y testimonios están marcados como demo. Las sucursales conocidas tienen direcciones, teléfonos, horarios y fotos pendientes de confirmar. No hay redes ni enlaces de contacto inventados.
 
-La lista solo vive en memoria en la pestaña y se pierde al recargar. Descargarla no equivale a solicitar una cotización. No recopila datos personales ni envía peticiones comerciales. La Home no consulta MySQL; no hay login, CRUD comercial, pagos ni administrador.
+La lista pública solo vive en memoria en la pestaña y se pierde al recargar.
+Descargarla no equivale a solicitar una cotización. No recopila datos personales
+ni envía peticiones comerciales. La Home no consulta MySQL. El panel M02 es
+administrativo y real; no implementa compras, pagos, cotizaciones ni datos demo.
 
 El prototipo usa `noindex, nofollow`; el dominio, URL absoluta Open Graph, SEO definitivo y aviso de privacidad se completarán antes de publicar.
 
@@ -144,6 +164,10 @@ npm run build
 npm run test:mysql
 # Sólo después de que M00 pase y con autorización separada para M01:
 npm run test:mysql:m01
+# Con cuenta M02 separada y autorización exacta; ver docs/integration-m02.md:
+npm run test:mysql:m02
+# Flujos HTTP autenticados en Chrome sobre la misma base aislada vacía:
+npm run test:mysql:m02:http
 # Sólo ante una recuperación expresamente autorizada:
 npm run inspect:mysql:m01-recovery
 npm run recover:mysql:m01-recovery
@@ -161,8 +185,9 @@ retira `schema_migrations` si conserva la exclusión y puede demostrar que esa
 ejecución creó la tabla y que no contiene registros ajenos. Obtén autorización
 antes de ejecutarla contra un servidor compartido.
 
-`TEST_DB_USERNAME_M00`/`TEST_DB_PASSWORD_M00` identifican M00 y
-`TEST_DB_USERNAME_M01`/`TEST_DB_PASSWORD_M01` identifican M01. La cuenta de
+`TEST_DB_USERNAME_M00`/`TEST_DB_PASSWORD_M00` identifican M00,
+`TEST_DB_USERNAME_M01`/`TEST_DB_PASSWORD_M01` identifican M01 y las variables
+equivalentes `_M02` identifican M02. La cuenta de
 integración M00 debe tener únicamente `SELECT`, `INSERT`, `DELETE`,
 `CREATE`, `DROP`, `TRIGGER`, `EVENT` y `EXECUTE` sobre la base de pruebas, sin
 `GRANT OPTION` ni privilegios globales distintos de `USAGE`. M01 usa un ejecutor
@@ -179,11 +204,14 @@ independiente. No usa `DROP DATABASE`, `TRUNCATE`, desactivación de FKs ni una
 cuenta administrativa. El DML se revierte como transacción ante errores; el DDL
 posterior conserva la limitación de commits implícitos de MariaDB/MySQL.
 
-Las pruebas aisladas cubren M00 y M01.1–M01.4, incluida la inspección del SQL
+Las pruebas aisladas cubren M00, M01.1–M01.4 y M02, incluida la inspección del SQL
 mediante dobles de PDO. M00 y M01 pasan contra MariaDB 10.11; M01 demuestra con
 conexiones independientes la serialización, timeout, deadlock y rollback. La
-base exclusiva queda vacía y el esquema permanente de desarrollo conserva las
-siete migraciones sin semillas. El futuro sistema de medios permanece reservado para M11.
+integración M02 demuestra esquema, autenticación, sesiones, alcance, auditoría y
+limpieza; su suite HTTP además ejecuta las escrituras reales del panel con CSRF,
+revocación y autorización. La base exclusiva queda vacía y desarrollo conserva
+las quince migraciones, un administrador global creado por CLI y ningún dato
+comercial M01. El futuro sistema de medios permanece reservado para M11.
 
 Consulta [resultados ejecutados](docs/qa.md), [diseño y maqueta visual](docs/design-system.md), [arquitectura](docs/architecture.md), [catálogo de módulos](docs/modules.md), [requisitos funcionales](docs/requirements.md), [modelo de datos](docs/data-model.md), [despliegue cPanel](docs/deployment-cpanel.md), [roadmap](docs/roadmap.md) y [procedencia de assets](docs/assets.md).
 

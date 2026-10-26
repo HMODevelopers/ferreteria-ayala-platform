@@ -10,7 +10,35 @@ View acepta rutas internas limitadas, mantiene buffers limpios incluso ante erro
 
 El router del servidor PHP solo permite servir extensiones de assets bajo `public/assets`, comprobando el camino real. Las reglas Apache limitan archivos directos; la protección principal es el document root correcto. Nunca arrancar `php -S` desde la raíz sin `-t public public/router.php`.
 
-Las excepciones HTTP se registran en `storage/logs/app.log`; no se muestran trazas al visitante. La respuesta 500 es independiente de los datos comerciales. `APP_ENV` y `APP_DEBUG` son configuración descriptiva: no activan trazas visibles. La aplicación web consume variables mediante `getenv()` y no carga `.env`. Los comandos CLI usan `bootstrap/cli.php` y un parser de datos sin evaluación de shell; respetan variables ya exportadas y las integraciones fuerzan `testing` solo durante su proceso. El contrato de sesión permanece preparado pero no inicia sesiones.
+Las excepciones HTTP se registran en `storage/logs/app.log`; no se muestran trazas al visitante. La respuesta 500 es independiente de los datos comerciales. `APP_ENV` y `APP_DEBUG` son configuración descriptiva: no activan trazas visibles. La aplicación web consume variables mediante `getenv()` y no carga `.env`. Los comandos CLI usan `bootstrap/cli.php` y un parser de datos sin evaluación de shell; respetan variables ya exportadas y las integraciones fuerzan `testing` solo durante su proceso. Las sesiones se inician únicamente al visitar rutas administrativas y se guardan en `storage/sessions`, fuera del document root.
+
+## Seguridad y administración M02
+
+Las rutas `/admin/*` usan controladores explícitos y métodos GET/POST
+registrados. `SessionManager` configura cookies HttpOnly, SameSite Lax/Strict,
+Secure bajo HTTPS o por configuración, modo estricto y almacenamiento privado.
+El identificador se regenera al autenticar. La sesión PHP guarda únicamente el
+id del usuario, un token aleatorio y CSRF; `user_sessions` conserva solo el hash
+del token y permite expiración, revocación y cierre al desactivar o cambiar una
+contraseña.
+
+`AuthenticationService` devuelve el mismo error para identidad inexistente,
+contraseña incorrecta o cuenta inactiva. Los rechazos se auditan con huellas
+SHA-256 separadas del dato original y cinco fallos en quince minutos bloquean
+temporalmente por identidad o IP. Las contraseñas usan Argon2id cuando PHP lo
+ofrece y se rehashean después de una autenticación válida.
+
+`PdoAccessRepository::hasPermission()` consulta las asignaciones vigentes en
+cada petición. Una asignación global puede operar todas las sucursales; una
+asignación local requiere coincidencia de `user_roles.branch_id` y
+`user_branches`. El sistema deniega por defecto, impide conceder roles o
+permisos superiores a los propios y protege al último Administrador global
+activo. Los cambios de roles tienen efecto en la petición siguiente y los
+cambios de asignaciones revocan sesiones.
+
+Las escrituras sensibles agregan auditoría dentro de la misma transacción. Los
+rechazos de login, CSRF y autorización se registran como eventos controlados.
+No existe endpoint para modificar `audit_logs`.
 
 ## Persistencia M00
 
@@ -172,18 +200,24 @@ En esta fase el hero usa alineación izquierda y contraste oscuro; la administra
 - Usuarios, roles y permisos controlarán módulos administrativos; auditoría relacionará actor, acción, entidad y momento.
 - Configuración y páginas mantendrán contenido institucional y canales verificados.
 
-El esquema M01 aprobado está aplicado en desarrollo con `schema_migrations` y
-las siete tablas vacías; la base exclusiva de pruebas quedó sin objetos después
-de las integraciones. El levantamiento
+El esquema M01 y M02 aprobado está aplicado en desarrollo con quince registros
+en `schema_migrations`; las siete tablas M01 permanecen vacías y M02 conserva
+únicamente el catálogo inicial, un Administrador global y su auditoría. La base
+exclusiva de pruebas quedó sin objetos después de las integraciones MariaDB y
+HTTP. El levantamiento
 funcional y las entidades propuestas están documentados en
 [requisitos](requirements.md) y [modelo de datos](data-model.md). Antes de
 cargar información real, el negocio debe entregar los catálogos y valores
 concretos de impuestos, unidades, límites de descuento, productos, precios,
 existencias y sucursales.
 
-## Seguridad futura
+## Seguridad pendiente para módulos futuros
 
-PDO y consultas preparadas; validación de entradas; sesiones seguras, CSRF en escrituras, permisos por acción, límites de solicitudes, validación/reprocesamiento de imágenes y auditoría. Se implementarán junto con módulos reales y pruebas específicas. La CSP actual permite únicamente recursos locales; revisar cualquier nueva integración sin relajarla globalmente.
+M02 ya aporta consultas preparadas, validación, sesiones seguras, CSRF,
+permisos, límite de login y auditoría. M03–M14 deberán reutilizar estos
+contratos. La validación/reprocesamiento de imágenes y los límites de
+formularios públicos llegarán con sus módulos. La CSP actual permite únicamente
+recursos locales; revisar cualquier integración sin relajarla globalmente.
 
 ## Referencias técnicas
 

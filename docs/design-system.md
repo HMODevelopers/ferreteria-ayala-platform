@@ -29,12 +29,13 @@ La parte pública del anexo es el objetivo de la fase actual:
 - footer, lista de materiales, formularios y estados vacíos;
 - adaptaciones de escritorio, tableta y móvil.
 
-El panel administrativo incluido en el mismo HTML es una **visión visual
-futura**, no una autorización para implementar administración, autenticación o
-MySQL en esta fase. Tampoco deben trasladarse como funciones reales el guardado
-en `localStorage`, el envío ficticio de cotizaciones, los folios simulados ni la
-publicación de reseñas. Esas pantallas podrán servir como referencia cuando se
-aprueben sus requisitos y seguridad.
+El panel administrativo del anexo fue una visión futura durante M01. La
+autorización expresa de M02 del 25 de octubre de 2026 permite usar su dirección
+visual para login, navegación, usuarios, roles, sucursales y auditoría. No se
+trasladan el guardado en `localStorage`, el envío ficticio de cotizaciones, los
+folios simulados ni la publicación de reseñas: las acciones visibles de M02
+usan backend, permisos y CSRF reales; los módulos posteriores siguen fuera de
+alcance.
 
 ## Identidad y tokens
 

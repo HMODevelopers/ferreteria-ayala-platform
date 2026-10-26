@@ -22,7 +22,9 @@ Los assets compilados están en `public/assets/`. Conservar fuentes, fotografía
 2. Subir app, bootstrap, config, public y storage. Se puede conservar documentación fuera del document root; no es necesaria para servir. No subir `.git`, attachments, node_modules ni tests/artifacts.
 3. Configurar dominio o subdominio para apuntar exactamente a `/home/USUARIO/ayala-platform/public`. Un subdominio sirve en `/`, no es instalación bajo `/ayala`.
 4. Confirmar que `.htaccess` fue transferido como archivo oculto y mod_rewrite funciona. `Options -Indexes -MultiViews` debe estar autorizado; si el proveedor lo prohíbe, pedir configuración equivalente, no quitar protección sin comprobar directorios.
-5. Permisos usuales: carpetas 755, archivos 644; solo `storage/logs` requiere escritura por PHP. No usar 777. Ajustar propietario/grupo según el handler PHP del hosting.
+5. Permisos usuales: carpetas 755, archivos 644; `storage/logs` y
+   `storage/sessions` requieren escritura por PHP. No usar 777. Ajustar
+   propietario/grupo según el handler PHP del hosting.
 6. Configurar las variables del entorno de producción en Apache/cPanel. El proyecto usa `getenv()`; el cargador de `.env` es exclusivo de CLI local. `.env` debe permanecer fuera de Git y nunca debe quedar bajo el document root.
 7. Activar certificado TLS y redirección HTTPS desde el panel del hosting. No usar el servidor PHP integrado en producción.
 8. Verificar `/` (200), ruta inexistente (404), assets y rutas privadas. `/.env`, `/config/app.php`, `/app/Data/DemoHomeData.php` y `/storage/logs/app.log` no deben devolver contenido privado. `/router.php` debe estar denegado o no encontrado.
@@ -42,6 +44,9 @@ APP_TIMEZONE=America/Hermosillo
 APP_LOCALE=es_MX
 APP_INDEXING=false
 SESSION_SECURE_COOKIE=true
+SESSION_IDLE_TIMEOUT=1800
+SESSION_ABSOLUTE_TIMEOUT=43200
+SESSION_SAVE_PATH=/home/USUARIO/ayala-platform/storage/sessions
 ```
 
 Las variables `DB_*` y el resto de `SESSION_*` están descritas en
@@ -94,6 +99,12 @@ La integración M01 no usa el comando normal de migraciones: dispone de
 `npm run test:mysql:m01`, exige además `M01_TEST_AUTHORIZATION` y `UPDATE`, y
 debe ejecutarse únicamente después de que M00 deje la base vacía. No es un
 comando de despliegue. Consulta `docs/integration-m00-m01.md` antes de usarlo.
+
+M02 dispone de `npm run test:mysql:m02`, identidad `_M02` independiente y
+`M02_TEST_AUTHORIZATION`. Aplica M00–M02 en la base vacía, prueba acceso y
+revierte todo. Consulta `docs/integration-m02.md`. Después de aplicar las
+migraciones M02 en el ambiente definitivo se ejecuta una sola vez, desde la
+raíz privada, `php bin/create-initial-admin.php`; nunca se expone por HTTP.
 
 No se soporta hoy despliegue bajo subcarpeta URL (`/ayala`). Los assets y enlaces parten de `/`; si se necesita, implementar base path en helpers, navegación y router y probarlo antes de desplegar.
 

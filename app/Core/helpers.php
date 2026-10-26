@@ -3,6 +3,7 @@ declare(strict_types=1);
 function e(mixed $value): string { return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 function asset(string $path): string { return '/assets/' . ltrim($path, '/'); }
 function component(string $name, array $data = []): void { echo App\Core\View::partial('components/public/' . $name, $data); }
+function admin_component(string $name, array $data = []): void { echo App\Core\View::partial('components/admin/' . $name, $data); }
 function icon(string $name, string $class = ''): string {
     $paths = [
         'arrow' => '<path d="M4 12h16m-6-6 6 6-6 6"/>',

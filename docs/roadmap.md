@@ -10,7 +10,7 @@ Confirmar logo y manual, fotografías autorizadas, contactos, redes, privacidad,
 
 Las decisiones funcionales están consolidadas en [requisitos](requirements.md) y el diseño de persistencia en [modelo de datos](data-model.md). Permanecen pendientes los archivos y valores reales que debe entregar el negocio.
 
-## Fase 3 · Persistencia y administración (M00 + M01 integrados)
+## Fase 3 · Persistencia y administración (M00 + M01 + M02 integrados)
 
 M00 y M01.1–M01.4 están implementados y pasan pruebas aisladas e integración
 real en MariaDB 10.11. La primera ejecución M01 falló porque un hijo de
@@ -23,9 +23,12 @@ La base exclusiva de pruebas quedó vacía. Las siete migraciones permanecen
 aplicadas en `ferreteria_ayala` sin semillas ni datos comerciales. M01 no expone
 rutas públicas o administrativas y no activa módulos automáticamente.
 
-Usuarios, permisos, sesiones/CSRF,
-auditoría, productos, categorías, marcas, banners, promociones, eventos,
-sucursales, reseñas, páginas y configuración siguen sin implementarse.
+M02 implementa usuarios, roles, permisos, alcance por sucursal,
+sesiones/CSRF, límite de login, auditoría, panel y operaciones iniciales de M01.
+Pasa pruebas PHP, build, integración MariaDB y navegador autenticado. Existe una
+cuenta M02 de pruebas separada con privilegios mínimos; la base aislada queda
+vacía. Desarrollo tiene quince migraciones y un Administrador global activo.
+Productos, categorías, marcas y el CMS continúan sin implementarse.
 
 ## Fase 4 · Cotizaciones e inventario
 

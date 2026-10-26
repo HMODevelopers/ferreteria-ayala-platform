@@ -7,4 +7,7 @@ return [
     'lifetime' => (int) (getenv('SESSION_LIFETIME') ?: 120),
     'secure_cookie' => filter_var(getenv('SESSION_SECURE_COOKIE') ?: 'true', FILTER_VALIDATE_BOOL),
     'same_site' => getenv('SESSION_SAME_SITE') ?: 'Lax',
+    'idle_timeout' => (int) (getenv('SESSION_IDLE_TIMEOUT') ?: 1800),
+    'absolute_timeout' => (int) (getenv('SESSION_ABSOLUTE_TIMEOUT') ?: 43200),
+    'save_path' => getenv('SESSION_SAVE_PATH') ?: dirname(__DIR__) . '/storage/sessions',
 ];

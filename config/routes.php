@@ -1,2 +1,26 @@
 <?php
 $router->get('/', [App\Controllers\Public\HomeController::class, 'index']);
+$router->get('/admin/login', [App\Controllers\Admin\LoginController::class, 'form']);
+$router->post('/admin/login', [App\Controllers\Admin\LoginController::class, 'login']);
+$router->post('/admin/logout', [App\Controllers\Admin\LoginController::class, 'logout']);
+$router->get('/admin', [App\Controllers\Admin\DashboardController::class, 'index']);
+$router->get('/admin/users', [App\Controllers\Admin\UsersController::class, 'index']);
+$router->get('/admin/users/create', [App\Controllers\Admin\UsersController::class, 'createForm']);
+$router->post('/admin/users/create', [App\Controllers\Admin\UsersController::class, 'create']);
+$router->get('/admin/users/edit', [App\Controllers\Admin\UsersController::class, 'editForm']);
+$router->post('/admin/users/update', [App\Controllers\Admin\UsersController::class, 'update']);
+$router->post('/admin/users/status', [App\Controllers\Admin\UsersController::class, 'status']);
+$router->post('/admin/users/password', [App\Controllers\Admin\UsersController::class, 'password']);
+$router->post('/admin/users/assignments', [App\Controllers\Admin\UsersController::class, 'assignments']);
+$router->get('/admin/roles', [App\Controllers\Admin\RolesController::class, 'index']);
+$router->post('/admin/roles/create', [App\Controllers\Admin\RolesController::class, 'create']);
+$router->get('/admin/roles/edit', [App\Controllers\Admin\RolesController::class, 'editForm']);
+$router->post('/admin/roles/update', [App\Controllers\Admin\RolesController::class, 'update']);
+$router->get('/admin/branches', [App\Controllers\Admin\BranchesController::class, 'index']);
+$router->get('/admin/branches/create', [App\Controllers\Admin\BranchesController::class, 'createForm']);
+$router->post('/admin/branches/create', [App\Controllers\Admin\BranchesController::class, 'create']);
+$router->get('/admin/branches/edit', [App\Controllers\Admin\BranchesController::class, 'editForm']);
+$router->post('/admin/branches/update', [App\Controllers\Admin\BranchesController::class, 'update']);
+$router->post('/admin/branches/status', [App\Controllers\Admin\BranchesController::class, 'status']);
+$router->get('/admin/branches/detail', [App\Controllers\Admin\BranchesController::class, 'detail']);
+$router->get('/admin/audit', [App\Controllers\Admin\AuditController::class, 'index']);

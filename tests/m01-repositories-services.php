@@ -406,4 +406,4 @@ foreach ($sourceFiles as $sourceFile) {
 }
 
 $routes = (string) file_get_contents(dirname(__DIR__) . '/config/routes.php');
-check(substr_count($routes, '$router->') === 1 && str_contains($routes, "get('/'"), 'M01.4 adds no public or administrative write routes');
+check(str_contains($routes, "get('/',") && str_contains($routes, "post('/admin/branches/create'"), 'M02 exposes M01 writes only through explicit administrative routes');

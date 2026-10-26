@@ -135,6 +135,16 @@ final class IntegrationTestSafety
         }
     }
 
+    /** @param list<string> $schemaPrivileges @param list<string> $globalPrivileges */
+    public static function assertM02IsolationPrivileges(array $schemaPrivileges, array $globalPrivileges, bool $hasGrantOption): void
+    {
+        try {
+            self::assertM01IsolationPrivileges($schemaPrivileges, $globalPrivileges, $hasGrantOption);
+        } catch (PersistenceException) {
+            throw new PersistenceException('The M02 test account does not have the exact limited privileges required for isolated integration.');
+        }
+    }
+
     /**
      * Read-only recovery inspection can use either dedicated integration
      * identity, while destructive recovery still requires M01 explicitly.

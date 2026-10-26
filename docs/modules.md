@@ -4,12 +4,16 @@ Este archivo es el índice para solicitar trabajo a Codex. Los identificadores
 son estables: una tarea debe mencionar el módulo, sus fuentes y el incremento
 concreto que se desea implementar.
 
-Estado general al 23 de octubre de 2026: la Home demostrativa está aprobada.
+Estado general al 25 de octubre de 2026: la Home demostrativa está aprobada.
 M00 y M01.1–M01.4 están implementados y pasan sus pruebas aisladas e integración
 real en MariaDB 10.11. La ejecución M01 fallida fue respaldada, restaurada en un
 destino temporal y recuperada de forma controlada; la repetición completa pasó
 con trabajadores independientes y dejó la base de pruebas vacía. Las siete
-migraciones están aplicadas en desarrollo sin semillas. M02–M14 no están implementados.
+migraciones están aplicadas en desarrollo sin semillas. M02 está integrado y
+pasa pruebas PHP, build, MariaDB y navegador autenticado con una cuenta de
+integración exclusiva. Sus ocho migraciones están aplicadas en desarrollo, el
+Administrador global inicial existe y las pruebas MariaDB/HTTP dejan la base
+aislada vacía. M03–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -74,6 +78,16 @@ activa automáticamente.
 Incluye Administrador global, gerentes, Ventas, Inventario, Logística,
 Administrador de catálogo y Administrador de la página. No incluye clientes
 con acceso ni segundo factor obligatorio.
+
+Integración completada el 25 de octubre de 2026: ocho migraciones aditivas para
+usuarios/roles/permisos, asignaciones, sesiones y auditoría; creación inicial
+exclusiva por CLI; login/logout, expiración y revocación; CSRF; límite de
+intentos; autorización denegada por defecto y por sucursal; protección del
+último administrador y contra escalamiento; panel de usuarios, roles,
+sucursales y auditoría. La recuperación por correo se difiere hasta disponer de
+SMTP seguro. El punto de control MariaDB y la prueba HTTP autenticada pasaron
+con una identidad separada; desarrollo conserva quince migraciones acumuladas,
+el catálogo de 17 permisos y un Administrador global creado interactivamente.
 
 ### M03 · Catálogo
 

@@ -73,5 +73,20 @@ await nojs.goto('http://127.0.0.1:8080/');
 assert.equal(await nojs.locator('h1').isVisible(), true);
 assert.equal(await nojs.locator('[data-product]').count(), 6);
 assert.equal(await nojs.locator('.hero-slide').first().isVisible(), true);
+const admin = await browser.newPage();
+const adminResponse = await admin.goto('http://127.0.0.1:8080/admin/login');
+assert.equal(adminResponse.status(), 200);
+assert.equal(await admin.locator('h1').textContent(), 'Panel administrativo');
+assert.equal(await admin.locator('label').count(), 2);
+for (const width of [360, 768, 1440]) {
+  await admin.setViewportSize({ width, height: 900 });
+  assert.equal(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Admin login overflow at ${width}`);
+  await admin.screenshot({ path: `tests/artifacts/admin-login-${width}.png`, fullPage: true });
+}
+await admin.locator('input[name="email"]').focus();
+assert.equal(await admin.locator('input[name="email"]').evaluate(input => input === document.activeElement), true);
+const protectedResponse = await admin.request.get('http://127.0.0.1:8080/admin', { maxRedirects: 0 });
+assert.equal(protectedResponse.status(), 303);
+assert.equal(protectedResponse.headers().location, '/admin/login');
 await browser.close();
-console.log('PASS: 5 viewports, images, no overflow, slider, filters, quote quantities/download, mobile menu/Escape/focus, reduced motion, routes/private files, no JS, no console errors.');
+console.log('PASS: public 5 viewports and admin login 3 viewports; images, responsive, interactions, accessibility controls, protected routes and no console errors.');

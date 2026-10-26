@@ -37,11 +37,14 @@ foreach ([
     'DB_CONNECT_TIMEOUT', 'DB_MIGRATION_LOCK_TIMEOUT',
     'TEST_DB_HOST', 'TEST_DB_PORT', 'TEST_DB_DATABASE',
     'TEST_DB_USERNAME_M00', 'TEST_DB_PASSWORD_M00', 'TEST_DB_USERNAME_M01', 'TEST_DB_PASSWORD_M01',
+    'TEST_DB_USERNAME_M02', 'TEST_DB_PASSWORD_M02',
     'TEST_DB_CHARSET',
     'M01_TEST_AUTHORIZATION',
+    'M02_TEST_AUTHORIZATION',
     'M01_RECOVERY_AUTHORIZATION', 'M01_RECOVERY_CONFIRMATION', 'M01_RECOVERY_SESSION_CONFIRMATION',
     'M01_RECOVERY_BACKUP_PATH', 'M01_RECOVERY_BACKUP_MANIFEST', 'M01_RECOVERY_BACKUP_SHA256',
     'SESSION_NAME', 'SESSION_LIFETIME', 'SESSION_SECURE_COOKIE', 'SESSION_SAME_SITE',
+    'SESSION_IDLE_TIMEOUT', 'SESSION_ABSOLUTE_TIMEOUT', 'SESSION_SAVE_PATH',
 ] as $variable) {
     check((bool) preg_match('/^' . preg_quote($variable, '/') . '=/m', $envExample), 'Documented environment variable: ' . $variable);
 }
@@ -51,4 +54,5 @@ require __DIR__ . '/m01-branch-hours.php';
 require __DIR__ . '/m01-branch-services.php';
 require __DIR__ . '/m01-repositories-services.php';
 require __DIR__ . '/m01-recovery.php';
-echo "PASS: {$checks} checks (public app, M00 persistence, M01.1-M01.4 and guarded M01 recovery).\n";
+require __DIR__ . '/m02-access.php';
+echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4 and M02 access/admin).\n";

@@ -10,7 +10,9 @@ M01.4 añade repositorios PDO y servicios internos sobre esas siete tablas. La
 integración fallida fue respaldada, restaurada y recuperada de forma controlada.
 M00 y M01 pasaron después contra MariaDB 10.11; la base exclusiva de pruebas
 quedó vacía y las siete migraciones están aplicadas permanentemente en
-desarrollo sin datos comerciales.
+desarrollo sin datos comerciales. M02 también pasó su integración MariaDB y su
+prueba HTTP autenticada; desarrollo conserva quince migraciones acumuladas, 17
+permisos y un Administrador global creado por CLI.
 
 ## Reglas de persistencia
 
@@ -63,10 +65,22 @@ desarrollo sin datos comerciales.
   por defecto y orden de presentación. El orden admite empates y se resuelve por
   `display_order` y `service_id`; la ausencia de relación equivale a no disponible.
 - `users`, `roles`, `permissions`, `user_roles`, `role_permissions`,
-  `user_branches`: acceso por acción y sucursal.
-- `user_sessions`, `password_reset_tokens`: sesiones y recuperación.
+  `user_branches` (**M02 integrado**): identidades normalizadas,
+  roles globales o por sucursal y permisos con alcance explícito.
+- `user_sessions` (**M02 integrado**): token aleatorio conservado
+  solo como hash, versión de sesión, expiración por inactividad y absoluta,
+  revocación y huellas no reversibles de contexto.
+- `password_reset_tokens`: diferida; no se crea una tabla ni un flujo ficticio
+  mientras no exista infraestructura SMTP segura.
 - `notifications`: avisos internos del panel.
-- `audit_logs`: actor, acción, entidad, identificador, fecha y contexto seguro.
+- `audit_logs` (**M02 integrado**): actor opcional, acción,
+  entidad, identificador, sucursal, resultado, fecha y contexto JSON acotado;
+  no admite contraseñas, tokens ni cookies.
+
+La conservación de auditoría es indefinida en M02: no existe borrado desde el
+panel, las FKs usan `RESTRICT` y el rollback se niega cuando hay historial. Una
+política de archivo o depuración solo podrá incorporarse en M14 con respaldo,
+plazo aprobado y trazabilidad; no se programa limpieza automática ahora.
 
 Perfiles iniciales: Administrador global, gerente/administrador de sucursal,
 Ventas, Inventario, Logística, Administrador de catálogo y Administrador de la

@@ -1,11 +1,14 @@
 # Verificación de la plataforma
 
-Fecha de última ejecución local: 23 de octubre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0, PHP CLI 8.5.4 de 64 bits y MariaDB 10.11.15. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO, `pdo_mysql` y `proc_open` están disponibles.
+Fecha de última ejecución local: 26 de octubre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0 y PHP CLI 8.5.4 de 64 bits. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO, `pdo_mysql` y `proc_open` están disponibles.
 
 ## Ejecutado
 
-- Sintaxis de **106 archivos PHP**: sin errores.
-- Pruebas PHP `tests/run.php`: **537 comprobaciones** correctas. Las nuevas
+- Sintaxis de **152 archivos PHP**: sin errores.
+- Pruebas PHP `tests/run.php`: **633 comprobaciones** correctas. M02 añade
+  contratos de contraseña, normalización de usuarios, catálogo de permisos,
+  Request seguro, huellas de auditoría, CSRF, migraciones, rutas protegidas y
+  CLI inicial sin contraseña predeterminada. Las pruebas anteriores incluyen
   regresiones cubren la comparación binaria de los tres códigos, el contrato de
   preflight de migraciones y que un fallo en cualquier elemento del último lote
   ocurra antes de ejecutar el primer `down()`. También verifican el protocolo
@@ -29,13 +32,33 @@ Fecha de última ejecución local: 23 de octubre de 2026. Entorno: Ubuntu, Node 
 - `npm run test:mysql:m01`: PASS con `ayala_m01_test`; validó esquema,
   repositorios, transacciones, solapamiento serializado, timeout y deadlock, y
   dejó inventario vacío.
-- Las siete migraciones quedaron aplicadas en lote 1 sobre `ferreteria_ayala`;
-  sus siete tablas comerciales permanecen vacías y no se cargaron semillas.
+- `npm run test:mysql:m02`: PASS con la cuenta exclusiva M02; validó las quince
+  migraciones, inventario de 16 tablas, administrador inicial sintético,
+  autenticación correcta/incorrecta, sesión, autorización global y por
+  sucursal, protección del último administrador, revocación y auditoría sin
+  secretos. Confirmó inventario final vacío.
+- `npm run test:mysql:m02:http`: PASS. Aplicó el esquema en la base aislada,
+  creó fixtures aleatorios y ejerció login, dashboard, usuarios, roles,
+  sucursales, horarios/servicios vacíos, CSRF, permisos, cambio de contraseña,
+  revocación, auditoría y logout. Revisó 360, 768, 1024 y 1440 px sin overflow
+  ni errores de consola y confirmó limpieza final completa.
+- Desarrollo conserva las siete migraciones M01 en lote 1 y las ocho M02 en
+  lote 2. La verificación oficial enumeró quince registros y `migrate` devolvió
+  que no había archivos pendientes. Las tablas M01 permanecen vacías.
+- El esquema real de desarrollo confirmó InnoDB/utf8mb4, los índices y diez FKs
+  M02 esperadas, 17 permisos, 17 asociaciones al rol global, exactamente un
+  Administrador global activo, hash unidireccional aprobado y auditoría inicial.
 - `npm run dev`: observación iniciada correctamente y detenida después de comprobar el modo desarrollo.
 - `npm run build`: Tailwind 4.3.3 y esbuild correctos; assets locales minificados y fuentes/licencias copiadas.
 - Dos compilaciones consecutivas produjeron assets idénticos. Tailwind usa fuentes explícitas de vistas y JavaScript para impedir que clases incidentales de PHP técnico alteren el CSS.
 - Instalación/auditoría npm: **0 vulnerabilidades reportadas** después del override de `@parcel/watcher` a 2.6.x. Tailwind CLI fijaba 2.5.1 vulnerable; override limitado a herramienta de observación local.
 - Navegador a 360, 390, 768, 1024 y 1440px: sin overflow horizontal; todas las imágenes cargadas. Capturas completas y de viewport en tests/artifacts (ignoradas por Git).
+- Login administrativo revisado a 360, 768 y 1440px: sin overflow, etiquetas
+  correctas, foco por teclado, assets locales y redirección 303 desde `/admin`
+  sin sesión.
+- Panel autenticado revisado a 360, 768, 1024 y 1440px. Se corrigió el patrón
+  HTML de la clave de sucursal para escapar el guion bajo el modo Unicode `v`
+  de Chrome; la regresión confirma que ya no produce errores de consola.
 - Flechas/indicadores del hero con áreas táctiles mínimas de 44×44px, filtro por categoría, búsqueda, estado vacío y reset: correctos.
 - Agregar producto, cambiar cantidad, contador y descarga TXT: correctos.
 - Menú móvil, Escape, ciclo Tab/Shift+Tab dentro del diálogo, recuperación de foco y link de categoría: correctos.
@@ -46,16 +69,22 @@ Fecha de última ejecución local: 23 de octubre de 2026. Entorno: Ubuntu, Node 
 
 ## Pendiente / límite del alcance
 
+La identidad y contraseña del Administrador global pertenecen al propietario y
+no se mostraron ni reutilizaron en las pruebas. Su existencia, estado activo,
+rol, permisos, hash y auditoría sí fueron verificados; los flujos autenticados
+se probaron con identidades aleatorias dentro de la base exclusiva de testing.
+
 El DDL de MariaDB conserva commits implícitos; las guardas reducen el riesgo,
 pero una caída durante un rollback futuro todavía exigiría inspección manual.
 Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio,
-iOS Safari, Android real ni lectores de pantalla. No se confirma stock, precios
-ni ningún flujo administrativo porque no existen en esta fase.
+iOS Safari, Android real ni lectores de pantalla. No se confirman stock,
+precios, catálogo ni módulos M03–M14 porque no existen en esta fase.
 
 ## Revisión de aprobación
 
 La Home fue aprobada como base el 17 de octubre de 2026. Permanecen pendientes
 el logo oficial, fotos reales y datos de contacto verificados para reemplazar
 los placeholders. M00 y M01.1–M01.4 están integrados y listos para revisión
-final; las tablas de desarrollo están aplicadas sin datos comerciales. El
-administrador y M02–M14 permanecen fuera del alcance.
+final; las tablas de desarrollo están aplicadas sin datos comerciales. M02 está
+integrado en MariaDB, migrado en desarrollo y activado con un Administrador
+global. M03–M14 no se han iniciado.
