@@ -13,7 +13,8 @@ migraciones están aplicadas en desarrollo sin semillas. M02 está integrado y
 pasa pruebas PHP, build, MariaDB y navegador autenticado con una cuenta de
 integración exclusiva. Sus ocho migraciones están aplicadas en desarrollo, el
 Administrador global inicial existe y las pruebas MariaDB/HTTP dejan la base
-aislada vacía. M03–M14 no están implementados.
+aislada vacía. M03 está integrado en MariaDB, migrado en desarrollo y aprobado
+con flujos HTTP autenticados. M04–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -94,6 +95,15 @@ el catálogo de 17 permisos y un Administrador global creado interactivamente.
 Incluye árbol de categorías, productos/variantes, unidades y conversiones,
 atributos dinámicos, galería, fichas, SKU y códigos de barras. No incluye
 precios, existencias ni promociones comerciales.
+
+Integración cerrada el 1 de noviembre de 2026: doce migraciones aditivas,
+dominio, repositorio PDO, servicio transaccional y panel para categorías,
+marcas, unidades, atributos, productos, variantes, códigos y conversiones. Los
+permisos son globales y se agregan al Administrador global mediante migración.
+La infraestructura de archivos y galería se reserva a M11: M03 no almacena
+rutas arbitrarias ni ofrece subidas. Las integraciones aisladas MariaDB y HTTP
+autenticada pasan con `TEST_DB_*_M03`; desarrollo conserva las doce migraciones
+M03 en lote 3 y ningún registro comercial fue insertado.
 
 ### M04 · Precios e impuestos
 

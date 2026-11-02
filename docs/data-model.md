@@ -89,20 +89,27 @@ sucursal.
 
 ### Catálogo
 
-- `categories`: árbol mediante `parent_id`.
-- `brands`, `units`: marcas, unidades base y precisión.
-- `products`: ficha común, categoría principal, marca y estado.
-- `product_variants`: SKU vendible y presentación.
-- `product_barcodes`: uno o varios códigos por variante/presentación.
+- `categories` (**M03 integrado**): clave estable y árbol mediante `parent_id`; el
+  servicio transaccional impide relaciones circulares.
+- `brands`, `units` (**M03 integrado**): marcas, unidades base, símbolo y precisión.
+- `products` (**M03 integrado**): ficha común, categoría, marca y estado; no guarda
+  precio ni existencia.
+- `product_variants` (**M03 integrado**): SKU vendible, presentación y unidad.
+- `product_barcodes` (**M03 integrado**): uno o varios códigos por variante.
 - `product_images`: galería, imagen principal, orden y texto alternativo.
 - `attribute_definitions`, `attribute_options`, `category_attributes`,
-  `variant_attribute_values`: especificaciones y filtros configurables.
-- `unit_conversions`: compra o captura en caja/rollo/tramo y control en la
+  `variant_attribute_values` (**M03 integrado**): especificaciones y filtros configurables.
+- `unit_conversions` (**M03 integrado**): compra o captura en caja/rollo/tramo y control en la
   unidad base.
 
 Cada variante tiene SKU, código de barras, unidad, precio e inventario propios.
 La cantidad puede ser entera o decimal según la unidad. Lotes, caducidades y
 series se activan por producto, no globalmente.
+
+En M03 solo se materializan SKU, códigos y unidades. Precio e inventario de la
+frase anterior pertenecen a M04 y M05. `product_images` y fichas como archivo
+requieren `media` de M11; M03 no crea un almacenamiento paralelo ni guarda
+rutas físicas arbitrarias.
 
 ### Precios e impuestos
 

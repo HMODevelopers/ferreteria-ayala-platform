@@ -39,8 +39,11 @@ foreach ([
     'TEST_DB_USERNAME_M00', 'TEST_DB_PASSWORD_M00', 'TEST_DB_USERNAME_M01', 'TEST_DB_PASSWORD_M01',
     'TEST_DB_USERNAME_M02', 'TEST_DB_PASSWORD_M02',
     'TEST_DB_CHARSET',
+    'TEST_DB_HOST_M03', 'TEST_DB_PORT_M03', 'TEST_DB_DATABASE_M03',
+    'TEST_DB_USERNAME_M03', 'TEST_DB_PASSWORD_M03', 'TEST_DB_CHARSET_M03',
     'M01_TEST_AUTHORIZATION',
     'M02_TEST_AUTHORIZATION',
+    'M03_TEST_AUTHORIZATION',
     'M01_RECOVERY_AUTHORIZATION', 'M01_RECOVERY_CONFIRMATION', 'M01_RECOVERY_SESSION_CONFIRMATION',
     'M01_RECOVERY_BACKUP_PATH', 'M01_RECOVERY_BACKUP_MANIFEST', 'M01_RECOVERY_BACKUP_SHA256',
     'SESSION_NAME', 'SESSION_LIFETIME', 'SESSION_SECURE_COOKIE', 'SESSION_SAME_SITE',
@@ -55,4 +58,5 @@ require __DIR__ . '/m01-branch-services.php';
 require __DIR__ . '/m01-repositories-services.php';
 require __DIR__ . '/m01-recovery.php';
 require __DIR__ . '/m02-access.php';
-echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4 and M02 access/admin).\n";
+require __DIR__ . '/m03-catalog.php';
+echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4, M02 and M03 catalog).\n";

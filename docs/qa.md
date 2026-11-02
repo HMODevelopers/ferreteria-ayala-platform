@@ -1,8 +1,31 @@
 # Verificación de la plataforma
 
-Fecha de última ejecución local: 26 de octubre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0 y PHP CLI 8.5.4 de 64 bits. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO, `pdo_mysql` y `proc_open` están disponibles.
+Fecha de última ejecución local: 1 de noviembre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0 y PHP CLI 8.5.4 de 64 bits. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO, `pdo_mysql` y `proc_open` están disponibles.
 
 ## Ejecutado
+
+- Ejecución del 1 de noviembre de 2026: `tests/run.php` alcanzó **723
+  comprobaciones** correctas. M03 añade dominio, contratos de once tablas,
+  permisos, rutas, CSRF y protección sin sesión.
+- Sintaxis PHP de todos los archivos de aplicación, migraciones y pruebas: sin
+  errores. `npm run build` completó Tailwind 4.3.3 y esbuild;
+  `git diff --check` fue correcto.
+- `npm run test:mysql:m03`: PASS en MariaDB 10.11 con cuenta exclusiva; aplicó,
+  probó y revirtió 27 migraciones y dejó inventario vacío.
+- Respaldo privado `m03-pre-migration-20261101-183125.json`, SHA-256
+  `830d7f1d286ecfb0394617dc3de25e96e9dbd2dd658d3f82104267e9c208a36a`:
+  sus 16 tablas fueron restauradas, comparadas y limpiadas en la base aislada.
+- `php bin/migrations.php status` confirma 27 migraciones aplicadas; las doce
+  M03 pertenecen al lote 3. Sus once tablas comerciales continúan vacías.
+- `npm run test:browser`: PASS con servidor local temporal; Home en cinco
+  viewports y login administrativo en tres, sin overflow ni errores de consola.
+- `npm run test:mysql:m03:http`: PASS autenticado. Productos, categorías,
+  marcas, unidades y atributos se revisaron a 360, 768, 1024 y 1440 px, con
+  CSRF, altas, búsqueda por SKU/código, activaciones, auditoría y limpieza final.
+- Regresión real posterior a M03: `npm run test:mysql` PASS;
+  `npm run test:mysql:m02` PASS; `npm run test:mysql:m02:http` PASS con flujos
+  autenticados y limpieza final. M01 se detuvo antes de conectar porque
+  `M01_TEST_AUTHORIZATION` no estaba exportada para esta ejecución.
 
 - Sintaxis de **152 archivos PHP**: sin errores.
 - Pruebas PHP `tests/run.php`: **633 comprobaciones** correctas. M02 añade
@@ -69,6 +92,9 @@ Fecha de última ejecución local: 26 de octubre de 2026. Entorno: Ubuntu, Node 
 
 ## Pendiente / límite del alcance
 
+M03 queda activado en desarrollo sin catálogo comercial. Continúan pendientes
+los datos reales del negocio y los módulos M04–M14, fuera de este cierre.
+
 La identidad y contraseña del Administrador global pertenecen al propietario y
 no se mostraron ni reutilizaron en las pruebas. Su existencia, estado activo,
 rol, permisos, hash y auditoría sí fueron verificados; los flujos autenticados
@@ -78,7 +104,7 @@ El DDL de MariaDB conserva commits implícitos; las guardas reducen el riesgo,
 pero una caída durante un rollback futuro todavía exigiría inspección manual.
 Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio,
 iOS Safari, Android real ni lectores de pantalla. No se confirman stock,
-precios, catálogo ni módulos M03–M14 porque no existen en esta fase.
+precios, catálogo real ni módulos M04–M14 porque no existen en esta fase.
 
 ## Revisión de aprobación
 
@@ -87,4 +113,5 @@ el logo oficial, fotos reales y datos de contacto verificados para reemplazar
 los placeholders. M00 y M01.1–M01.4 están integrados y listos para revisión
 final; las tablas de desarrollo están aplicadas sin datos comerciales. M02 está
 integrado en MariaDB, migrado en desarrollo y activado con un Administrador
-global. M03–M14 no se han iniciado.
+global. M03 está integrado, migrado y aprobado en MariaDB/HTTP; M04–M14 no se
+han iniciado.

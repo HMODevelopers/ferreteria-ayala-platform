@@ -81,7 +81,7 @@ try {
 
     $store->initialize();
     if (!$store->wasInitializedByCurrentInstance()) throw new PersistenceException('M02 HTTP integration could not prove migration storage ownership.');
-    $migrator = new Migrator(new MigrationDiscovery(dirname(__DIR__) . '/database/migrations'), $store, $pdo, $config->migrationLockName(), 10);
+    $migrator = new Migrator(new MigrationDiscovery(dirname(__DIR__) . '/database/migrations', '20261025020700_create_audit_logs'), $store, $pdo, $config->migrationLockName(), 10);
     if (count($migrator->migrate()) !== 15) throw new PersistenceException('M02 HTTP integration did not apply the complete schema.');
     $migrated = true;
     $actualTables = array_map(static fn(string $object): string => substr($object, strlen('BASE TABLE:')), array_filter(m02HttpInventory($pdo, $config->database), static fn(string $object): bool => str_starts_with($object, 'BASE TABLE:')));

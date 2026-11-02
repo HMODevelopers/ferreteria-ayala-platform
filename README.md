@@ -141,6 +141,9 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
   con una cuenta M02 propia; las ocho migraciones están aplicadas en desarrollo.
 - Administración real de usuarios, roles y sucursales; horarios y servicios de
   M01 se consultan desde el panel sin insertar datos comerciales ficticios.
+- M03 integrado: administración protegida de categorías, marcas, unidades,
+  atributos, productos, variantes, códigos y conversiones; búsqueda, filtros,
+  paginación, estados, CSRF, permisos y auditoría. No contiene precios o stock.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
@@ -168,6 +171,10 @@ npm run test:mysql:m01
 npm run test:mysql:m02
 # Flujos HTTP autenticados en Chrome sobre la misma base aislada vacía:
 npm run test:mysql:m02:http
+# Catálogo completo con una cuenta aislada M03; ver docs/integration-m03.md:
+npm run test:mysql:m03
+# Flujos autenticados del catálogo en Chrome y cuatro viewports:
+npm run test:mysql:m03:http
 # Sólo ante una recuperación expresamente autorizada:
 npm run inspect:mysql:m01-recovery
 npm run recover:mysql:m01-recovery
@@ -195,6 +202,12 @@ independiente y exige además `UPDATE`; requiere `M01_TEST_AUTHORIZATION` igual
 al nombre exacto de la base. Los tres permisos de metadatos permiten demostrar
 que no existen objetos ocultos antes de probar. Consulta el
 [punto de control M00 + M01](docs/integration-m00-m01.md) antes de autorizar.
+
+M03 usa un juego completamente independiente: `TEST_DB_HOST_M03`,
+`TEST_DB_PORT_M03`, `TEST_DB_DATABASE_M03`, `TEST_DB_USERNAME_M03`,
+`TEST_DB_PASSWORD_M03` y `TEST_DB_CHARSET_M03`. No existe fallback a otra
+suite ni a la conexión de desarrollo; además exige `M03_TEST_AUTHORIZATION`
+igual al nombre exacto de su base `_test`.
 
 La recuperación de una integración fallida usa un ejecutor independiente con
 modos `inspect` y `recover`. El segundo permanece deshabilitado por defecto,

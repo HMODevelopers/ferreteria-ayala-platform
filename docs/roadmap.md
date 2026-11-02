@@ -28,7 +28,13 @@ sesiones/CSRF, límite de login, auditoría, panel y operaciones iniciales de M0
 Pasa pruebas PHP, build, integración MariaDB y navegador autenticado. Existe una
 cuenta M02 de pruebas separada con privilegios mínimos; la base aislada queda
 vacía. Desarrollo tiene quince migraciones y un Administrador global activo.
-Productos, categorías, marcas y el CMS continúan sin implementarse.
+El CMS y los módulos posteriores continúan sin implementarse.
+
+Actualización del 1 de noviembre de 2026: M03 está integrado con catálogo
+administrable, doce migraciones aditivas y 723 comprobaciones PHP acumuladas.
+Las suites MariaDB y HTTP autenticada pasan con una cuenta limitada propia, las
+migraciones están aplicadas en desarrollo y el catálogo comercial permanece
+vacío. M04 y M05 no se iniciaron.
 
 ## Fase 4 · Cotizaciones e inventario
 

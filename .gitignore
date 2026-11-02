@@ -4,4 +4,6 @@ storage/logs/*
 !storage/logs/.gitkeep
 storage/sessions/*
 !storage/sessions/.gitkeep
+storage/backups/*
+!storage/backups/.gitkeep
 tests/artifacts/

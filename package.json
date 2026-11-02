@@ -11,6 +11,8 @@
     "test:mysql:m01": "php tests/mysql-m01-integration.php",
     "test:mysql:m02": "php tests/mysql-m02-integration.php",
     "test:mysql:m02:http": "php tests/mysql-m02-http-integration.php",
+    "test:mysql:m03": "php tests/mysql-m03-integration.php",
+    "test:mysql:m03:http": "php tests/mysql-m03-http-integration.php",
     "inspect:mysql:m01-recovery": "php tests/mysql-m01-recovery.php inspect",
     "recover:mysql:m01-recovery": "php tests/mysql-m01-recovery.php recover",
     "test:browser": "node tests/browser.mjs"

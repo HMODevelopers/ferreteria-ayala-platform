@@ -7,7 +7,7 @@ use Throwable;
 
 final class MigrationDiscovery
 {
-    public function __construct(private readonly string $directory)
+    public function __construct(private readonly string $directory, private readonly ?string $maximumId = null)
     {
     }
 
@@ -30,6 +30,7 @@ final class MigrationDiscovery
             if (preg_match('/^\d{14}_[a-z][a-z0-9_]{0,79}$/', $id) !== 1) {
                 throw new PersistenceException('A migration filename is invalid.');
             }
+            if ($this->maximumId !== null && strcmp($id, $this->maximumId) > 0) continue;
 
             try {
                 $migration = (static fn(string $__file): mixed => require $__file)($file);

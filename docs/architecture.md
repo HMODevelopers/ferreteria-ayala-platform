@@ -172,6 +172,20 @@ pueden crecer, listas ordenadas y `BranchScheduleStatus`, que separa apertura
 programada, activación operativa y disponibilidad pública. No existe API pública
 ni AyalaTable en este incremento.
 
+## Catálogo administrativo M03
+
+`Domain/Catalog` valida claves, nombres, SKU, códigos, precisión y banderas sin
+conocer PDO. `CatalogRepository` y `PdoCatalogRepository` concentran consultas
+preparadas, límites, filtros y rehidratación. `CatalogManagementService`
+coordina transacciones, ciclos de categorías, códigos estables, precisión de
+unidades asociadas y pertenencia de variantes antes de auditar el cambio.
+
+Las rutas `/admin/products`, `/admin/categories`, `/admin/brands`,
+`/admin/units` y `/admin/attributes` reutilizan sesión, autorización, CSRF,
+auditoría, layout y navegación M02. Los listados se paginan en servidor y las
+altas nacen inactivas. M03 no consulta ni persiste precios o inventario. Las
+imágenes permanecen en la frontera de M11 para evitar un gestor duplicado.
+
 ## Contratos actuales
 
 Todos se devuelven desde `DemoHomeData::all()`. Identificadores únicos y slugs estables. Vistas de contenido comercial reciben arrays; no conectan a SQL. Campos `null` indican datos no confirmados y deben tener presentación honesta.
@@ -214,7 +228,7 @@ existencias y sucursales.
 ## Seguridad pendiente para módulos futuros
 
 M02 ya aporta consultas preparadas, validación, sesiones seguras, CSRF,
-permisos, límite de login y auditoría. M03–M14 deberán reutilizar estos
+permisos, límite de login y auditoría. M03 reutiliza estas barreras; M04–M14 deberán reutilizar estos
 contratos. La validación/reprocesamiento de imágenes y los límites de
 formularios públicos llegarán con sus módulos. La CSP actual permite únicamente
 recursos locales; revisar cualquier integración sin relajarla globalmente.

@@ -346,7 +346,7 @@ try {
 
         $stage = 'M01 migrator rollback';
         $migrator = new Migrator(
-            new MigrationDiscovery(dirname(__DIR__) . '/database/migrations'),
+            new MigrationDiscovery(dirname(__DIR__) . '/database/migrations', '20261019010600_create_branch_services'),
             $store,
             $pdo,
             $migrationLock,

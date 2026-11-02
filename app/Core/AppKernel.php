@@ -8,6 +8,7 @@ use App\Application\Repositories\AuditRepository;
 use App\Application\Security\AuthenticationService;
 use App\Application\Services\AccessManagementService;
 use App\Application\Services\BranchManagementService;
+use App\Application\Services\CatalogManagementService;
 use App\Core\Persistence\Connection;
 use App\Core\Persistence\DatabaseConfig;
 use App\Core\Security\SessionManager;
@@ -15,6 +16,7 @@ use App\Infrastructure\Persistence\PdoAccessRepository;
 use App\Infrastructure\Persistence\PdoAuditRepository;
 use App\Infrastructure\Persistence\PdoBranchAdminReadRepository;
 use App\Infrastructure\Persistence\PdoBranchRepository;
+use App\Infrastructure\Persistence\PdoCatalogRepository;
 
 final class AppKernel
 {
@@ -36,4 +38,6 @@ final class AppKernel
     public static function branches(): PdoBranchRepository { return new PdoBranchRepository(self::connection()); }
     public static function branchReads(): PdoBranchAdminReadRepository { return new PdoBranchAdminReadRepository(self::connection()); }
     public static function branchManagement(): BranchManagementService { return new BranchManagementService(self::branches(), self::connection()); }
+    public static function catalog(): PdoCatalogRepository { return new PdoCatalogRepository(self::connection()); }
+    public static function catalogManagement(): CatalogManagementService { return new CatalogManagementService(self::catalog(), self::connection()); }
 }

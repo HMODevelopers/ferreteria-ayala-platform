@@ -225,7 +225,7 @@ try {
 
     $stage = 'M01 migration application';
     $migrator = new Migrator(
-        new MigrationDiscovery(dirname(__DIR__) . '/database/migrations'),
+        new MigrationDiscovery(dirname(__DIR__) . '/database/migrations', '20261019010600_create_branch_services'),
         $store,
         $pdo,
         $config->migrationLockName(),

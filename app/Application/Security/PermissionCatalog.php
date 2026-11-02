@@ -23,5 +23,14 @@ final class PermissionCatalog
         ['branches.schedule.view', 'branches_schedule', 'view', 'either', 'Consultar horarios de sucursal'],
         ['branches.services.view', 'branches_services', 'view', 'either', 'Consultar servicios de sucursal'],
         ['audit.view', 'audit', 'view', 'global', 'Consultar la bitácora de auditoría'],
+        ['catalog.view', 'catalog', 'view', 'global', 'Consultar el catálogo comercial'],
+        ['categories.manage', 'categories', 'manage', 'global', 'Crear, editar y cambiar el estado de categorías'],
+        ['brands.manage', 'brands', 'manage', 'global', 'Crear, editar y cambiar el estado de marcas'],
+        ['units.manage', 'units', 'manage', 'global', 'Crear, editar y cambiar el estado de unidades'],
+        ['attributes.manage', 'attributes', 'manage', 'global', 'Administrar atributos configurables del catálogo'],
+        ['products.create', 'products', 'create', 'global', 'Crear productos y su primera variante'],
+        ['products.edit', 'products', 'edit', 'global', 'Editar la ficha descriptiva de productos'],
+        ['products.status', 'products', 'status', 'global', 'Activar o desactivar productos'],
+        ['products.variants', 'products', 'variants', 'global', 'Administrar variantes y códigos de barras'],
     ];
 }

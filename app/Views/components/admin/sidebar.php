@@ -4,6 +4,7 @@
         <?php $items = [
             ['dashboard', '/admin', 'Resumen', '▦'], ['users', '/admin/users', 'Usuarios', '◎'],
             ['roles', '/admin/roles', 'Roles y permisos', '◇'], ['branches', '/admin/branches', 'Sucursales', '⌖'],
+            ['catalog', '/admin/products', 'Catálogo', '▦'],
             ['audit', '/admin/audit', 'Auditoría', '≡'],
         ]; foreach ($items as [$key, $href, $label, $icon]): if (!($navAccess[$key] ?? false)) continue; ?>
             <a href="<?= e($href) ?>" class="admin-nav-link <?= $activeNav === $key ? 'is-active' : '' ?>" <?= $activeNav === $key ? 'aria-current="page"' : '' ?>><span aria-hidden="true"><?= e($icon) ?></span><?= e($label) ?></a>

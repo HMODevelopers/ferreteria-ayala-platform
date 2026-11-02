@@ -84,7 +84,7 @@ try {
     $store->initialize();
     $storageOwned = $store->wasInitializedByCurrentInstance();
     if (!$storageOwned) throw new PersistenceException('M02 integration could not prove migration storage ownership.');
-    $migrator = new Migrator(new MigrationDiscovery(dirname(__DIR__) . '/database/migrations'), $store, $pdo, $config->migrationLockName(), 10);
+    $migrator = new Migrator(new MigrationDiscovery(dirname(__DIR__) . '/database/migrations', '20261025020700_create_audit_logs'), $store, $pdo, $config->migrationLockName(), 10);
     $applied = $migrator->migrate();
     if (count($applied) !== 15 || !in_array('20261025020700_create_audit_logs', $applied, true)) throw new PersistenceException('M02 integration did not apply the complete expected schema.');
     $migrated = true;

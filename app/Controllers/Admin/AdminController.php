@@ -60,6 +60,7 @@ abstract class AdminController extends Controller
                 'roles' => AppKernel::access()->hasPermission($id, 'roles.view', null),
                 'branches' => AppKernel::access()->accessibleBranchIds($id) !== [],
                 'audit' => AppKernel::access()->hasPermission($id, 'audit.view', null),
+                'catalog' => AppKernel::access()->hasPermission($id, 'catalog.view', null),
             ];
             $data['capabilities'] ??= [
                 'users.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.create') !== [],
@@ -72,6 +73,14 @@ abstract class AdminController extends Controller
                 'branches.create' => AppKernel::access()->hasPermission($id, 'branches.create', null),
                 'branches.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'branches.edit') !== [],
                 'branches.status' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'branches.status') !== [],
+                'categories.manage' => AppKernel::access()->hasPermission($id, 'categories.manage', null),
+                'brands.manage' => AppKernel::access()->hasPermission($id, 'brands.manage', null),
+                'units.manage' => AppKernel::access()->hasPermission($id, 'units.manage', null),
+                'attributes.manage' => AppKernel::access()->hasPermission($id, 'attributes.manage', null),
+                'products.create' => AppKernel::access()->hasPermission($id, 'products.create', null),
+                'products.edit' => AppKernel::access()->hasPermission($id, 'products.edit', null),
+                'products.status' => AppKernel::access()->hasPermission($id, 'products.status', null),
+                'products.variants' => AppKernel::access()->hasPermission($id, 'products.variants', null),
             ];
         }
         return new Response(View::render($template, $data, 'layouts/admin'), $status, [
