@@ -4,6 +4,26 @@ Fecha de última ejecución local: 1 de noviembre de 2026. Entorno: Ubuntu, Node
 
 ## Ejecutado
 
+- Ejecución M05 del 1 de noviembre de 2026: `npm test` alcanzó **858
+  comprobaciones**. Sintaxis PHP, JavaScript, `npm run build` y
+  `git diff --check`: PASS.
+- `tests/mysql-m05-integration.php`: PASS en MariaDB 10.11 con 41 migraciones,
+  precisión, conversiones, inicial, ajustes, idempotencia, saldo insuficiente,
+  concurrencia real, timeout/rollback, mínimos y limpieza final.
+- `tests/mysql-m05-http-integration.php`: PASS autenticado; validó CSRF,
+  inicial, ajuste, mínimo, auditoría y 360/768/1024/1440 px. La base aislada
+  terminó vacía.
+- Regresiones M00, M01, M02 MariaDB/HTTP, M03 MariaDB/HTTP y M04 MariaDB/HTTP:
+  PASS después de M05. Los ejecutores M04 ahora limitan descubrimiento a M04.
+- La primera regresión M04 posterior aplicó 41 migraciones y se detuvo antes de
+  fixtures. Se verificaron 41 tablas, 41 historiales y solo 26 permisos; ese
+  estado sintético se recuperó y se confirmó inventario vacío antes de repetir.
+- Respaldo privado `m05-pre-migration-20261101-215204.json`, SHA-256
+  `28a7da4b2afd00aa6ce466caccf365677220f07bde48566f23fc962e6d90b97c`:
+  JSON, 34 tablas y manifiesto verificados con permisos `600`.
+- Desarrollo conserva **41 migraciones**; las seis M05 están en lote 5. Las
+  siete tablas M05 tienen cero filas y `GLOBAL_ADMIN` recibió siete permisos.
+
 - Ejecución M04 del 1 de noviembre de 2026: `npm test` alcanzó **797
   comprobaciones**. Cubre decimal sin `float`, límites, redondeo, impuesto
   incluido/excluido, cero frente a ausencia, esquema, permisos y rutas.
@@ -118,8 +138,9 @@ Fecha de última ejecución local: 1 de noviembre de 2026. Entorno: Ubuntu, Node
 
 ## Pendiente / límite del alcance
 
-M03 y M04 quedan activados en desarrollo sin catálogo, precios, tasas ni listas
-comerciales inventadas. Continúan pendientes los datos reales y M05–M14.
+M03, M04 y M05 quedan activados en desarrollo sin catálogo, precios, tasas,
+listas ni existencias inventadas. Continúan pendientes los datos reales y
+M06–M14.
 
 La identidad y contraseña del Administrador global pertenecen al propietario y
 no se mostraron ni reutilizaron en las pruebas. Su existencia, estado activo,
@@ -130,7 +151,7 @@ El DDL de MariaDB conserva commits implícitos; las guardas reducen el riesgo,
 pero una caída durante un rollback futuro todavía exigiría inspección manual.
 Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio,
 iOS Safari, Android real ni lectores de pantalla. No se confirman stock,
-precios o catálogo reales; M05–M14 no existen en esta fase.
+precios, catálogo o inventario reales; M06–M14 no existen en esta fase.
 
 ## Revisión de aprobación
 
@@ -139,5 +160,5 @@ el logo oficial, fotos reales y datos de contacto verificados para reemplazar
 los placeholders. M00 y M01.1–M01.4 están integrados y listos para revisión
 final; las tablas de desarrollo están aplicadas sin datos comerciales. M02 está
 integrado en MariaDB, migrado en desarrollo y activado con un Administrador
-global. M03 y M04 están integrados, migrados y aprobados en MariaDB/HTTP; M05–M14
-no se han iniciado.
+global. M03, M04 y M05 están integrados, migrados y aprobados en MariaDB/HTTP;
+M06–M14 no se han iniciado.

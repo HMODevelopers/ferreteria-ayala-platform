@@ -148,6 +148,10 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
   pública y reglas generales, impuestos configurables, vigencias, historial,
   cálculo decimal y panel protegido. Sus ocho migraciones están aplicadas en
   desarrollo sin tasas, listas ni precios precargados.
+- M05 integrado: existencias físicas, apartadas y disponibles por sucursal y
+  variante; movimientos inmutables, conversiones exactas, ajustes idempotentes,
+  mínimos, conteos y trazabilidad opcional por lote o serie. El panel consulta
+  saldos e historial y registra operaciones autorizadas.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
@@ -183,6 +187,10 @@ npm run test:mysql:m03:http
 npm run test:mysql:m04
 # Flujos autenticados M04 en Chrome y cuatro viewports:
 npm run test:mysql:m04:http
+# Inventario M05, concurrencia e idempotencia; ver docs/integration-m05.md:
+npm run test:mysql:m05
+# Flujos autenticados M05 y revisión responsive:
+npm run test:mysql:m05:http
 # Sólo ante una recuperación expresamente autorizada:
 npm run inspect:mysql:m01-recovery
 npm run recover:mysql:m01-recovery

@@ -63,6 +63,7 @@ abstract class AdminController extends Controller
                 'catalog' => AppKernel::access()->hasPermission($id, 'catalog.view', null),
                 'prices' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'prices.view') !== [],
                 'taxes' => AppKernel::access()->hasPermission($id, 'taxes.view', null),
+                'inventory' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.view') !== [],
             ];
             $data['capabilities'] ??= [
                 'users.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.create') !== [],
@@ -89,6 +90,10 @@ abstract class AdminController extends Controller
                 'taxes.manage' => AppKernel::access()->hasPermission($id, 'taxes.manage', null),
                 'price_lists.manage' => AppKernel::access()->hasPermission($id, 'price_lists.manage', null),
                 'discount_policies.manage' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'discount_policies.manage') !== [],
+                'inventory.initial' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.initial') !== [],
+                'inventory.adjust' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.adjust') !== [],
+                'inventory.correct' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.correct') !== [],
+                'inventory.thresholds' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.thresholds') !== [],
             ];
         }
         return new Response(View::render($template, $data, 'layouts/admin'), $status, [

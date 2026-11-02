@@ -42,5 +42,12 @@ final class PermissionCatalog
         ['price_lists.manage', 'price_lists', 'manage', 'global', 'Administrar listas comerciales y sus reglas'],
         ['discount_policies.view', 'discount_policies', 'view', 'either', 'Consultar políticas de descuento autorizadas'],
         ['discount_policies.manage', 'discount_policies', 'manage', 'either', 'Administrar políticas de descuento autorizadas'],
+        ['inventory.view', 'inventory', 'view', 'either', 'Consultar existencias dentro del alcance autorizado'],
+        ['inventory.movements.view', 'inventory_movements', 'view', 'either', 'Consultar movimientos de inventario autorizados'],
+        ['inventory.initial', 'inventory', 'initial', 'either', 'Registrar existencia inicial autorizada'],
+        ['inventory.adjust', 'inventory', 'adjust', 'either', 'Registrar ajustes de inventario autorizados'],
+        ['inventory.correct', 'inventory', 'correct', 'either', 'Registrar correcciones compensatorias autorizadas'],
+        ['inventory.counts', 'inventory_counts', 'manage', 'either', 'Administrar conteos físicos autorizados'],
+        ['inventory.thresholds', 'inventory_thresholds', 'manage', 'either', 'Administrar mínimos de inventario autorizados'],
     ];
 }

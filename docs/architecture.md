@@ -240,6 +240,20 @@ cargar información real, el negocio debe entregar los catálogos y valores
 concretos de impuestos, unidades, límites de descuento, productos, precios,
 existencias y sucursales.
 
+## Escrituras de inventario M05
+
+`InventoryManagementService` valida cantidad, precisión, conversión, tipo,
+motivo e idempotencia. Dentro de la transacción bloquea sucursal y variante,
+materializa la fila única de saldo, la bloquea y registra saldo y movimiento
+juntos. Una clave repetida devuelve el movimiento existente; si los datos
+difieren se rechaza. La existencia inicial es explícita y única. No hay SQL en
+controladores o vistas ni reintentos automáticos inciertos.
+
+Las rutas `/admin/inventory`, `/admin/inventory/movements` y
+`/admin/inventory/adjustments` reutilizan sesión M02, CSRF, permisos por
+sucursal y auditoría. Filtros y paginación se resuelven en servidor. M04 y M05
+permanecen independientes.
+
 ## Seguridad pendiente para módulos futuros
 
 M02 ya aporta consultas preparadas, validación, sesiones seguras, CSRF,

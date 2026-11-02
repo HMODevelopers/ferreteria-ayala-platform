@@ -15,7 +15,8 @@ integración exclusiva. Sus ocho migraciones están aplicadas en desarrollo, el
 Administrador global inicial existe y las pruebas MariaDB/HTTP dejan la base
 aislada vacía. M03 está integrado en MariaDB, migrado en desarrollo y aprobado
 con flujos HTTP autenticados. M04 está integrado, activado en desarrollo y pasa
-MariaDB y HTTP autenticado. M05–M14 no están implementados.
+MariaDB y HTTP autenticado. M05 también está integrado, migrado y aprobado con
+concurrencia real y HTTP autenticado. M06–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -125,6 +126,12 @@ conserva 35 migraciones en cuatro lotes y todas las tablas M04 están vacías.
 Incluye físico, apartado, disponible, mínimos, movimientos, conteos, ajustes,
 lotes, caducidad, series y merma. No incluye compras, ubicaciones internas ni
 retazos individualizados.
+
+Integración del 1 de noviembre de 2026: seis migraciones aditivas, cantidades
+exactas, repositorio PDO, servicio transaccional, siete permisos y panel. Saldo
+y libro se actualizan en una transacción con bloqueos estables e idempotencia.
+MariaDB y HTTP autenticado pasaron, incluida concurrencia real y rollback por
+timeout. Desarrollo conserva 41 migraciones y las siete tablas M05 están vacías.
 
 ### M06 · Entradas por factura
 

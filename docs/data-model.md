@@ -137,13 +137,18 @@ estados distintos. Sin tasa activa no se produce un cálculo fiscal ambiguo.
 
 ### Inventario
 
-- `inventory_balances`: existencia física, apartada y disponible por variante,
-  sucursal y, cuando aplique, lote.
-- `inventory_movements`: libro inmutable de entradas, salidas, ajustes,
-  transferencias, apartados liberados y devoluciones.
-- `stock_thresholds`: mínimo por producto y sucursal.
-- `stock_counts`, `stock_count_items`: conteos y diferencias.
-- `inventory_lots`, `inventory_serials`: rastreo opcional.
+- `inventory_balances` (**M05 integrado**): existencia física, apartada y
+  disponible por sucursal-variante, inicialización explícita y versión. La
+  clave de alcance es única y ningún saldo puede ser negativo.
+- `inventory_movements` (**M05 integrado**): libro inmutable de inicial,
+  ajustes, diferencias de conteo, merma y correcciones compensatorias. Conserva
+  unidad capturada, cantidad base, antes/después, motivo, actor, fecha y clave
+  idempotente. Entradas M06, apartados M08 y transferencias M09 no se anticipan.
+- `stock_thresholds` (**M05 integrado**): mínimo exacto por sucursal y variante.
+- `stock_counts`, `stock_count_items` (**M05 integrado**): conteos y diferencias
+  vinculables al movimiento compensatorio.
+- `inventory_lots`, `inventory_serials` (**M05 integrado**): identidades
+  opcionales, caducidad y estado, sin insertar lotes ficticios.
 - `inventory_reservations`, `inventory_reservation_items`: apartados originados
   por cotizaciones aceptadas.
 - `inventory_transfers`, `inventory_transfer_items`: solicitud, aprobación,
@@ -157,6 +162,11 @@ la salida física contra el apartado. Cancelar libera únicamente lo no entregad
 
 No se controlan ubicaciones internas, pasillos ni retazos individuales. La
 merma se registra como movimiento justificado.
+
+M05 usa `DECIMAL(18,6)` y respeta `units.decimal_places`. Una conversión de M03
+que no sea representable en la precisión de la unidad base se rechaza, sin
+redondeo silencioso. El saldo materializado y el movimiento se confirman o se
+revierten juntos.
 
 ### Entradas por factura de proveedor
 

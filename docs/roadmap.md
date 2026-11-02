@@ -37,7 +37,10 @@ migraciones están aplicadas en desarrollo y el catálogo comercial permanece
 vacío. M04 está integrado con 797 comprobaciones, build, MariaDB y navegador
 autenticado aprobados. Sus ocho migraciones están aplicadas en desarrollo como
 lote 4, para 35 acumuladas; las tablas comerciales M04 permanecen vacías. M05
-no se inició.
+quedó integrado con seis migraciones adicionales, saldos y movimientos por
+sucursal-variante, permisos, panel, concurrencia real y activación en
+desarrollo. El total acumulado es 41 migraciones; no se cargaron existencias.
+M06 y módulos posteriores no se iniciaron.
 
 ## Fase 4 · Cotizaciones e inventario
 

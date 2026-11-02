@@ -80,3 +80,8 @@ $router->post('/admin/price-lists/rules/create', [App\Controllers\Admin\TaxesCon
 $router->post('/admin/price-lists/rules/status', [App\Controllers\Admin\TaxesController::class, 'listRuleStatus']);
 $router->post('/admin/discount-policies/save', [App\Controllers\Admin\TaxesController::class, 'savePolicy']);
 $router->post('/admin/discount-policies/status', [App\Controllers\Admin\TaxesController::class, 'policyStatus']);
+$router->get('/admin/inventory', [App\Controllers\Admin\InventoryController::class, 'index']);
+$router->get('/admin/inventory/movements', [App\Controllers\Admin\InventoryController::class, 'movements']);
+$router->get('/admin/inventory/adjustments', [App\Controllers\Admin\InventoryController::class, 'adjustmentForm']);
+$router->post('/admin/inventory/adjustments', [App\Controllers\Admin\InventoryController::class, 'adjust']);
+$router->post('/admin/inventory/thresholds', [App\Controllers\Admin\InventoryController::class, 'threshold']);
