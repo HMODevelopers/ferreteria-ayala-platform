@@ -49,12 +49,13 @@ abstract class AdminController extends Controller
 
     protected function adminView(string $template, array $data = [], int $status = 200): Response
     {
+        $isFragment = strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest';
         $data['csrf'] ??= AppKernel::session()->csrfToken();
         $data['flash'] ??= AppKernel::session()->pullFlash();
         $viewUser = $data['user'] ?? null;
         if ($viewUser instanceof User) {
             $id = $viewUser->id ?? 0;
-            $data['navAccess'] ??= [
+            if (!$isFragment) $data['navAccess'] ??= [
                 'dashboard' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'dashboard.view') !== [],
                 'users' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.view') !== [],
                 'roles' => AppKernel::access()->hasPermission($id, 'roles.view', null),
@@ -65,7 +66,12 @@ abstract class AdminController extends Controller
                 'taxes' => AppKernel::access()->hasPermission($id, 'taxes.view', null),
                 'inventory' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.view') !== [],
             ];
-            $data['capabilities'] ??= [
+            if ($isFragment) {
+                $data['capabilities'] ??= $template === 'admin/users/form' ? [
+                    'users.password' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.password') !== [],
+                    'users.assign' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.assign') !== [],
+                ] : [];
+            } else $data['capabilities'] ??= [
                 'users.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.create') !== [],
                 'users.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.edit') !== [],
                 'users.status' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.status') !== [],
@@ -96,9 +102,14 @@ abstract class AdminController extends Controller
                 'inventory.thresholds' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.thresholds') !== [],
             ];
         }
-        return new Response(View::render($template, $data, 'layouts/admin'), $status, [
+        $body = $isFragment
+            ? '<main id="admin-content">' . View::partial($template, $data) . '</main>'
+            : View::render($template, $data, 'layouts/admin');
+        return new Response($body, $status, [
             'Cache-Control' => 'no-store, private',
             'Pragma' => 'no-cache',
+            'Vary' => 'X-Requested-With',
+            'X-Admin-Fragment' => $isFragment ? '1' : '0',
         ]);
     }
 
