@@ -1,6 +1,6 @@
 <?php admin_component('catalog-nav', ['catalogSection' => 'products']); $product = $detail['product']; ?>
 <section class="admin-page-head">
-    <div><p class="admin-kicker">DETALLE DE PRODUCTO</p><h1><?= e($product->name) ?></h1><p><?= e($product->code) ?> · Sin precio ni existencia en M03.</p></div>
+    <div><p class="admin-kicker">DETALLE DE PRODUCTO</p><h1><?= e($product->name) ?></h1><p><?= e($product->code) ?> · El precio depende de variante, sucursal, lista y vigencia.</p></div>
     <div class="admin-head-actions"><?php if ($capabilities['products.edit'] ?? false): ?><a class="admin-primary-button" href="/admin/products/edit?id=<?= e($product->id) ?>">Editar ficha</a><?php endif ?><a class="admin-secondary-button" href="/admin/products">Volver</a></div>
 </section>
 <section class="admin-panel">
@@ -15,6 +15,7 @@
 <?php foreach ($detail['variants'] as $variant): ?>
 <article class="admin-panel admin-variant-card">
     <header><div><h2><?= e($variant['name']) ?></h2><small><?= e($variant['sku']) ?> · <?= e($variant['unit_name'] . ' (' . $variant['symbol'] . ')') ?></small></div><span class="admin-status <?= (int) $variant['is_active'] === 1 ? 'is-active' : '' ?>"><?= (int) $variant['is_active'] === 1 ? 'Activa' : 'Inactiva' ?></span></header>
+    <?php if($navAccess['prices']??false):?><p class="admin-panel-copy"><a href="/admin/prices?q=<?= e(rawurlencode($variant['sku'])) ?>">Consultar precios de esta variante</a>. Si no hay registros, se mostrará “Sin precios configurados”.</p><?php endif?>
     <?php if ($capabilities['products.variants'] ?? false): ?>
     <form class="admin-form admin-compact-form" method="post" action="/admin/products/variants/update"><input type="hidden" name="_token" value="<?= e($csrf) ?>"><input type="hidden" name="product_id" value="<?= e($product->id) ?>"><input type="hidden" name="id" value="<?= e($variant['id']) ?>"><div class="admin-form-grid"><label class="admin-field"><span>Presentación</span><input name="name" maxlength="150" required value="<?= e($variant['name']) ?>"></label><label class="admin-field"><span>Unidad</span><select name="unit_id"><?php foreach ($units as $unit): ?><option value="<?= e($unit['id']) ?>" <?= (int) $variant['unit_id'] === (int) $unit['id'] ? 'selected' : '' ?>><?= e($unit['name']) ?></option><?php endforeach ?></select></label></div><button class="admin-secondary-button">Guardar variante</button></form>
     <form method="post" action="/admin/products/variants/status" class="admin-status-form"><input type="hidden" name="_token" value="<?= e($csrf) ?>"><input type="hidden" name="product_id" value="<?= e($product->id) ?>"><input type="hidden" name="id" value="<?= e($variant['id']) ?>"><input type="hidden" name="active" value="<?= (int) $variant['is_active'] === 1 ? '0' : '1' ?>"><button class="admin-quiet-button" data-confirm="¿Confirmas el cambio de estado?"><?= (int) $variant['is_active'] === 1 ? 'Desactivar variante' : 'Activar variante' ?></button></form>

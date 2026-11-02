@@ -75,7 +75,7 @@ try {
 
     $store->initialize();
     if (!$store->wasInitializedByCurrentInstance()) throw new PersistenceException('M03 HTTP integration could not prove migration storage ownership.');
-    $migrator = new Migrator(new MigrationDiscovery(dirname(__DIR__) . '/database/migrations'), $store, $pdo, $config->migrationLockName(), 10);
+    $migrator = new Migrator(new MigrationDiscovery(dirname(__DIR__) . '/database/migrations', '20261031030800_register_catalog_permissions'), $store, $pdo, $config->migrationLockName(), 10);
     if (count($migrator->migrate()) !== 27) throw new PersistenceException('M03 HTTP integration did not apply all 27 migrations.');
     $migrated = true;
     $tables = array_map(static fn(string $object): string => substr($object, 11), array_filter(m03HttpInventory($pdo, $config->database), static fn(string $object): bool => str_starts_with($object, 'BASE TABLE:')));

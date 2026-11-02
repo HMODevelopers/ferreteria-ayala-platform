@@ -32,5 +32,15 @@ final class PermissionCatalog
         ['products.edit', 'products', 'edit', 'global', 'Editar la ficha descriptiva de productos'],
         ['products.status', 'products', 'status', 'global', 'Activar o desactivar productos'],
         ['products.variants', 'products', 'variants', 'global', 'Administrar variantes y códigos de barras'],
+        ['prices.view', 'prices', 'view', 'either', 'Consultar precios dentro del alcance autorizado'],
+        ['prices.create', 'prices', 'create', 'either', 'Registrar precios dentro del alcance autorizado'],
+        ['prices.edit', 'prices', 'edit', 'either', 'Editar precios dentro del alcance autorizado'],
+        ['prices.status', 'prices', 'status', 'either', 'Activar o desactivar precios dentro del alcance autorizado'],
+        ['taxes.view', 'taxes', 'view', 'global', 'Consultar configuración fiscal'],
+        ['taxes.manage', 'taxes', 'manage', 'global', 'Administrar categorías y tasas fiscales'],
+        ['price_lists.view', 'price_lists', 'view', 'global', 'Consultar listas comerciales y sus reglas'],
+        ['price_lists.manage', 'price_lists', 'manage', 'global', 'Administrar listas comerciales y sus reglas'],
+        ['discount_policies.view', 'discount_policies', 'view', 'either', 'Consultar políticas de descuento autorizadas'],
+        ['discount_policies.manage', 'discount_policies', 'manage', 'either', 'Administrar políticas de descuento autorizadas'],
     ];
 }

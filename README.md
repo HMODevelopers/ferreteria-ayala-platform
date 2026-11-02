@@ -144,6 +144,10 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
 - M03 integrado: administración protegida de categorías, marcas, unidades,
   atributos, productos, variantes, códigos y conversiones; búsqueda, filtros,
   paginación, estados, CSRF, permisos y auditoría. No contiene precios o stock.
+- M04 integrado: precios MXN por variante/sucursal/lista, lista
+  pública y reglas generales, impuestos configurables, vigencias, historial,
+  cálculo decimal y panel protegido. Sus ocho migraciones están aplicadas en
+  desarrollo sin tasas, listas ni precios precargados.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
@@ -175,6 +179,10 @@ npm run test:mysql:m02:http
 npm run test:mysql:m03
 # Flujos autenticados del catálogo en Chrome y cuatro viewports:
 npm run test:mysql:m03:http
+# Precios e impuestos; ver docs/integration-m04.md:
+npm run test:mysql:m04
+# Flujos autenticados M04 en Chrome y cuatro viewports:
+npm run test:mysql:m04:http
 # Sólo ante una recuperación expresamente autorizada:
 npm run inspect:mysql:m01-recovery
 npm run recover:mysql:m01-recovery

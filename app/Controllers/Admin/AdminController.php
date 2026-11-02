@@ -61,6 +61,8 @@ abstract class AdminController extends Controller
                 'branches' => AppKernel::access()->accessibleBranchIds($id) !== [],
                 'audit' => AppKernel::access()->hasPermission($id, 'audit.view', null),
                 'catalog' => AppKernel::access()->hasPermission($id, 'catalog.view', null),
+                'prices' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'prices.view') !== [],
+                'taxes' => AppKernel::access()->hasPermission($id, 'taxes.view', null),
             ];
             $data['capabilities'] ??= [
                 'users.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.create') !== [],
@@ -81,6 +83,12 @@ abstract class AdminController extends Controller
                 'products.edit' => AppKernel::access()->hasPermission($id, 'products.edit', null),
                 'products.status' => AppKernel::access()->hasPermission($id, 'products.status', null),
                 'products.variants' => AppKernel::access()->hasPermission($id, 'products.variants', null),
+                'prices.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'prices.create') !== [],
+                'prices.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'prices.edit') !== [],
+                'prices.status' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'prices.status') !== [],
+                'taxes.manage' => AppKernel::access()->hasPermission($id, 'taxes.manage', null),
+                'price_lists.manage' => AppKernel::access()->hasPermission($id, 'price_lists.manage', null),
+                'discount_policies.manage' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'discount_policies.manage') !== [],
             ];
         }
         return new Response(View::render($template, $data, 'layouts/admin'), $status, [

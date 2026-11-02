@@ -113,6 +113,11 @@ movimiento nuevo y solo regresa a disponible si el producto está vendible.
   pendientes de confirmación del negocio.
 - Todo cambio conserva historial; cotizaciones conservan snapshots.
 
+Nota de implementación M04: mientras el negocio no confirme tasas ni criterio,
+el sistema no precarga valores. Cada precio exige seleccionar explícitamente
+categoría fiscal y si incluye impuesto; sin una tasa activa y vigente, la
+consulta de cálculo responde que no existe configuración efectiva.
+
 ## Entregas
 
 - Recolección en sucursal y entrega a domicilio.

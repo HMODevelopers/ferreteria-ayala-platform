@@ -9,6 +9,7 @@ use App\Application\Security\AuthenticationService;
 use App\Application\Services\AccessManagementService;
 use App\Application\Services\BranchManagementService;
 use App\Application\Services\CatalogManagementService;
+use App\Application\Services\PricingManagementService;
 use App\Core\Persistence\Connection;
 use App\Core\Persistence\DatabaseConfig;
 use App\Core\Security\SessionManager;
@@ -17,6 +18,7 @@ use App\Infrastructure\Persistence\PdoAuditRepository;
 use App\Infrastructure\Persistence\PdoBranchAdminReadRepository;
 use App\Infrastructure\Persistence\PdoBranchRepository;
 use App\Infrastructure\Persistence\PdoCatalogRepository;
+use App\Infrastructure\Persistence\PdoPricingRepository;
 
 final class AppKernel
 {
@@ -40,4 +42,6 @@ final class AppKernel
     public static function branchManagement(): BranchManagementService { return new BranchManagementService(self::branches(), self::connection()); }
     public static function catalog(): PdoCatalogRepository { return new PdoCatalogRepository(self::connection()); }
     public static function catalogManagement(): CatalogManagementService { return new CatalogManagementService(self::catalog(), self::connection()); }
+    public static function pricing(): PdoPricingRepository { return new PdoPricingRepository(self::connection()); }
+    public static function pricingManagement(): PricingManagementService { return new PricingManagementService(self::pricing(), self::connection()); }
 }

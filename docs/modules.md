@@ -14,7 +14,8 @@ pasa pruebas PHP, build, MariaDB y navegador autenticado con una cuenta de
 integración exclusiva. Sus ocho migraciones están aplicadas en desarrollo, el
 Administrador global inicial existe y las pruebas MariaDB/HTTP dejan la base
 aislada vacía. M03 está integrado en MariaDB, migrado en desarrollo y aprobado
-con flujos HTTP autenticados. M04–M14 no están implementados.
+con flujos HTTP autenticados. M04 está integrado, activado en desarrollo y pasa
+MariaDB y HTTP autenticado. M05–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -110,6 +111,14 @@ M03 en lote 3 y ningún registro comercial fue insertado.
 Incluye precios por variante/sucursal/lista, descuento general y excepciones,
 tasas configurables, límites de vendedor y aprobación gerencial. No calcula
 margen ni cambia precios automáticamente por costo.
+
+Integración del 1 de noviembre de 2026: ocho migraciones aditivas,
+aritmética decimal por cadenas, repositorio/servicio transaccional, historial,
+versión optimista, vigencias sin solapamiento, permisos y panel. La precedencia
+es excepción explícita de lista y, en su ausencia, precio público de la misma
+sucursal menos la regla general vigente. Sin tasa efectiva no se devuelve un
+cálculo. No se sembraron valores. MariaDB y HTTP autenticado pasan, desarrollo
+conserva 35 migraciones en cuatro lotes y todas las tablas M04 están vacías.
 
 ### M05 · Inventario
 

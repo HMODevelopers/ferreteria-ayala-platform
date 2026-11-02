@@ -34,7 +34,10 @@ Actualización del 1 de noviembre de 2026: M03 está integrado con catálogo
 administrable, doce migraciones aditivas y 723 comprobaciones PHP acumuladas.
 Las suites MariaDB y HTTP autenticada pasan con una cuenta limitada propia, las
 migraciones están aplicadas en desarrollo y el catálogo comercial permanece
-vacío. M04 y M05 no se iniciaron.
+vacío. M04 está integrado con 797 comprobaciones, build, MariaDB y navegador
+autenticado aprobados. Sus ocho migraciones están aplicadas en desarrollo como
+lote 4, para 35 acumuladas; las tablas comerciales M04 permanecen vacías. M05
+no se inició.
 
 ## Fase 4 · Cotizaciones e inventario
 

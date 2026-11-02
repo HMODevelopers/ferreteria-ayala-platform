@@ -113,17 +113,27 @@ rutas físicas arbitrarias.
 
 ### Precios e impuestos
 
-- `tax_categories`, `tax_rates`: tasas configurables y vigencia.
-- `price_lists`: público, contratista, mayorista u otras listas.
-- `price_list_rules`: descuento general de una lista.
-- `branch_variant_prices`: precio por sucursal, variante y lista, incluida la
-  excepción por producto.
-- `price_history`: valor anterior/nuevo, responsable y fecha.
-- `discount_policies`: límite del vendedor y autorización superior.
+- `tax_categories`, `tax_rates` (**M04 integrado**): clasificación,
+  tasas decimales configurables, estado y vigencia sin valores precargados.
+- `price_lists` (**M04 integrado**): lista pública base y listas
+  comerciales; solo una puede marcarse pública.
+- `price_list_rules` (**M04 integrado**): descuento general
+  decimal y vigente de una lista no pública.
+- `branch_variant_prices` (**M04 integrado**): importe MXN por
+  sucursal, variante y lista; criterio con/sin impuesto, categoría fiscal,
+  vigencia, estado y versión optimista.
+- `price_history` (**M04 integrado**): snapshots anterior/actual,
+  acción, responsable y fecha; no se elimina en operación.
+- `discount_policies` (**M04 integrado**): límite adicional del
+  vendedor por sucursal para la autorización futura de M08.
 
 El Administrador global controla si el público ve precios. Los precios pueden
 diferir por sucursal. Una cotización siempre conserva un snapshot de precio,
 impuesto y descuento; los cambios posteriores no modifican su historial.
+La resolución no usa precio global: primero busca una excepción explícita para
+la lista solicitada y sucursal; si no existe, deriva desde el precio de la lista
+pública de esa misma sucursal y la regla vigente. Precio inexistente y cero son
+estados distintos. Sin tasa activa no se produce un cálculo fiscal ambiguo.
 
 ### Inventario
 

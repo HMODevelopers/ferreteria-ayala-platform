@@ -186,6 +186,21 @@ auditoría, layout y navegación M02. Los listados se paginan en servidor y las
 altas nacen inactivas. M03 no consulta ni persiste precios o inventario. Las
 imágenes permanecen en la frontera de M11 para evitar un gestor duplicado.
 
+## Precios e impuestos M04
+
+`Domain/Pricing` implementa validación y operaciones decimales mediante cadenas
+de dígitos; no convierte importes o tasas a `float`. `PricingRepository` y
+`PdoPricingRepository` concentran consultas efectivas, historial y bloqueos.
+`PricingManagementService` coordina transacciones, versiones optimistas,
+vigencias, precedencia de listas y auditoría atómica.
+
+Las rutas `/admin/prices`, `/admin/prices/calculate` y `/admin/taxes` reutilizan
+sesión, permisos por sucursal/globales y CSRF de M02. Los precios pertenecen a
+variante, sucursal y lista. Una lista comercial puede heredar el precio público
+de la misma sucursal aplicando su descuento general; una excepción explícita
+prevalece. El calculador redondea subtotal e impuesto a dos decimales con mitad
+hacia arriba. M04 no almacena cotizaciones ni inventario.
+
 ## Contratos actuales
 
 Todos se devuelven desde `DemoHomeData::all()`. Identificadores únicos y slugs estables. Vistas de contenido comercial reciben arrays; no conectan a SQL. Campos `null` indican datos no confirmados y deben tener presentación honesta.

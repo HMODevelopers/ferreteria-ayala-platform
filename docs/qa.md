@@ -4,6 +4,32 @@ Fecha de última ejecución local: 1 de noviembre de 2026. Entorno: Ubuntu, Node
 
 ## Ejecutado
 
+- Ejecución M04 del 1 de noviembre de 2026: `npm test` alcanzó **797
+  comprobaciones**. Cubre decimal sin `float`, límites, redondeo, impuesto
+  incluido/excluido, cero frente a ausencia, esquema, permisos y rutas.
+- `npm run build`: PASS con Tailwind 4.3.3 y esbuild. `git diff --check`: PASS.
+- `npm run test:browser`: PASS fuera del sandbox con servidor PHP temporal;
+  Home en cinco viewports y login en tres, sin overflow ni errores de consola.
+- `tests/mysql-m04-integration.php`: PASS en MariaDB 10.11 con las credenciales
+  limitadas existentes mapeadas únicamente al proceso M04. Validó 35 migraciones,
+  `DECIMAL`, precedencia, impuestos, historial, solapamientos, versión
+  optimista, ausencia de precio y limpieza final.
+- Las dos primeras ejecuciones M04 preservaron estado sintético al detectar un
+  marcador PDO repetido y luego una expectativa errónea de vigencias. Cada
+  estado fue inspeccionado y recuperado antes del siguiente intento. El tercero
+  pasó desde inventario vacío.
+- `tests/mysql-m04-http-integration.php`: PASS autenticado con el mismo mapeo
+  temporal, CSRF, configuración,
+  cálculo, auditoría y cuatro viewports. La base aislada terminó vacía.
+- Respaldo privado `m04-pre-migration-20261101-205350.json`, SHA-256
+  `f8fe37b12440c8a41d3c56441b4f52ae5633aa7f949eaf7dcee8628c8fb7f72b`:
+  JSON, 27 tablas y checksum verificados.
+- Desarrollo conserva **35 migraciones**; las ocho M04 están en lote 4. Las
+  siete tablas M04 tienen cero filas y el Administrador global recibió 10
+  permisos técnicos nuevos.
+- Regresiones reales posteriores: M00, M01, M02 MariaDB/HTTP y M03 MariaDB/HTTP
+  pasan y dejan sus bases aisladas vacías.
+
 - Ejecución del 1 de noviembre de 2026: `tests/run.php` alcanzó **723
   comprobaciones** correctas. M03 añade dominio, contratos de once tablas,
   permisos, rutas, CSRF y protección sin sesión.
@@ -92,8 +118,8 @@ Fecha de última ejecución local: 1 de noviembre de 2026. Entorno: Ubuntu, Node
 
 ## Pendiente / límite del alcance
 
-M03 queda activado en desarrollo sin catálogo comercial. Continúan pendientes
-los datos reales del negocio y los módulos M04–M14, fuera de este cierre.
+M03 y M04 quedan activados en desarrollo sin catálogo, precios, tasas ni listas
+comerciales inventadas. Continúan pendientes los datos reales y M05–M14.
 
 La identidad y contraseña del Administrador global pertenecen al propietario y
 no se mostraron ni reutilizaron en las pruebas. Su existencia, estado activo,
@@ -104,7 +130,7 @@ El DDL de MariaDB conserva commits implícitos; las guardas reducen el riesgo,
 pero una caída durante un rollback futuro todavía exigiría inspección manual.
 Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio,
 iOS Safari, Android real ni lectores de pantalla. No se confirman stock,
-precios, catálogo real ni módulos M04–M14 porque no existen en esta fase.
+precios o catálogo reales; M05–M14 no existen en esta fase.
 
 ## Revisión de aprobación
 
@@ -113,5 +139,5 @@ el logo oficial, fotos reales y datos de contacto verificados para reemplazar
 los placeholders. M00 y M01.1–M01.4 están integrados y listos para revisión
 final; las tablas de desarrollo están aplicadas sin datos comerciales. M02 está
 integrado en MariaDB, migrado en desarrollo y activado con un Administrador
-global. M03 está integrado, migrado y aprobado en MariaDB/HTTP; M04–M14 no se
-han iniciado.
+global. M03 y M04 están integrados, migrados y aprobados en MariaDB/HTTP; M05–M14
+no se han iniciado.

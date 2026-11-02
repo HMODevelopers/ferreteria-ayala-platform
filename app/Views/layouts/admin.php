@@ -19,7 +19,7 @@
         <div class="admin-main">
             <header class="admin-topbar">
                 <button class="admin-menu-button" type="button" data-admin-menu aria-label="Abrir navegación" aria-expanded="false">☰</button>
-                <div><span class="admin-topbar-label">Centro de administración</span><small>Operación segura · M00–M03</small></div>
+                <div><span class="admin-topbar-label">Centro de administración</span><small>Operación segura · M00–M04</small></div>
                 <div class="admin-account">
                     <div><strong><?= e($user->displayName ?? '') ?></strong><small><?= e($user->email ?? '') ?></small></div>
                     <form method="post" action="/admin/logout"><input type="hidden" name="_token" value="<?= e($csrf) ?>"><button class="admin-quiet-button" type="submit">Cerrar sesión</button></form>
