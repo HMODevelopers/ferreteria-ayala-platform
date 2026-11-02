@@ -11,6 +11,7 @@ use App\Application\Services\BranchManagementService;
 use App\Application\Services\CatalogManagementService;
 use App\Application\Services\PricingManagementService;
 use App\Application\Services\InventoryManagementService;
+use App\Application\Services\PurchasingManagementService;
 use App\Core\Persistence\Connection;
 use App\Core\Persistence\DatabaseConfig;
 use App\Core\Security\SessionManager;
@@ -21,6 +22,7 @@ use App\Infrastructure\Persistence\PdoBranchRepository;
 use App\Infrastructure\Persistence\PdoCatalogRepository;
 use App\Infrastructure\Persistence\PdoPricingRepository;
 use App\Infrastructure\Persistence\PdoInventoryRepository;
+use App\Infrastructure\Persistence\PdoPurchasingRepository;
 
 final class AppKernel
 {
@@ -48,4 +50,6 @@ final class AppKernel
     public static function pricingManagement(): PricingManagementService { return new PricingManagementService(self::pricing(), self::connection()); }
     public static function inventory(): PdoInventoryRepository { return new PdoInventoryRepository(self::connection()); }
     public static function inventoryManagement(): InventoryManagementService { return new InventoryManagementService(self::inventory(), self::connection()); }
+    public static function purchasing(): PdoPurchasingRepository { return new PdoPurchasingRepository(self::connection()); }
+    public static function purchasingManagement(): PurchasingManagementService { return new PurchasingManagementService(self::purchasing(), self::inventoryManagement(), self::connection()); }
 }

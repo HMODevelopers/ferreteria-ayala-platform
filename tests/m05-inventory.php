@@ -11,7 +11,7 @@ check(InventoryRules::isIncrease('correction_in')&&!InventoryRules::isIncrease('
 foreach(['0','-1','1e2','1.001']as$v)expectException(fn()=>InventoryRules::quantity($v,2),'M05 rejects zero or unsafe quantity',InvalidArgumentException::class);
 expectException(fn()=>InventoryRules::baseQuantity('0.1',1,'0.333333',2),'M05 rejects a conversion that needs silent rounding',InvalidArgumentException::class);
 expectException(fn()=>InventoryRules::type('transfer_in'),'M05 excludes M09 transfer movement',InvalidArgumentException::class);
-expectException(fn()=>InventoryRules::type('supplier_receipt'),'M05 excludes M06 supplier receipt',InvalidArgumentException::class);
+expectException(fn()=>InventoryRules::type('supplier_receipt'),'M05 excludes a public M06 movement type',InvalidArgumentException::class);
 expectException(fn()=>InventoryRules::reason('no'),'M05 requires a meaningful reason',InvalidArgumentException::class);
 check(InventoryRules::operationKey('abcde-12345-fghij-67890')==='abcde-12345-fghij-67890','M05 validates idempotency key');
 

@@ -65,6 +65,7 @@ abstract class AdminController extends Controller
                 'prices' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'prices.view') !== [],
                 'taxes' => AppKernel::access()->hasPermission($id, 'taxes.view', null),
                 'inventory' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.view') !== [],
+                'purchases' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.view') !== [],
             ];
             if ($isFragment) {
                 $data['capabilities'] ??= $template === 'admin/users/form' ? [
@@ -100,6 +101,11 @@ abstract class AdminController extends Controller
                 'inventory.adjust' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.adjust') !== [],
                 'inventory.correct' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.correct') !== [],
                 'inventory.thresholds' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.thresholds') !== [],
+                'suppliers.manage' => AppKernel::access()->hasPermission($id, 'suppliers.manage', null),
+                'purchases.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.create') !== [],
+                'purchases.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.edit') !== [],
+                'purchases.confirm' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.confirm') !== [],
+                'purchases.receive' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.receive') !== [],
             ];
         }
         $body = $isFragment

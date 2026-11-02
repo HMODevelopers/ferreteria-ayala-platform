@@ -1,8 +1,31 @@
 # Verificación de la plataforma
 
-Fecha de última ejecución local: 1 de noviembre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0 y PHP CLI 8.5.4 de 64 bits. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO, `pdo_mysql` y `proc_open` están disponibles.
+Fecha de última ejecución local: 2 de noviembre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0 y PHP CLI 8.5.4 de 64 bits. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO, `pdo_mysql` y `proc_open` están disponibles.
 
 ## Ejecutado
+
+- Ejecución M06 del 2 de noviembre de 2026: `npm test` alcanzó **914
+  comprobaciones**; sintaxis PHP/JavaScript, `npm run build` y
+  `git diff --check`: PASS.
+- `tests/mysql-m06-integration.php`: PASS en MariaDB 10.11 con 46 migraciones.
+  Validó proveedores, documentos, partidas, recepción parcial/completa,
+  idempotencia, saldo M05, rollback atómico y dos procesos concurrentes; la base
+  aislada terminó vacía.
+- `tests/mysql-m06-http-integration.php`: PASS autenticado. Recorrió proveedor,
+  factura, partida, confirmación, recepción, inventario, movimiento y auditoría;
+  validó CSRF y 360/768/1024/1440 px sin overflow ni errores de consola.
+- La primera ejecución detectó que la cuenta mínima no concede `ALTER`; preservó
+  45 migraciones propias. Se verificaron tablas vacías y 26 permisos técnicos,
+  se recuperó con el migrador oficial y se rediseñó la integración M05 sin
+  elevar privilegios. La repetición pasó.
+- Respaldo privado `m06-pre-migration-20261102-132706.json`, SHA-256
+  `fedc236c71adf65292c98754fdb38ee8d4e998c9b3025223ee0da395aecb1d67`:
+  JSON, 41 tablas y manifiesto verificados con permisos `600`.
+- Desarrollo conserva **46 migraciones**; M06 está en lote 6. Las seis tablas
+  comerciales M06 tienen cero filas, los conteos previos se conservaron y
+  `GLOBAL_ADMIN` recibió siete permisos.
+- Regresión MariaDB M05 posterior: PASS con descubrimiento acotado a sus 41
+  migraciones, concurrencia, timeout/rollback y limpieza final.
 
 - Ejecución M05 del 1 de noviembre de 2026: `npm test` alcanzó **858
   comprobaciones**. Sintaxis PHP, JavaScript, `npm run build` y
@@ -138,9 +161,9 @@ Fecha de última ejecución local: 1 de noviembre de 2026. Entorno: Ubuntu, Node
 
 ## Pendiente / límite del alcance
 
-M03, M04 y M05 quedan activados en desarrollo sin catálogo, precios, tasas,
-listas ni existencias inventadas. Continúan pendientes los datos reales y
-M06–M14.
+M03, M04, M05 y M06 quedan activados en desarrollo sin catálogo, precios,
+tasas, listas, existencias, proveedores o facturas inventadas. Continúan
+pendientes los datos reales y M07–M14.
 
 La identidad y contraseña del Administrador global pertenecen al propietario y
 no se mostraron ni reutilizaron en las pruebas. Su existencia, estado activo,
@@ -151,7 +174,8 @@ El DDL de MariaDB conserva commits implícitos; las guardas reducen el riesgo,
 pero una caída durante un rollback futuro todavía exigiría inspección manual.
 Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio,
 iOS Safari, Android real ni lectores de pantalla. No se confirman stock,
-precios, catálogo o inventario reales; M06–M14 no existen en esta fase.
+precios, catálogo, inventario, proveedores o facturas reales; M07–M14 no
+existen en esta fase.
 
 ## Revisión de aprobación
 
@@ -160,5 +184,5 @@ el logo oficial, fotos reales y datos de contacto verificados para reemplazar
 los placeholders. M00 y M01.1–M01.4 están integrados y listos para revisión
 final; las tablas de desarrollo están aplicadas sin datos comerciales. M02 está
 integrado en MariaDB, migrado en desarrollo y activado con un Administrador
-global. M03, M04 y M05 están integrados, migrados y aprobados en MariaDB/HTTP;
-M06–M14 no se han iniciado.
+global. M03, M04, M05 y M06 están integrados, migrados y aprobados en
+MariaDB/HTTP; M07–M14 no se han iniciado.

@@ -152,6 +152,10 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
   variante; movimientos inmutables, conversiones exactas, ajustes idempotentes,
   mínimos, conteos y trazabilidad opcional por lote o serie. El panel consulta
   saldos e historial y registra operaciones autorizadas.
+- M06 integrado: proveedores, facturas de compra en borrador/confirmadas,
+  partidas vinculadas a variantes M03 y recepciones físicas parciales o
+  completas. Cada recepción usa M05 de forma atómica, idempotente y trazable;
+  guardar o confirmar el documento por sí solo no modifica existencias.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
@@ -191,6 +195,10 @@ npm run test:mysql:m04:http
 npm run test:mysql:m05
 # Flujos autenticados M05 y revisión responsive:
 npm run test:mysql:m05:http
+# Proveedores, facturas, recepciones, concurrencia y rollback M06:
+npm run test:mysql:m06
+# Flujo administrativo M06 autenticado en cuatro viewports:
+npm run test:mysql:m06:http
 # Sólo ante una recuperación expresamente autorizada:
 npm run inspect:mysql:m01-recovery
 npm run recover:mysql:m01-recovery

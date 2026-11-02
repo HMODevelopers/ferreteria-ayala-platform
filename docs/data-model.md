@@ -143,7 +143,8 @@ estados distintos. Sin tasa activa no se produce un cálculo fiscal ambiguo.
 - `inventory_movements` (**M05 integrado**): libro inmutable de inicial,
   ajustes, diferencias de conteo, merma y correcciones compensatorias. Conserva
   unidad capturada, cantidad base, antes/después, motivo, actor, fecha y clave
-  idempotente. Entradas M06, apartados M08 y transferencias M09 no se anticipan.
+  idempotente. M06 ya vincula entradas mediante `source_type`/`source_id` sin
+  duplicar el motor; apartados M08 y transferencias M09 no se anticipan.
 - `stock_thresholds` (**M05 integrado**): mínimo exacto por sucursal y variante.
 - `stock_counts`, `stock_count_items` (**M05 integrado**): conteos y diferencias
   vinculables al movimiento compensatorio.
@@ -170,14 +171,20 @@ revierten juntos.
 
 ### Entradas por factura de proveedor
 
-- `suppliers`, `supplier_contacts`: identificación básica del proveedor.
-- `supplier_invoices`, `supplier_invoice_items`: folio, fecha, sucursal,
-  variante, cantidad y costo unitario.
-- `supplier_invoice_files`: comprobante privado opcional.
+- `suppliers`, `supplier_contacts` (**M06 integrado**): identificación, estado y
+  contacto principal sin eliminar historia al desactivar.
+- `supplier_invoices`, `supplier_invoice_items` (**M06 integrado**): serie,
+  folio, fecha, sucursal, variante, unidad, cantidades exactas y costo histórico.
+- `goods_receipts`, `goods_receipt_items` (**M06 integrado**): recepción física,
+  clave idempotente y relación única con el movimiento M05.
+- `supplier_invoice_files`: comprobante privado opcional, diferido a M11.
 
-Confirmar una factura genera entradas de inventario. Un costo distinto produce
-una alerta para revisión; nunca cambia automáticamente el precio de venta. No
-existen órdenes de compra, pagos, cuentas por pagar ni contabilidad.
+Confirmar la factura solo cierra el borrador. La recepción posterior incrementa
+inventario por la cantidad física, permite parciales y conserva facturado,
+recibido y pendiente. M05 registra el movimiento como `adjustment_in` con
+`source_type=goods_receipt`; la FK de la partida de recepción enlaza el
+movimiento inmutable. Un costo nunca cambia automáticamente el precio de venta.
+No existen órdenes de compra, pagos, cuentas por pagar ni contabilidad.
 
 ### Clientes y cotizaciones
 

@@ -8,6 +8,7 @@
         <symbol id="admin-icon-prices" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 8.5c-.7-.65-1.65-1-2.8-1-1.65 0-2.7.8-2.7 2s1 1.85 2.9 2.35c1.7.45 2.6.95 2.6 2.25 0 1.35-1.15 2.4-3 2.4-1.2 0-2.3-.4-3.1-1.15M12 5.5v2M12 16.5v2"/></symbol>
         <symbol id="admin-icon-taxes" viewBox="0 0 24 24"><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/><path d="m18 5-12 14"/></symbol>
         <symbol id="admin-icon-inventory" viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 12 8 4 8-4M4 17l8 4 8-4"/></symbol>
+        <symbol id="admin-icon-purchases" viewBox="0 0 24 24"><path d="M5 3.5h14v17H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
         <symbol id="admin-icon-audit" viewBox="0 0 24 24"><path d="M8 4.5H5.5v16h13v-16H16"/><path d="M9 3h6v3H9zM8.5 11h7M8.5 15h4"/><path d="m14.5 16.5 1.3 1.3 2.7-2.8"/></symbol>
     </svg>
     <a class="admin-brand" href="/admin"><span class="admin-brand-mark">A</span><span><small>FERRETERÍA</small>AYALA</span></a>
@@ -15,7 +16,7 @@
         <?php $groups = [
             'Inicio' => [['dashboard', '/admin', 'Resumen', 'home']],
             'Administración' => [['users', '/admin/users', 'Usuarios', 'users'], ['roles', '/admin/roles', 'Roles y permisos', 'roles'], ['branches', '/admin/branches', 'Sucursales', 'branches']],
-            'Operación' => [['catalog', '/admin/products', 'Catálogo', 'catalog'], ['prices', '/admin/prices', 'Precios', 'prices'], ['taxes', '/admin/taxes', 'Impuestos y reglas', 'taxes'], ['inventory', '/admin/inventory', 'Inventario', 'inventory']],
+            'Operación' => [['catalog', '/admin/products', 'Catálogo', 'catalog'], ['prices', '/admin/prices', 'Precios', 'prices'], ['taxes', '/admin/taxes', 'Impuestos y reglas', 'taxes'], ['inventory', '/admin/inventory', 'Inventario', 'inventory'], ['purchases', '/admin/purchases', 'Compras y recepciones', 'purchases']],
             'Control' => [['audit', '/admin/audit', 'Auditoría', 'audit']],
         ]; foreach ($groups as $group => $items):
             $visibleItems = array_values(array_filter($items, static fn (array $item): bool => (bool) ($navAccess[$item[0]] ?? false)));

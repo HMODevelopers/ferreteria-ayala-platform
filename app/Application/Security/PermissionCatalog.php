@@ -49,5 +49,12 @@ final class PermissionCatalog
         ['inventory.correct', 'inventory', 'correct', 'either', 'Registrar correcciones compensatorias autorizadas'],
         ['inventory.counts', 'inventory_counts', 'manage', 'either', 'Administrar conteos físicos autorizados'],
         ['inventory.thresholds', 'inventory_thresholds', 'manage', 'either', 'Administrar mínimos de inventario autorizados'],
+        ['suppliers.view', 'suppliers', 'view', 'global', 'Consultar proveedores e historial de compras'],
+        ['suppliers.manage', 'suppliers', 'manage', 'global', 'Crear, editar y cambiar el estado de proveedores'],
+        ['purchases.view', 'purchases', 'view', 'either', 'Consultar facturas y recepciones autorizadas'],
+        ['purchases.create', 'purchases', 'create', 'either', 'Registrar facturas de proveedor'],
+        ['purchases.edit', 'purchases', 'edit', 'either', 'Editar borradores y partidas de compra'],
+        ['purchases.confirm', 'purchases', 'confirm', 'either', 'Confirmar documentos de compra'],
+        ['purchases.receive', 'purchase_receipts', 'create', 'either', 'Confirmar recepciones físicas autorizadas'],
     ];
 }

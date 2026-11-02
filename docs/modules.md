@@ -16,7 +16,9 @@ Administrador global inicial existe y las pruebas MariaDB/HTTP dejan la base
 aislada vacía. M03 está integrado en MariaDB, migrado en desarrollo y aprobado
 con flujos HTTP autenticados. M04 está integrado, activado en desarrollo y pasa
 MariaDB y HTTP autenticado. M05 también está integrado, migrado y aprobado con
-concurrencia real y HTTP autenticado. M06–M14 no están implementados.
+concurrencia real y HTTP autenticado. M06 también está integrado, migrado y
+aprobado con recepciones parciales, idempotencia y concurrencia real. M07–M14
+no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -135,9 +137,16 @@ timeout. Desarrollo conserva 41 migraciones y las siete tablas M05 están vacía
 
 ### M06 · Entradas por factura
 
-Incluye proveedor, folio, partidas, cantidad, costo, archivo privado opcional y
-alerta de cambio de costo. No incluye órdenes de compra, pagos, cuentas por
-pagar ni contabilidad.
+Incluye proveedor, serie/folio, partidas, cantidad, costo e historial de
+recepciones. Cinco migraciones aditivas crean proveedores/contactos, facturas,
+partidas y recepciones; siete permisos se asignan al Administrador global.
+Guardar o confirmar una factura no altera inventario. Una recepción física
+parcial o completa bloquea factura y partidas, comprueba el pendiente y compone
+el movimiento M05, el saldo y la auditoría en una sola transacción. La clave de
+operación impide reenvíos y la concurrencia real impide sobre-recepción.
+MariaDB y HTTP autenticado pasan; desarrollo conserva 46 migraciones y las seis
+tablas comerciales M06 están vacías. No incluye archivos M11, órdenes de
+compra, pagos, cuentas por pagar, SAT ni contabilidad.
 
 ### M07 · Clientes internos
 

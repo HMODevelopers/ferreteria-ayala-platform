@@ -254,6 +254,28 @@ Las rutas `/admin/inventory`, `/admin/inventory/movements` y
 sucursal y auditoría. Filtros y paginación se resuelven en servidor. M04 y M05
 permanecen independientes.
 
+## Proveedores y recepciones M06
+
+`Domain/Purchasing` valida identificadores, documentos, fechas, cantidades e
+importes con `Decimal`. `PurchasingRepository` y `PdoPurchasingRepository`
+concentran listados, bloqueos y escrituras preparadas. El documento conserva
+estados `draft`, `pending`, `partial`, `received` y `cancelled`; solo el borrador
+admite cambios y confirmarlo no afecta saldos.
+
+`PurchasingManagementService::receive()` es dueño de la transacción exterior:
+bloquea primero factura y partidas en orden estable, relee pendientes y crea la
+recepción. Después llama al adaptador composable de M05, que no inicia otra
+transacción, bloquea sucursal/variante/saldo y registra un `adjustment_in` con
+origen `goods_receipt`. Partida de recepción, progreso facturado, saldo,
+movimiento y auditoría confirman o revierten juntos. La clave única y un hash
+del pedido hacen idempotente el reenvío; el bloqueo impide sobre-recepción
+concurrente.
+
+Las rutas `/admin/suppliers`, `/admin/purchases` y
+`/admin/purchases/receipts/create` reutilizan sesión, CSRF, permisos M02,
+alcance por sucursal y escape de salida. M06 no administra archivos, precios de
+venta, pagos, órdenes de compra ni validación SAT.
+
 ## Seguridad pendiente para módulos futuros
 
 M02 ya aporta consultas preparadas, validación, sesiones seguras, CSRF,

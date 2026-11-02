@@ -15,6 +15,25 @@ final class InventoryManagementService
 
     public function record(array $input, int $actorId, ?callable $audit = null): array
     {
+        return $this->transactions->transaction(fn(): array => $this->recordWithinTransaction($input, $actorId, $audit));
+    }
+
+    /** Used only by an application service that already owns the transaction. */
+    public function recordWithinTransaction(array $input, int $actorId, ?callable $audit = null): array
+    {
+        return $this->recordWithinTransactionInternal($input, $actorId, $audit, false);
+    }
+
+    /** M06-only adapter: the ledger keeps an adjustment_in plus an explicit goods_receipt source. */
+    public function recordSupplierReceiptWithinTransaction(array $input, int $actorId, ?callable $audit = null): array
+    {
+        if (($input['source_type'] ?? null) !== 'goods_receipt') throw new \InvalidArgumentException('La recepción debe conservar su origen documental.');
+        $input['type'] = 'adjustment_in';
+        return $this->recordWithinTransactionInternal($input, $actorId, $audit, true);
+    }
+
+    private function recordWithinTransactionInternal(array $input, int $actorId, ?callable $audit, bool $allowInitialization): array
+    {
         $branchId = self::id($input['branch_id'] ?? 0, 'La sucursal');
         $variantId = self::id($input['variant_id'] ?? 0, 'La variante');
         $unitId = self::id($input['unit_id'] ?? 0, 'La unidad');
@@ -23,7 +42,7 @@ final class InventoryManagementService
         $operationKey = InventoryRules::operationKey((string) ($input['operation_key'] ?? ''));
         $rawQuantity = (string) ($input['quantity'] ?? '');
 
-        return $this->transactions->transaction(function () use ($branchId, $variantId, $unitId, $type, $reason, $operationKey, $rawQuantity, $actorId, $audit): array {
+        return (function () use ($branchId, $variantId, $unitId, $type, $reason, $operationKey, $rawQuantity, $actorId, $audit, $allowInitialization, $input): array {
             $this->inventory->lockScope($branchId, $variantId);
             $meta = $this->inventory->variantInventoryMeta($variantId, $unitId) ?? throw new EntityNotFound('La variante o unidad seleccionada no existe.');
             if ((int) $meta['variant_active'] !== 1 || (int) $meta['product_active'] !== 1) throw new OperationConflict('La variante o su producto están inactivos.');
@@ -41,7 +60,7 @@ final class InventoryManagementService
             $balance = $this->inventory->findBalance($branchId, $variantId, true) ?? throw new \LogicException('No fue posible materializar el saldo.');
             $initialized = $balance['initialized_at'] !== null;
             if ($type === 'initial' && $initialized) throw new OperationConflict('La existencia inicial ya fue registrada para esta sucursal y variante.');
-            if ($type !== 'initial' && !$initialized) throw new OperationConflict('Primero debe registrarse una existencia inicial explícita.');
+            if ($type !== 'initial' && !$initialized && !$allowInitialization) throw new OperationConflict('Primero debe registrarse una existencia inicial explícita.');
             $beforePhysical = Decimal::parse((string) $balance['physical_quantity'], 6);
             $delta = Decimal::parse($baseQuantity, 6);
             $afterPhysical = InventoryRules::isIncrease($type) ? $beforePhysical->add($delta) : $beforePhysical->subtract($delta);
@@ -55,10 +74,11 @@ final class InventoryManagementService
                 'base_quantity' => $baseQuantity, 'physical_before' => $beforePhysical->format(6),
                 'physical_after' => $after, 'reserved_before' => $reserved->format(6),
                 'reserved_after' => $reserved->format(6), 'reason' => $reason, 'actor_user_id' => self::id($actorId, 'El usuario'),
+                'source_type' => $input['source_type'] ?? null, 'source_id' => $input['source_id'] ?? null,
             ]);
             if ($audit) $audit($movement);
             return $movement;
-        });
+        })();
     }
 
     public function setThreshold(int $branchId, int $variantId, string $minimum, int $actorId, ?callable $audit = null): void

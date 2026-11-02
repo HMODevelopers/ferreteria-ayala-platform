@@ -92,9 +92,12 @@ movimiento nuevo y solo regresa a disponible si el producto está vendible.
 
 - No existe módulo de Compras ni órdenes de compra.
 - Se mantienen proveedores básicos y entradas por factura.
-- La factura registra folio, fecha, sucursal, partidas, cantidades y costo
-  unitario; evita duplicados por proveedor/folio.
-- Confirmar genera las entradas de inventario.
+- La factura registra serie/folio, fecha, sucursal, partidas, cantidades y costo
+  unitario; evita duplicados por proveedor, serie y folio.
+- Guardar o confirmar el documento no modifica existencias. Una operación
+  separada confirma la recepción física y genera las entradas de inventario.
+- Se admiten recepciones parciales hasta completar lo facturado; nunca se puede
+  recibir por encima del pendiente y los reenvíos son idempotentes.
 - Inventario puede confirmar si tiene el permiso; de lo contrario requiere
   autorización.
 - Un cambio de costo genera una alerta. El gerente decide manualmente si cambia
