@@ -102,3 +102,10 @@ $router->post('/admin/purchases/items/delete', [App\Controllers\Admin\PurchasesC
 $router->post('/admin/purchases/confirm', [App\Controllers\Admin\PurchasesController::class, 'confirm']);
 $router->get('/admin/purchases/receipts/create', [App\Controllers\Admin\PurchasesController::class, 'receiptForm']);
 $router->post('/admin/purchases/receipts/create', [App\Controllers\Admin\PurchasesController::class, 'receive']);
+$router->get('/admin/customers', [App\Controllers\Admin\CustomersController::class, 'index']);
+$router->get('/admin/customers/create', [App\Controllers\Admin\CustomersController::class, 'createForm']);
+$router->post('/admin/customers/create', [App\Controllers\Admin\CustomersController::class, 'create']);
+$router->get('/admin/customers/detail', [App\Controllers\Admin\CustomersController::class, 'detail']);
+$router->get('/admin/customers/edit', [App\Controllers\Admin\CustomersController::class, 'editForm']);
+$router->post('/admin/customers/update', [App\Controllers\Admin\CustomersController::class, 'update']);
+$router->post('/admin/customers/status', [App\Controllers\Admin\CustomersController::class, 'status']);

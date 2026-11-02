@@ -161,6 +161,12 @@ Fecha de última ejecución local: 2 de noviembre de 2026. Entorno: Ubuntu, Node
 
 ## Pendiente / límite del alcance
 
+M07 pasa 963 comprobaciones locales y la validación completa de sintaxis PHP.
+La integración MariaDB/HTTP y la activación en desarrollo permanecen pendientes
+de una identidad M07 exclusiva sobre `ferreteria_ayala_test`; `ayala_app` no
+tiene privilegios en esa base ni capacidad de concederlos. No se reutilizó una
+cuenta de otro módulo ni se crearon clientes ficticios.
+
 M03, M04, M05 y M06 quedan activados en desarrollo sin catálogo, precios,
 tasas, listas, existencias, proveedores o facturas inventadas. Continúan
 pendientes los datos reales y M07–M14.

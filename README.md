@@ -156,6 +156,10 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
   partidas vinculadas a variantes M03 y recepciones físicas parciales o
   completas. Cada recepción usa M05 de forma atómica, idempotente y trazable;
   guardar o confirmar el documento por sí solo no modifica existencias.
+- M07 implementado localmente: directorio interno de clientes por sucursal,
+  personas y empresas, contactos, direcciones, lista comercial opcional,
+  búsqueda, filtros, estados lógicos, versión optimista, permisos y auditoría.
+  No crea cuentas públicas ni cotizaciones.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo
@@ -199,6 +203,9 @@ npm run test:mysql:m05:http
 npm run test:mysql:m06
 # Flujo administrativo M06 autenticado en cuatro viewports:
 npm run test:mysql:m06:http
+# Clientes internos M07 con identidad de integración exclusiva:
+npm run test:mysql:m07
+npm run test:mysql:m07:http
 # Sólo ante una recuperación expresamente autorizada:
 npm run inspect:mysql:m01-recovery
 npm run recover:mysql:m01-recovery

@@ -222,6 +222,11 @@ En esta fase el hero usa alineación izquierda y contraste oscuro; la administra
 
 ## Entidades futuras y relaciones conceptuales
 
+M07 sigue controlador → servicio → contrato de repositorio → PDO. Las
+reglas normalizan datos, el servicio coordina transacción y versión optimista,
+y el repositorio aplica el alcance de sucursales también en SQL. Los permisos
+`customers.*` son por sucursal y no existen rutas públicas de clientes.
+
 - Producto pertenece a categoría y opcionalmente marca; unidades y presentaciones deberán levantarse con el negocio. Categorías pueden requerir jerarquía.
 - Banner y promoción podrán relacionarse con categoría, sucursales y vigencia. Relación muchos-a-muchos con sucursales si la operación lo requiere.
 - Evento pertenece a una sucursal o múltiples ubicaciones según requisitos. Reseña requiere fuente, consentimiento, publicación y verificación real.

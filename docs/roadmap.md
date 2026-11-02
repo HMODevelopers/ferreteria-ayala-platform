@@ -43,8 +43,9 @@ desarrollo. M06 quedó integrado el 2 de noviembre con proveedores, facturas,
 partidas y recepciones parciales/completas coordinadas con M05. Sus suites
 MariaDB y HTTP autenticada aprobaron idempotencia, rollback y concurrencia real;
 la base de pruebas terminó vacía. Desarrollo conserva 46 migraciones y no se
-cargaron proveedores, facturas ni existencias. M07 y módulos posteriores no se
-iniciaron.
+cargaron proveedores, facturas ni existencias. M07 está implementado y probado
+localmente con dos migraciones pendientes de integración y activación. M08 y
+módulos posteriores no se iniciaron.
 
 ## Fase 4 · Cotizaciones e inventario
 

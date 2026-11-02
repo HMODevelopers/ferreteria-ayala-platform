@@ -150,9 +150,12 @@ compra, pagos, cuentas por pagar, SAT ni contabilidad.
 
 ### M07 · Clientes internos
 
-Incluye datos de clientes frecuentes y asignación de lista comercial. El
-contacto de una solicitud puede quedar sin convertirse en cliente. No existe
-registro ni portal público.
+Implementación local: clientes persona/empresa con código estable, sucursal,
+datos fiscales opcionales declarados, contacto y dirección principal, estado
+lógico y lista comercial M04 opcional. Las consultas se limitan por sucursal,
+las escrituras usan transacción y versión optimista, y código/RFC tienen
+unicidad SQL. Coincidencias de correo o teléfono sólo advierten. No existe
+registro ni portal público; la integración aislada sigue pendiente.
 
 ### M08 · Cotizaciones
 

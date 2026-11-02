@@ -66,6 +66,7 @@ abstract class AdminController extends Controller
                 'taxes' => AppKernel::access()->hasPermission($id, 'taxes.view', null),
                 'inventory' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.view') !== [],
                 'purchases' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.view') !== [],
+                'customers' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.view') !== [],
             ];
             if ($isFragment) {
                 $data['capabilities'] ??= $template === 'admin/users/form' ? [
@@ -106,6 +107,9 @@ abstract class AdminController extends Controller
                 'purchases.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.edit') !== [],
                 'purchases.confirm' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.confirm') !== [],
                 'purchases.receive' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.receive') !== [],
+                'customers.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.create') !== [],
+                'customers.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.edit') !== [],
+                'customers.status' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.status') !== [],
             ];
         }
         $body = $isFragment

@@ -53,6 +53,9 @@ foreach ([
     'TEST_DB_HOST_M06', 'TEST_DB_PORT_M06', 'TEST_DB_DATABASE_M06',
     'TEST_DB_USERNAME_M06', 'TEST_DB_PASSWORD_M06', 'TEST_DB_CHARSET_M06',
     'M06_TEST_AUTHORIZATION',
+    'TEST_DB_HOST_M07', 'TEST_DB_PORT_M07', 'TEST_DB_DATABASE_M07',
+    'TEST_DB_USERNAME_M07', 'TEST_DB_PASSWORD_M07', 'TEST_DB_CHARSET_M07',
+    'M07_TEST_AUTHORIZATION',
     'M01_RECOVERY_AUTHORIZATION', 'M01_RECOVERY_CONFIRMATION', 'M01_RECOVERY_SESSION_CONFIRMATION',
     'M01_RECOVERY_BACKUP_PATH', 'M01_RECOVERY_BACKUP_MANIFEST', 'M01_RECOVERY_BACKUP_SHA256',
     'SESSION_NAME', 'SESSION_LIFETIME', 'SESSION_SECURE_COOKIE', 'SESSION_SAME_SITE',
@@ -71,4 +74,5 @@ require __DIR__ . '/m03-catalog.php';
 require __DIR__ . '/m04-pricing.php';
 require __DIR__ . '/m05-inventory.php';
 require __DIR__ . '/m06-purchasing.php';
-echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4, M02, M03 catalog, M04 pricing, M05 inventory and M06 purchasing).\n";
+require __DIR__ . '/m07-customers.php';
+echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4, M02, M03 catalog, M04 pricing, M05 inventory, M06 purchasing and M07 customers).\n";

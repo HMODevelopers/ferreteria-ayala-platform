@@ -56,5 +56,9 @@ final class PermissionCatalog
         ['purchases.edit', 'purchases', 'edit', 'either', 'Editar borradores y partidas de compra'],
         ['purchases.confirm', 'purchases', 'confirm', 'either', 'Confirmar documentos de compra'],
         ['purchases.receive', 'purchase_receipts', 'create', 'either', 'Confirmar recepciones físicas autorizadas'],
+        ['customers.view', 'customers', 'view', 'either', 'Consultar clientes dentro del alcance autorizado'],
+        ['customers.create', 'customers', 'create', 'either', 'Registrar clientes dentro del alcance autorizado'],
+        ['customers.edit', 'customers', 'edit', 'either', 'Editar clientes dentro del alcance autorizado'],
+        ['customers.status', 'customers', 'status', 'either', 'Activar o desactivar clientes autorizados'],
     ];
 }

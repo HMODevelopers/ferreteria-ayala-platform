@@ -188,8 +188,11 @@ No existen órdenes de compra, pagos, cuentas por pagar ni contabilidad.
 
 ### Clientes y cotizaciones
 
-- `customers`, `customer_contacts`: directorio interno opcional, sin cuentas de
-  acceso para clientes.
+- `customers`: identidad interna estable por sucursal, tipo persona/empresa,
+  código, datos fiscales/contacto opcionales, estado, `lock_version` y lista
+  comercial opcional.
+- `customer_contacts`, `customer_addresses`: contactos y direcciones
+  normalizados, sin cuentas de acceso para clientes.
 - `quotes`: folio, sucursal, contacto inicial, vendedor responsable y estado.
 - `quote_versions`: versión inmutable, vigencia elegida por el vendedor,
   importes, condiciones y modalidad acordada.
