@@ -17,7 +17,7 @@
         <?php $groups = [
             'Inicio' => [['dashboard', '/admin', 'Resumen', 'home']],
             'Administración' => [['users', '/admin/users', 'Usuarios', 'users'], ['roles', '/admin/roles', 'Roles y permisos', 'roles'], ['branches', '/admin/branches', 'Sucursales', 'branches']],
-            'Operación' => [['catalog', '/admin/products', 'Catálogo', 'catalog'], ['prices', '/admin/prices', 'Precios', 'prices'], ['taxes', '/admin/taxes', 'Impuestos y reglas', 'taxes'], ['inventory', '/admin/inventory', 'Inventario', 'inventory'], ['purchases', '/admin/purchases', 'Compras y recepciones', 'purchases'], ['customers', '/admin/customers', 'Clientes', 'customers']],
+            'Operación' => [['catalog', '/admin/products', 'Catálogo', 'catalog'], ['prices', '/admin/prices', 'Precios', 'prices'], ['taxes', '/admin/taxes', 'Impuestos y reglas', 'taxes'], ['inventory', '/admin/inventory', 'Inventario', 'inventory'], ['purchases', '/admin/purchases', 'Compras y recepciones', 'purchases'], ['customers', '/admin/customers', 'Clientes', 'customers'], ['quotes', '/admin/quotes', 'Cotizaciones', 'purchases']],
             'Control' => [['audit', '/admin/audit', 'Auditoría', 'audit']],
         ]; foreach ($groups as $group => $items):
             $visibleItems = array_values(array_filter($items, static fn (array $item): bool => (bool) ($navAccess[$item[0]] ?? false)));

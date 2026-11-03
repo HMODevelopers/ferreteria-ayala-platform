@@ -66,6 +66,7 @@ abstract class AdminController extends Controller
                 'taxes' => AppKernel::access()->hasPermission($id, 'taxes.view', null),
                 'inventory' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.view') !== [],
                 'purchases' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.view') !== [],
+                'quotes' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.view') !== [],
                 'customers' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.view') !== [],
             ];
             if ($isFragment) {
@@ -107,6 +108,15 @@ abstract class AdminController extends Controller
                 'purchases.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.edit') !== [],
                 'purchases.confirm' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.confirm') !== [],
                 'purchases.receive' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.receive') !== [],
+                'quotes.view' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.view') !== [],
+                'quotes.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.create') !== [],
+                'quotes.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.edit') !== [],
+                'quotes.issue' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.issue') !== [],
+                'quotes.assign' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.assign') !== [],
+                'quotes.approve' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.approve') !== [],
+                'quotes.accept' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.accept') !== [],
+                'quotes.status' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.status') !== [],
+                'quotes.history' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.history') !== [],
                 'customers.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.create') !== [],
                 'customers.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.edit') !== [],
                 'customers.status' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.status') !== [],

@@ -60,5 +60,14 @@ final class PermissionCatalog
         ['customers.create', 'customers', 'create', 'either', 'Registrar clientes dentro del alcance autorizado'],
         ['customers.edit', 'customers', 'edit', 'either', 'Editar clientes dentro del alcance autorizado'],
         ['customers.status', 'customers', 'status', 'either', 'Activar o desactivar clientes autorizados'],
+        ['quotes.view', 'quotes', 'view', 'either', 'Cotizaciones: view dentro de la sucursal autorizada'],
+        ['quotes.create', 'quotes', 'create', 'either', 'Cotizaciones: create dentro de la sucursal autorizada'],
+        ['quotes.edit', 'quotes', 'edit', 'either', 'Cotizaciones: edit dentro de la sucursal autorizada'],
+        ['quotes.issue', 'quotes', 'issue', 'either', 'Cotizaciones: issue dentro de la sucursal autorizada'],
+        ['quotes.assign', 'quotes', 'assign', 'either', 'Cotizaciones: assign dentro de la sucursal autorizada'],
+        ['quotes.approve', 'quotes', 'approve', 'either', 'Cotizaciones: approve dentro de la sucursal autorizada'],
+        ['quotes.accept', 'quotes', 'accept', 'either', 'Cotizaciones: accept dentro de la sucursal autorizada'],
+        ['quotes.status', 'quotes', 'status', 'either', 'Cotizaciones: status dentro de la sucursal autorizada'],
+        ['quotes.history', 'quotes', 'history', 'either', 'Cotizaciones: history dentro de la sucursal autorizada'],
     ];
 }

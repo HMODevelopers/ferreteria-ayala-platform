@@ -1,6 +1,6 @@
 # Verificación de la plataforma
 
-Fecha de última ejecución local: 2 de noviembre de 2026. Entorno: Ubuntu, Node 22.22.1, npm 9.2.0 y PHP CLI 8.5.4 de 64 bits. El código utiliza sintaxis compatible con PHP 8.2; no se ejecutó una matriz de versiones 8.2/8.3/8.4. PDO, `pdo_mysql` y `proc_open` están disponibles.
+Fecha de última ejecución local: 3 de noviembre de 2026. Entorno vigente: Windows, PHP CLI 8.2.35, MySQL 8.4.10 y Node 22 en Docker; Chrome Windows para HTTP. Los resultados Ubuntu anteriores se conservan como historial. M08: 1052 comprobaciones, 291 archivos PHP, 16 fuentes JS, build, SQL, HTTP y activación PASS.
 
 ## Ejecutado
 
@@ -161,33 +161,13 @@ Fecha de última ejecución local: 2 de noviembre de 2026. Entorno: Ubuntu, Node
 
 ## Pendiente / límite del alcance
 
-M07 pasa 966 comprobaciones locales, sintaxis PHP, validación JavaScript, build,
-integración MariaDB y HTTP/Playwright autenticado. La identidad exclusiva
-`ayala_m07_test@192.168.1.9` está limitada a `ferreteria_ayala_test`, sin
-`GRANT OPTION` ni acceso a desarrollo; la base aislada terminó con cero objetos.
-Playwright verificó alta, edición, detalle, búsqueda/filtros, contacto,
-dirección, conflicto optimista, estado, CSRF, acceso sin sesión, auditoría y
-360/768/1024/1440 px.
+M08 administrativo quedó activado con 53 migraciones en MySQL Docker local y nueve permisos asignados al Administrador global. Se conservaron las 50 tablas previas y la base aislada terminó con cero objetos. Los respaldos y resultados exactos están en [integración M08](integration-m08.md).
 
-Desarrollo se respaldó de forma privada y verificable antes del lote 7. Quedó
-con 48 migraciones, tres tablas M07, cuatro permisos del Administrador global y
-cero clientes; no se cargaron datos ficticios.
+La base local tiene el administrador pero no contiene sucursales, clientes, variantes, precios ni existencias. Faltan los datos reales del negocio; no se insertaron datos comerciales ficticios. Solicitud pública y SMTP permanecen fuera del incremento administrativo por privacidad/canal de envío pendientes y las restricciones expresas del encargo. M09–M14 no están implementados.
 
-M03, M04, M05, M06 y M07 quedan activados en desarrollo sin catálogo, precios,
-tasas, listas, existencias, proveedores o facturas inventadas. Continúan
-pendientes los datos reales y M08–M14.
+El PDF conserva UTF-8 en SQL/HTML y translitera fuera de Windows-1252 al generar el archivo. La expiración se opera manualmente; no hay proceso residente. El DDL conserva commits implícitos y un fallo de migración exige inspección.
 
-La identidad y contraseña del Administrador global pertenecen al propietario y
-no se mostraron ni reutilizaron en las pruebas. Su existencia, estado activo,
-rol, permisos, hash y auditoría sí fueron verificados; los flujos autenticados
-se probaron con identidades aleatorias dentro de la base exclusiva de testing.
-
-El DDL de MariaDB conserva commits implícitos; las guardas reducen el riesgo,
-pero una caída durante un rollback futuro todavía exigiría inspección manual.
-Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio,
-iOS Safari, Android real ni lectores de pantalla. No se confirman stock,
-precios, catálogo, inventario, proveedores, facturas o clientes reales; M08–M14 no
-existen en esta fase.
+No se probaron Apache/cPanel real, FTP, TLS, subdominio, iOS Safari, Android real ni lectores de pantalla. Tampoco se declara un PASS de MariaDB remoto en el entorno Windows actual. La identidad del administrador real no se mostró ni reutilizó: el navegador utilizó cuentas aleatorias de testing.
 
 ## Revisión de aprobación
 
@@ -197,4 +177,8 @@ los placeholders. M00 y M01.1–M01.4 están integrados y listos para revisión
 final; las tablas de desarrollo están aplicadas sin datos comerciales. M02 está
 integrado en MariaDB, migrado en desarrollo y activado con un Administrador
 global. M03, M04, M05 y M06 están integrados, migrados y aprobados en
-MariaDB/HTTP. M07 está integrado, migrado y validado; M08–M14 no se han iniciado.
+MariaDB/HTTP. M07 está integrado, migrado y validado. M08 administrativo está activado y verificado en MySQL local; M09–M14 no se han iniciado.
+
+## Ejecución M08 · Windows/Docker, 3 de noviembre de 2026
+
+PHP 8.2.35, MySQL 8.4.10, Node 22 Docker y Chrome Windows. Regresión: 1052 comprobaciones PASS; sintaxis PHP, build y JavaScript PASS. PDF rasterizado con Poppler e inspeccionado. HTTP autenticado PASS con alta, cliente, búsqueda, partidas, cálculo, validación, emisión, PDF, aceptación/cancelación, CSRF, permisos y sucursal ajena; cuatro viewports sin overflow y base vacía al terminar. SQL definitivo PASS con snapshots, descuentos, versiones, inventario, idempotencia, concurrencia, folios, timeout y rollback multilínea. Desarrollo quedó con 53 migraciones, nueve permisos M08 y cero cotizaciones, tras respaldo verificado y conservación de las 50 tablas previas. No se declara MariaDB remoto ni cPanel probado. Resultado final y activación: [integración M08](integration-m08.md).

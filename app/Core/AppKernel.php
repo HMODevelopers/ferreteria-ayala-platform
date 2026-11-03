@@ -54,6 +54,10 @@ final class AppKernel
     public static function inventoryManagement(): InventoryManagementService { return new InventoryManagementService(self::inventory(), self::connection()); }
     public static function purchasing(): PdoPurchasingRepository { return new PdoPurchasingRepository(self::connection()); }
     public static function purchasingManagement(): PurchasingManagementService { return new PurchasingManagementService(self::purchasing(), self::inventoryManagement(), self::connection()); }
+    public static function quotes(): \App\Infrastructure\Persistence\PdoQuoteRepository { return new \App\Infrastructure\Persistence\PdoQuoteRepository(self::connection()); }
+    public static function quoteManagement(): \App\Application\Services\QuoteManagementService {
+        return new \App\Application\Services\QuoteManagementService(self::quotes(),self::customers(),self::pricing(),self::pricingManagement(),new \App\Application\Services\QuoteReservationService(self::inventory(),self::quotes()),self::connection());
+    }
     public static function customers(): PdoCustomerRepository { return new PdoCustomerRepository(self::connection()); }
     public static function customerManagement(): CustomerManagementService { return new CustomerManagementService(self::customers(), self::connection()); }
 }

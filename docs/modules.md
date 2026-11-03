@@ -4,7 +4,7 @@ Este archivo es el índice para solicitar trabajo a Codex. Los identificadores
 son estables: una tarea debe mencionar el módulo, sus fuentes y el incremento
 concreto que se desea implementar.
 
-Estado general al 25 de octubre de 2026: la Home demostrativa está aprobada.
+Estado general al 3 de noviembre de 2026: la Home demostrativa está aprobada.
 M00 y M01.1–M01.4 están implementados y pasan sus pruebas aisladas e integración
 real en MariaDB 10.11. La ejecución M01 fallida fue respaldada, restaurada en un
 destino temporal y recuperada de forma controlada; la repetición completa pasó
@@ -17,8 +17,7 @@ aislada vacía. M03 está integrado en MariaDB, migrado en desarrollo y aprobado
 con flujos HTTP autenticados. M04 está integrado, activado en desarrollo y pasa
 MariaDB y HTTP autenticado. M05 también está integrado, migrado y aprobado con
 concurrencia real y HTTP autenticado. M06 también está integrado, migrado y
-aprobado con recepciones parciales, idempotencia y concurrencia real. M07–M14
-no están implementados.
+aprobado con recepciones parciales, idempotencia y concurrencia real. M07 está integrado. M08 administrativo está activado en MySQL Docker local, con 53 migraciones y SQL/HTTP PASS. M09–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -150,18 +149,18 @@ compra, pagos, cuentas por pagar, SAT ni contabilidad.
 
 ### M07 · Clientes internos
 
-Implementación local: clientes persona/empresa con código estable, sucursal,
+M07 integrado: clientes persona/empresa con código estable, sucursal,
 datos fiscales opcionales declarados, contacto y dirección principal, estado
 lógico y lista comercial M04 opcional. Las consultas se limitan por sucursal,
 las escrituras usan transacción y versión optimista, y código/RFC tienen
 unicidad SQL. Coincidencias de correo o teléfono sólo advierten. No existe
-registro ni portal público; la integración aislada sigue pendiente.
+registro ni portal público; la integración histórica M07 está documentada en [su cierre](integration-m07.md).
 
 ### M08 · Cotizaciones
 
-Incluye solicitud, toma por vendedor, versiones históricas, vigencia, PDF,
-correo SMTP, enlace de WhatsApp, autorizaciones, aceptación y cancelación. No
-incluye cobros, facturación ni ventas financieras.
+Alcance oficial: solicitud, toma por vendedor, versiones históricas, vigencia, PDF, SMTP, enlace de WhatsApp, autorizaciones, aceptación y cancelación; sin cobros, facturación ni ventas financieras.
+
+Incremento administrativo activado el 3 de noviembre de 2026: borradores, cliente M07, variantes M03, motor M04, disponibilidad/apartados M05, revisiones, autorizaciones, emisión, PDF, estados e historial. SQL y HTTP PASS, 53 migraciones y nueve permisos. Solicitud pública y SMTP no se declaran implementados en este incremento; véanse [fronteras y cierre M08](integration-m08.md). M09 no se inició.
 
 ### M09 · Transferencias
 

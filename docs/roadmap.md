@@ -60,3 +60,7 @@ Componente propio, sin DataTables. Paginación server-side, búsqueda, ordenamie
 ## Fase 5 · Operación y calidad
 
 Dashboard y estadísticas basadas en datos reales; copias de seguridad, restauración, rendimiento, accesibilidad formal, límites de solicitudes y observabilidad. Pagos, facturación y contabilidad requieren proyectos aprobados aparte.
+
+## Incremento administrativo M08 · 3 de noviembre de 2026
+
+Cotizaciones con borradores, versiones, M04, cliente M07, PDF, aceptación y apartado M05 implementados. El entorno vigente es Docker local con MySQL 8.4, confirmado por el propietario. Cierre de pruebas/activación: [integración M08](integration-m08.md). No se inicia M09. Solicitud pública y SMTP conservan las fronteras descritas allí.

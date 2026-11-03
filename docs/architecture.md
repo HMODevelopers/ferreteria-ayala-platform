@@ -230,7 +230,7 @@ y el repositorio aplica el alcance de sucursales también en SQL. Los permisos
 - Producto pertenece a categoría y opcionalmente marca; unidades y presentaciones deberán levantarse con el negocio. Categorías pueden requerir jerarquía.
 - Banner y promoción podrán relacionarse con categoría, sucursales y vigencia. Relación muchos-a-muchos con sucursales si la operación lo requiere.
 - Evento pertenece a una sucursal o múltiples ubicaciones según requisitos. Reseña requiere fuente, consentimiento, publicación y verificación real.
-- Cotización tendrá partidas, cantidades, cliente, sucursal, estado y snapshot de información comercial. No usar los datos demo como inventario.
+- M08 conserva partidas, cantidades, cliente, sucursal, estado y snapshots de información comercial. No usar los datos demo como inventario.
 - Usuarios, roles y permisos controlarán módulos administrativos; auditoría relacionará actor, acción, entidad y momento.
 - Configuración y páginas mantendrán contenido institucional y canales verificados.
 
@@ -293,3 +293,7 @@ recursos locales; revisar cualquier integración sin relajarla globalmente.
 
 - [Tailwind CLI](https://tailwindcss.com/docs/installation/tailwind-cli): compilación a CSS estático y `@source` para PHP/JS.
 - [Swiper API](https://swiperjs.com/swiper-api): navegación, pagination y A11y; aquí no se usa autoplay para evitar movimiento automático.
+
+## Cotizaciones comerciales M08
+
+QuoteManagementService coordina QuoteRepository/PdoQuoteRepository, M07, PricingManagementService y CommercialCalculator M04. QuoteReservationService compone bloqueos/saldos de InventoryRepository M05 en la transacción exterior. Partidas, versiones, autorización, historial y auditoría confirman o revierten juntos. El controlador coordina permisos, CSRF, entradas y vistas; QuotePdf produce el archivo en PHP. Véase [integración M08](integration-m08.md).

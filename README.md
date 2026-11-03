@@ -4,7 +4,7 @@ Home comercial y base modular en PHP puro, con arquitectura MVC mínima y assets
 
 ## Requisitos
 
-- PHP **8.2+**, extensiones estándar `filter` y `PDO`; `pdo_mysql` es obligatorio para usar la persistencia y los comandos de migración.
+- PHP **8.2+**, extensiones estándar `filter`, `iconv` (PDF) y `PDO`; `pdo_mysql` es obligatorio para usar la persistencia y los comandos de migración.
 - MariaDB 10.11 o MySQL compatible, con una base y un usuario de privilegios mínimos creados fuera de la aplicación.
 - Node.js 22+ y npm para compilar en desarrollo.
 - Apache 2.4, `mod_rewrite`, permiso `AllowOverride` y document root en `public/` para producción.
@@ -174,8 +174,7 @@ El logo es **tipográfico provisional**. Los productos usan SVG de referencia cr
 
 La lista pública solo vive en memoria en la pestaña y se pierde al recargar.
 Descargarla no equivale a solicitar una cotización. No recopila datos personales
-ni envía peticiones comerciales. La Home no consulta MySQL. El panel M02 es
-administrativo y real; no implementa compras, pagos, cotizaciones ni datos demo.
+ni envía peticiones comerciales. La Home no consulta MySQL. El panel administrativo es real: M06 administra entradas, M07 clientes y M08 cotizaciones comerciales. No implementa pagos ni ventas financieras.
 
 El prototipo usa `noindex, nofollow`; el dominio, URL absoluta Open Graph, SEO definitivo y aviso de privacidad se completarán antes de publicar.
 
@@ -275,3 +274,7 @@ Consulta [resultados ejecutados](docs/qa.md), [diseño y maqueta visual](docs/de
 6. Revisar todos los textos y la claridad de los datos pendientes/demostrativos.
 
 La Home fue aprobada como base el 17 de octubre de 2026. Las siguientes mejoras visuales son integrar el logotipo oficial, reemplazar ilustraciones por fotos homogéneas de productos reales y sustituir fotografía de stock por obras/sucursales autorizadas. La persistencia y el administrador deben implementarse por incrementos conforme a los requisitos aprobados.
+
+## Cotizaciones comerciales M08
+
+El panel /admin/quotes permite crear borradores con clientes M07, agregar variantes M03, calcular desde M04 y consultar M05. Incluye emisión, PDF, versiones históricas, autorización de descuentos, aceptación manual con apartado y cancelación con liberación. Consulta [alcance, pruebas y activación M08](docs/integration-m08.md). El entorno vigente es Windows/Docker con MySQL 8.4; la Home pública conserva su demo local y no envía solicitudes.

@@ -17,9 +17,10 @@ final class IntegrationDatabaseEnvironment
             'm05' => 'M05',
             'm06' => 'M06',
             'm07' => 'M07',
+            'm08' => 'M08',
             default => throw new PersistenceException('Integration database suite is invalid.'),
         };
-        $names = in_array($suite, ['m03','m04','m05','m06','m07'], true)
+        $names = in_array($suite, ['m03','m04','m05','m06','m07','m08'], true)
             ? [
                 'host' => 'TEST_DB_HOST_' . $suffix,
                 'port' => 'TEST_DB_PORT_' . $suffix,
@@ -39,7 +40,7 @@ final class IntegrationDatabaseEnvironment
         $values = [];
         foreach ($names as $key => $name) {
             $value = getenv($name);
-            if ($value === false || ($value === '' && ($key !== 'password' || in_array($suite, ['m03','m04','m05','m06','m07'], true)))) {
+            if ($value === false || ($value === '' && ($key !== 'password' || in_array($suite, ['m03','m04','m05','m06','m07','m08'], true)))) {
                 throw new PersistenceException('All suite-specific TEST_DB_* variables must be configured.');
             }
             $values[$key] = $value;

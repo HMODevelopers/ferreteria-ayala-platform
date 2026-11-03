@@ -318,3 +318,7 @@ No bloquean el diseño, pero sí la carga y publicación reales:
 
 Las credenciales se configurarán mediante variables de entorno y nunca se
 guardarán en Git ni en esta documentación.
+
+## Implementación comercial M08
+
+Cinco migraciones aditivas materializan quotes, quote_contacts, quote_versions, quote_items, quote_status_history, quote_assignments, quote_approvals, inventory_reservations e inventory_reservation_items. Las versiones emitidas son inmutables; los apartados aparecen únicamente al aceptar y se liberan al cancelar. Contratos, índices, precisión y estados: [integración M08](integration-m08.md).

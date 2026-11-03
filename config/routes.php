@@ -109,3 +109,12 @@ $router->get('/admin/customers/detail', [App\Controllers\Admin\CustomersControll
 $router->get('/admin/customers/edit', [App\Controllers\Admin\CustomersController::class, 'editForm']);
 $router->post('/admin/customers/update', [App\Controllers\Admin\CustomersController::class, 'update']);
 $router->post('/admin/customers/status', [App\Controllers\Admin\CustomersController::class, 'status']);
+
+$router->get('/admin/quotes', [App\Controllers\Admin\QuotesController::class, 'index']);
+$router->get('/admin/quotes/create', [App\Controllers\Admin\QuotesController::class, 'createForm']);
+$router->get('/admin/quotes/edit', [App\Controllers\Admin\QuotesController::class, 'editForm']);
+$router->post('/admin/quotes/save', [App\Controllers\Admin\QuotesController::class, 'save']);
+$router->get('/admin/quotes/detail', [App\Controllers\Admin\QuotesController::class, 'detail']);
+$router->post('/admin/quotes/action', [App\Controllers\Admin\QuotesController::class, 'action']);
+$router->get('/admin/quotes/lookup', [App\Controllers\Admin\QuotesController::class, 'lookup']);
+$router->get('/admin/quotes/pdf', [App\Controllers\Admin\QuotesController::class, 'pdf']);
