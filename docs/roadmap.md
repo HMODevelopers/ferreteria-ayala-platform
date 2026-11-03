@@ -10,7 +10,7 @@ Confirmar logo y manual, fotografías autorizadas, contactos, redes, privacidad,
 
 Las decisiones funcionales están consolidadas en [requisitos](requirements.md) y el diseño de persistencia en [modelo de datos](data-model.md). Permanecen pendientes los archivos y valores reales que debe entregar el negocio.
 
-## Fase 3 · Persistencia y administración (M00 + M01 + M02 integrados)
+## Fase 3 · Persistencia y administración (M00–M07 integrados)
 
 M00 y M01.1–M01.4 están implementados y pasan pruebas aisladas e integración
 real en MariaDB 10.11. La primera ejecución M01 falló porque un hijo de
@@ -43,9 +43,11 @@ desarrollo. M06 quedó integrado el 2 de noviembre con proveedores, facturas,
 partidas y recepciones parciales/completas coordinadas con M05. Sus suites
 MariaDB y HTTP autenticada aprobaron idempotencia, rollback y concurrencia real;
 la base de pruebas terminó vacía. Desarrollo conserva 46 migraciones y no se
-cargaron proveedores, facturas ni existencias. M07 está implementado y probado
-localmente con dos migraciones pendientes de integración y activación. M08 y
-módulos posteriores no se iniciaron.
+cargaron proveedores, facturas ni existencias. M07 quedó integrado el 2 de
+noviembre con una identidad MariaDB exclusiva, 966 comprobaciones locales,
+integración y HTTP/Playwright autenticado en cuatro anchos. La base de pruebas
+terminó vacía; desarrollo se respaldó, conserva 48 migraciones y no contiene
+clientes ficticios. M08 y módulos posteriores no se iniciaron.
 
 ## Fase 4 · Cotizaciones e inventario
 

@@ -161,15 +161,21 @@ Fecha de última ejecución local: 2 de noviembre de 2026. Entorno: Ubuntu, Node
 
 ## Pendiente / límite del alcance
 
-M07 pasa 963 comprobaciones locales y la validación completa de sintaxis PHP.
-La integración MariaDB/HTTP y la activación en desarrollo permanecen pendientes
-de una identidad M07 exclusiva sobre `ferreteria_ayala_test`; `ayala_app` no
-tiene privilegios en esa base ni capacidad de concederlos. No se reutilizó una
-cuenta de otro módulo ni se crearon clientes ficticios.
+M07 pasa 966 comprobaciones locales, sintaxis PHP, validación JavaScript, build,
+integración MariaDB y HTTP/Playwright autenticado. La identidad exclusiva
+`ayala_m07_test@192.168.1.9` está limitada a `ferreteria_ayala_test`, sin
+`GRANT OPTION` ni acceso a desarrollo; la base aislada terminó con cero objetos.
+Playwright verificó alta, edición, detalle, búsqueda/filtros, contacto,
+dirección, conflicto optimista, estado, CSRF, acceso sin sesión, auditoría y
+360/768/1024/1440 px.
 
-M03, M04, M05 y M06 quedan activados en desarrollo sin catálogo, precios,
+Desarrollo se respaldó de forma privada y verificable antes del lote 7. Quedó
+con 48 migraciones, tres tablas M07, cuatro permisos del Administrador global y
+cero clientes; no se cargaron datos ficticios.
+
+M03, M04, M05, M06 y M07 quedan activados en desarrollo sin catálogo, precios,
 tasas, listas, existencias, proveedores o facturas inventadas. Continúan
-pendientes los datos reales y M07–M14.
+pendientes los datos reales y M08–M14.
 
 La identidad y contraseña del Administrador global pertenecen al propietario y
 no se mostraron ni reutilizaron en las pruebas. Su existencia, estado activo,
@@ -180,7 +186,7 @@ El DDL de MariaDB conserva commits implícitos; las guardas reducen el riesgo,
 pero una caída durante un rollback futuro todavía exigiría inspección manual.
 Continúan sin probarse Apache/cPanel real, FTP, TLS, instalación en subdominio,
 iOS Safari, Android real ni lectores de pantalla. No se confirman stock,
-precios, catálogo, inventario, proveedores o facturas reales; M07–M14 no
+precios, catálogo, inventario, proveedores, facturas o clientes reales; M08–M14 no
 existen en esta fase.
 
 ## Revisión de aprobación
@@ -191,4 +197,4 @@ los placeholders. M00 y M01.1–M01.4 están integrados y listos para revisión
 final; las tablas de desarrollo están aplicadas sin datos comerciales. M02 está
 integrado en MariaDB, migrado en desarrollo y activado con un Administrador
 global. M03, M04, M05 y M06 están integrados, migrados y aprobados en
-MariaDB/HTTP; M07–M14 no se han iniciado.
+MariaDB/HTTP. M07 está integrado, migrado y validado; M08–M14 no se han iniciado.

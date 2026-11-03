@@ -156,10 +156,12 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
   partidas vinculadas a variantes M03 y recepciones físicas parciales o
   completas. Cada recepción usa M05 de forma atómica, idempotente y trazable;
   guardar o confirmar el documento por sí solo no modifica existencias.
-- M07 implementado localmente: directorio interno de clientes por sucursal,
+- M07 integrado y activado: directorio interno de clientes por sucursal,
   personas y empresas, contactos, direcciones, lista comercial opcional,
   búsqueda, filtros, estados lógicos, versión optimista, permisos y auditoría.
-  No crea cuentas públicas ni cotizaciones.
+  Sus suites MariaDB y HTTP/Playwright pasan con identidad aislada y desarrollo
+  conserva 48 migraciones sin clientes ficticios. No crea cuentas públicas ni
+  cotizaciones.
 - 404 real, 405 para métodos no implementados y soporte HEAD.
 
 ## Qué es demostrativo

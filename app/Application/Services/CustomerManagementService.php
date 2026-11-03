@@ -12,10 +12,10 @@ final class CustomerManagementService
 {
     public function __construct(private readonly CustomerRepository $customers, private readonly TransactionManager $transactions) {}
 
-    public function save(array $input, array $allowedBranches, int $actorId, ?int $id = null, ?callable $audit = null): array
+    public function save(array $input, ?array $allowedBranches, int $actorId, ?int $id = null, ?callable $audit = null): array
     {
         $branchId = CustomerRules::positiveId($input['branch_id'] ?? 0, 'La sucursal');
-        if (!in_array($branchId, $allowedBranches, true)) throw new OperationConflict('No tienes acceso a la sucursal seleccionada.');
+        if ($allowedBranches !== null && !in_array($branchId, $allowedBranches, true)) throw new OperationConflict('No tienes acceso a la sucursal seleccionada.');
         $version = $id === null ? null : CustomerRules::positiveId($input['lock_version'] ?? 0, 'La versión');
         $data = [
             'branch_id' => $branchId, 'price_list_id' => trim((string) ($input['price_list_id'] ?? '')) === '' ? null : CustomerRules::positiveId($input['price_list_id'], 'La lista comercial'),
@@ -31,7 +31,7 @@ final class CustomerManagementService
         $contact = $contactName === null ? null : ['name' => $contactName, 'role' => CustomerRules::text((string) ($input['contact_role'] ?? ''), 'El puesto', 120, false), 'phone' => CustomerRules::phone((string) ($input['contact_phone'] ?? ''), 'El teléfono del contacto'), 'email' => CustomerRules::email((string) ($input['contact_email'] ?? ''))];
         $line1 = CustomerRules::text((string) ($input['address_line1'] ?? ''), 'La dirección', 240, false);
         $address = $line1 === null ? null : ['address_type' => in_array(($input['address_type'] ?? ''), ['main','fiscal','delivery'], true) ? $input['address_type'] : 'main', 'line1' => $line1, 'line2' => CustomerRules::text((string) ($input['address_line2'] ?? ''), 'La referencia', 240, false), 'city' => CustomerRules::text((string) ($input['city'] ?? ''), 'La ciudad', 120), 'state_name' => CustomerRules::text((string) ($input['state_name'] ?? ''), 'El estado', 120), 'postal_code' => CustomerRules::text((string) ($input['postal_code'] ?? ''), 'El código postal', 12, false)];
-        return $this->transactions->transaction(function () use ($data, $contact, $address, $allowedBranches, $id, $version, $audit): array {
+        return $this->transactions->transaction(function () use ($data, $contact, $address, $allowedBranches, $branchId, $id, $version, $audit): array {
             if ($data['price_list_id'] !== null && !array_filter($this->customers->priceLists(), static fn(array $row): bool => (int) $row['id'] === $data['price_list_id'])) throw new EntityNotFound('La lista comercial no existe o está inactiva.');
             $warnings = $this->customers->possibleDuplicates($data, $id);
             if ($id === null) $id = $this->customers->create($data);
@@ -46,7 +46,7 @@ final class CustomerManagementService
         });
     }
 
-    public function setActive(int $id, int $version, bool $active, array $allowedBranches, int $actorId, ?callable $audit = null): void
+    public function setActive(int $id, int $version, bool $active, ?array $allowedBranches, int $actorId, ?callable $audit = null): void
     {
         $this->transactions->transaction(function () use ($id, $version, $active, $allowedBranches, $actorId, $audit): void {
             $customer = $this->customers->customer($id, $allowedBranches, true) ?? throw new EntityNotFound('El cliente no existe o está fuera de tu alcance.');
