@@ -1,0 +1,26 @@
+name: ferreteria-ayala
+
+services:
+  assets:
+    image: node:22-bookworm-slim
+    profiles: ["tools"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+
+  php:
+    build:
+      context: ./docker
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "127.0.0.1:8080:8080"
+    command: ["php", "-S", "0.0.0.0:8080", "-t", "public", "docker/router.php"]
+    networks:
+      - mysql
+
+networks:
+  mysql:
+    external: true
+    name: mysql_default

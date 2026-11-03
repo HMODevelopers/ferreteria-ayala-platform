@@ -12,6 +12,10 @@ Home comercial y base modular en PHP puro, con arquitectura MVC mínima y assets
 
 ## Iniciar localmente
 
+Si no tienes PHP instalado en la máquina, consulta [el entorno de desarrollo
+con Docker](docker/README.md), que reutiliza MySQL en `mysql-local` e incluye
+PHP 8.2 con `pdo_mysql` y Node 22 para compilar assets.
+
 ```bash
 npm ci
 npm run build
