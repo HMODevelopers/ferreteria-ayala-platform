@@ -328,3 +328,9 @@ Cinco migraciones aditivas materializan quotes, quote_contacts, quote_versions, 
 Cuatro migraciones aditivas crean `transfers`, `transfer_items`, `transfer_events` y `transfer_event_items`, más diez permisos en la última migración. El historial acumulado previsto es 57. Cantidades exactas en unidad base: solicitada, aprobada, despachada, recibida y asignación/liberación para cotización en destino. Tránsito y pendiente se derivan; eventos enlazan movimiento M05 único y conservan idempotencia, actor y notas. FKs restrictivas; rollbacks protegidos. Detalle en [integración M09](integration-m09.md).
 
 Activación M09 confirmada: 57 migraciones acumuladas, cuatro tablas nuevas vacías y diez permisos. Las 59 tablas previas conservaron sus datos.
+
+## Incremento M10 · Entregas
+
+Implementación de entregas parciales desde cotizaciones aceptadas, preparación, asignación logística, salida física contra apartados M08/M09 y confirmación del cliente. Incluye incidencias, cancelación previa a salida, vehículos, repartidores y rutas manuales. Cuatro migraciones aditivas; el cierre verificable de SQL, concurrencia, HTTP, responsive y activación se registra en [integración M10](integration-m10.md). Los resultados anteriores se conservan como historia; no se trasladan automáticamente a este incremento.
+
+Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restrictivas, 20 índices únicos y once permisos GLOBAL_ADMIN. npm test: 1168 comprobaciones; PHP/JS/build/diff, SQL y Chrome M10, regresiones SQL/HTTP M08–M09 y respaldo restaurado PASS. Las 63 tablas previas conservaron sus datos; base aislada vacía y sin fixtures en desarrollo. Los pendientes se calculan en persistencia y las vistas reciben arrays explícitos. Siguiente módulo oficial M11, sin iniciarlo.

@@ -6,6 +6,17 @@ namespace App\Application\Security;
 final class PermissionCatalog
 {
     public const ITEMS = [
+        ['deliveries.view', 'deliveries', 'view', 'either', 'Consultar entregas y pendientes'],
+        ['deliveries.create', 'deliveries', 'create', 'either', 'Crear entregas parciales'],
+        ['deliveries.edit', 'deliveries', 'edit', 'either', 'Editar cantidades pendientes'],
+        ['deliveries.prepare', 'deliveries', 'prepare', 'either', 'Preparar mercancía'],
+        ['deliveries.assign', 'deliveries', 'assign', 'either', 'Asignar entrega y ruta'],
+        ['deliveries.dispatch', 'deliveries', 'dispatch', 'either', 'Autorizar y registrar salida física'],
+        ['deliveries.confirm', 'deliveries', 'confirm', 'either', 'Confirmar recepción del cliente'],
+        ['deliveries.incident', 'deliveries', 'incident', 'either', 'Registrar intento fallido y reanudar'],
+        ['deliveries.cancel', 'deliveries', 'cancel', 'either', 'Cancelar antes de salida'],
+        ['deliveries.history', 'deliveries', 'history', 'either', 'Consultar historial'],
+        ['deliveries.resources', 'deliveries', 'resources', 'either', 'Administrar vehículos repartidores y rutas'],
         ['transfers.view', 'transfers', 'view', 'either', 'Consultar transferencias'],
         ['transfers.create', 'transfers', 'create', 'either', 'Solicitar en destino'],
         ['transfers.edit', 'transfers', 'edit', 'either', 'Editar solicitud en destino'],

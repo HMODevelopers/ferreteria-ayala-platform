@@ -13,3 +13,6 @@ initAdminQuotes();
 
 import { initTransfers } from './modules/transfers.js';
 initTransfers();
+
+import { initDeliveries } from './modules/deliveries.js';
+initDeliveries();

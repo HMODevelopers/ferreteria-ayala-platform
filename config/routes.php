@@ -125,3 +125,11 @@ $router->post('/admin/transfers/create', [App\Controllers\Admin\TransfersControl
 $router->get('/admin/transfers/detail', [App\Controllers\Admin\TransfersController::class, 'detail']);
 $router->get('/admin/transfers/products', [App\Controllers\Admin\TransfersController::class, 'products']);
 $router->post('/admin/transfers/action', [App\Controllers\Admin\TransfersController::class, 'action']);
+
+$router->get('/admin/deliveries', [App\Controllers\Admin\DeliveriesController::class, 'index']);
+$router->get('/admin/deliveries/create', [App\Controllers\Admin\DeliveriesController::class, 'createForm']);
+$router->post('/admin/deliveries/create', [App\Controllers\Admin\DeliveriesController::class, 'create']);
+$router->get('/admin/deliveries/detail', [App\Controllers\Admin\DeliveriesController::class, 'detail']);
+$router->post('/admin/deliveries/action', [App\Controllers\Admin\DeliveriesController::class, 'action']);
+$router->get('/admin/deliveries/resources', [App\Controllers\Admin\DeliveriesController::class, 'resources']);
+$router->post('/admin/deliveries/resources', [App\Controllers\Admin\DeliveriesController::class, 'saveResource']);

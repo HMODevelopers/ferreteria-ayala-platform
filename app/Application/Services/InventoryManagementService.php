@@ -50,6 +50,17 @@ final class InventoryManagementService
         return $this->recordWithinTransactionInternal($input,$actor,null,$incoming);
     }
 
+    /** Only after QuoteReservationService has attributed the exact reservation consumption. */
+    public function recordDeliveryWithinTransaction(array $input,int $actor):array
+    {
+        if(($input['source_type']??null)!=='delivery_event')throw new \InvalidArgumentException('Falta el origen de entrega.');
+        $input['type']='adjustment_out';
+        $this->inventory->lockScope((int)$input['branch_id'],(int)$input['variant_id']);
+        if($this->inventory->findMovementByOperation((string)$input['operation_key']))throw new OperationConflict('La salida física ya existe. Reenvía la misma operación documental.');
+        $this->transferReservationWithinTransaction((int)$input['branch_id'],(int)$input['variant_id'],(string)$input['quantity'],true);
+        return $this->recordWithinTransactionInternal($input,$actor,null,false);
+    }
+
     private function recordWithinTransactionInternal(array $input, int $actorId, ?callable $audit, bool $allowInitialization): array
     {
         $branchId = self::id($input['branch_id'] ?? 0, 'La sucursal');

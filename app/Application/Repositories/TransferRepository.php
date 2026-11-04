@@ -23,6 +23,6 @@ interface TransferRepository {
  public function quoteNeed(int $version,int $variant):string;
  public function coverage(int $version,int $variant):string;
  public function destinationReservations(int $version):array;
- public function releaseDestination(int $item):void;
+ public function releaseDestination(int $item,string $consumed='0'):void;
  public function assertUntracked(int $variant):void;
 }

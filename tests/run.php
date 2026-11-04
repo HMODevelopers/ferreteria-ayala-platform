@@ -77,4 +77,5 @@ require __DIR__ . '/m06-purchasing.php';
 require __DIR__ . '/m07-customers.php';
 require __DIR__ . '/m08-quotes.php';
 require __DIR__ . '/m09-transfers.php';
-echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4, M02, M03 catalog, M04 pricing, M05 inventory, M06 purchasing M07 customers M08 quotes and M09 transfers).\n";
+require __DIR__ . '/m10-deliveries.php';
+echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4, M02, M03 catalog, M04 pricing, M05 inventory, M06 purchasing M07 customers M08 quotes M09 transfers and M10 deliveries).\n";

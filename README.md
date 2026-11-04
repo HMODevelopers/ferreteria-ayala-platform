@@ -284,3 +284,9 @@ El panel /admin/quotes permite crear borradores con clientes M07, agregar varian
 Administración en `/admin/transfers`: solicitud, aprobación con apartado en origen, preparación, salida física, tránsito, recepción parcial y trazabilidad M05. Incluye cobertura de faltantes de cotizaciones y apartados al recibir para una aceptada. Modelo, permisos, pruebas, activación y límites: [integración M09](docs/integration-m09.md).
 
 Pruebas aisladas: `npm run test:mysql:m09` y `npm run test:mysql:m09:http`. El activador privado es `php bin/activate-m09-development.php --apply`; exige desarrollo confirmado, evidencias SQL/HTTP y respaldo restaurado. No cargar fixtures en desarrollo.
+
+## Incremento M10 · Entregas
+
+Implementación de entregas parciales desde cotizaciones aceptadas, preparación, asignación logística, salida física contra apartados M08/M09 y confirmación del cliente. Incluye incidencias, cancelación previa a salida, vehículos, repartidores y rutas manuales. Cuatro migraciones aditivas; el cierre verificable de SQL, concurrencia, HTTP, responsive y activación se registra en [integración M10](docs/integration-m10.md). Los resultados anteriores se conservan como historia; no se trasladan automáticamente a este incremento.
+
+Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restrictivas, 20 índices únicos y once permisos GLOBAL_ADMIN. npm test: 1168 comprobaciones; PHP/JS/build/diff, SQL y Chrome M10, regresiones SQL/HTTP M08–M09 y respaldo restaurado PASS. Las 63 tablas previas conservaron sus datos; base aislada vacía y sin fixtures en desarrollo. Los pendientes se calculan en persistencia y las vistas reciben arrays explícitos. Siguiente módulo oficial M11, sin iniciarlo.

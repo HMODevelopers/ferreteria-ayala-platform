@@ -1,6 +1,6 @@
 # Verificación de la plataforma
 
-Fecha de última ejecución local: 3 de noviembre de 2026. Entorno vigente: Windows, PHP CLI 8.2.35, MySQL 8.4.10 y Node 22 en Docker; Chrome Windows para HTTP. Los resultados Ubuntu anteriores se conservan como historial. M09: 1105 comprobaciones, 313 archivos PHP, 18 fuentes JS, build, SQL, HTTP/Chrome y activación PASS. Regresiones SQL/HTTP M08 y navegador público PASS; base aislada vacía y respaldo restaurado.
+Fecha de última ejecución local: 3 de noviembre de 2026. Entorno vigente: Windows, PHP CLI 8.2.35, MySQL 8.4.10 y Node 22 en Docker; Chrome Windows para HTTP. Los resultados Ubuntu anteriores se conservan como historial. M10: 1168 comprobaciones, 336 archivos PHP, 21 fuentes JS/MJS, build, SQL, HTTP/Chrome y activación PASS. Regresiones SQL/HTTP M08–M09 y navegador público PASS; base aislada vacía y respaldo restaurado.
 
 ## Ejecutado
 
@@ -163,7 +163,7 @@ Fecha de última ejecución local: 3 de noviembre de 2026. Entorno vigente: Wind
 
 M08 administrativo quedó activado con 53 migraciones en MySQL Docker local y nueve permisos asignados al Administrador global. Se conservaron las 50 tablas previas y la base aislada terminó con cero objetos. Los respaldos y resultados exactos están en [integración M08](integration-m08.md).
 
-La base local tiene el administrador pero no contiene sucursales, clientes, variantes, precios ni existencias. Faltan los datos reales del negocio; no se insertaron datos comerciales ficticios. Solicitud pública y SMTP permanecen fuera del incremento administrativo por privacidad/canal de envío pendientes y las restricciones expresas del encargo. M10–M14 no están implementados; M09 quedó integrado posteriormente, con su cierre documentado.
+La base local tiene el administrador pero no contiene sucursales, clientes, variantes, precios ni existencias. Faltan los datos reales del negocio; no se insertaron datos comerciales ficticios. Solicitud pública y SMTP permanecen fuera del incremento administrativo por privacidad/canal de envío pendientes y las restricciones expresas del encargo. M10 de entregas está activado; M11–M14 no están implementados; M09 quedó integrado posteriormente, con su cierre documentado.
 
 El PDF conserva UTF-8 en SQL/HTML y translitera fuera de Windows-1252 al generar el archivo. La expiración se opera manualmente; no hay proceso residente. El DDL conserva commits implícitos y un fallo de migración exige inspección.
 
@@ -177,7 +177,7 @@ los placeholders. M00 y M01.1–M01.4 están integrados y listos para revisión
 final; las tablas de desarrollo están aplicadas sin datos comerciales. M02 está
 integrado en MariaDB, migrado en desarrollo y activado con un Administrador
 global. M03, M04, M05 y M06 están integrados, migrados y aprobados en
-MariaDB/HTTP. M07 está integrado, migrado y validado. M08 administrativo está activado y verificado en MySQL local; M10–M14 no se han iniciado; M09 ya tiene cierre documentado.
+MariaDB/HTTP. M07 está integrado, migrado y validado. M08 administrativo está activado y verificado en MySQL local; M10 de entregas está activado; M11–M14 no se han iniciado; M09 ya tiene cierre documentado.
 
 ## Ejecución M08 · Windows/Docker, 3 de noviembre de 2026
 
@@ -188,3 +188,9 @@ PHP 8.2.35, MySQL 8.4.10, Node 22 Docker y Chrome Windows. Regresión: 1052 comp
 Regresión PHP M00–M09: 1105 comprobaciones PASS. La primera suite SQL M09 pasó con 57 migraciones, operaciones parciales, conservación de stock, protección de apartados, cobertura M08, rollback por auditoría, concurrencia independiente e inventario final vacío. La suite definitiva ampliada, Chrome y activación se registran en [integración M09](integration-m09.md). No se heredan los PASS históricos de MariaDB como ejecuciones en Windows.
 
 Cierre definitivo M09: SQL y HTTP/Chrome PASS después del ajuste de locks y snapshots iniciales; rutas opuestas y competencia M08 probadas con PDO independientes. Regresiones SQL/HTTP M08 y navegador público: PASS. Desarrollo conserva 57 migraciones y 59 tablas previas sin cambios de datos, diez permisos M09 y cero transferencias. Respaldo privado restaurado y comparado íntegramente; base aislada vacía al finalizar. Evidencia de activación: tests/artifacts/m09-activation.json (privada e ignorada).
+
+## Incremento M10 · Entregas
+
+Implementación de entregas parciales desde cotizaciones aceptadas, preparación, asignación logística, salida física contra apartados M08/M09 y confirmación del cliente. Incluye incidencias, cancelación previa a salida, vehículos, repartidores y rutas manuales. Cuatro migraciones aditivas; el cierre verificable de SQL, concurrencia, HTTP, responsive y activación se registra en [integración M10](integration-m10.md). Los resultados anteriores se conservan como historia; no se trasladan automáticamente a este incremento.
+
+Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restrictivas, 20 índices únicos y once permisos GLOBAL_ADMIN. npm test: 1168 comprobaciones; PHP/JS/build/diff, SQL y Chrome M10, regresiones SQL/HTTP M08–M09 y respaldo restaurado PASS. Las 63 tablas previas conservaron sus datos; base aislada vacía y sin fixtures en desarrollo. Los pendientes se calculan en persistencia y las vistas reciben arrays explícitos. Siguiente módulo oficial M11, sin iniciarlo.

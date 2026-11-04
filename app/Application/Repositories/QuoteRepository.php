@@ -28,5 +28,5 @@ interface QuoteRepository
     public function createReservation(int $versionId,int $branch,int $actor):int;
     public function reservationItems(int $id):array;
     public function reserveItem(array $data):void;
-    public function releaseReservation(int $id,int $actor):void;
+    public function releaseReservation(int $id,int $actor,array $consumed=[]):void;
 }

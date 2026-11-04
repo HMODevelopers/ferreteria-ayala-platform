@@ -17,7 +17,7 @@ aislada vacía. M03 está integrado en MariaDB, migrado en desarrollo y aprobado
 con flujos HTTP autenticados. M04 está integrado, activado en desarrollo y pasa
 MariaDB y HTTP autenticado. M05 también está integrado, migrado y aprobado con
 concurrencia real y HTTP autenticado. M06 también está integrado, migrado y
-aprobado con recepciones parciales, idempotencia y concurrencia real. M07 está integrado. M08 administrativo está activado en MySQL Docker local, con 53 migraciones y SQL/HTTP PASS. M09 está activado en MySQL Docker local con 57 migraciones, SQL/HTTP y respaldo restaurado verificados. M10–M14 no están implementados.
+aprobado con recepciones parciales, idempotencia y concurrencia real. M07 está integrado. M08 administrativo está activado en MySQL Docker local, con 53 migraciones y SQL/HTTP PASS. M09 está activado en MySQL Docker local con 57 migraciones, SQL/HTTP y respaldo restaurado verificados. M10 de entregas está activado en MySQL local con 61 migraciones y SQL/HTTP PASS. M11–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -231,3 +231,9 @@ Espera mi aprobación antes de escribir código.
 Para otro módulo se sustituye el identificador y se agregan sus componentes
 actuales. Los requisitos detallados permanecen en `requirements.md`; este índice
 no los reemplaza.
+
+## Incremento M10 · Entregas
+
+Implementación de entregas parciales desde cotizaciones aceptadas, preparación, asignación logística, salida física contra apartados M08/M09 y confirmación del cliente. Incluye incidencias, cancelación previa a salida, vehículos, repartidores y rutas manuales. Cuatro migraciones aditivas; el cierre verificable de SQL, concurrencia, HTTP, responsive y activación se registra en [integración M10](integration-m10.md). Los resultados anteriores se conservan como historia; no se trasladan automáticamente a este incremento.
+
+Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restrictivas, 20 índices únicos y once permisos GLOBAL_ADMIN. npm test: 1168 comprobaciones; PHP/JS/build/diff, SQL y Chrome M10, regresiones SQL/HTTP M08–M09 y respaldo restaurado PASS. Las 63 tablas previas conservaron sus datos; base aislada vacía y sin fixtures en desarrollo. Los pendientes se calculan en persistencia y las vistas reciben arrays explícitos. Siguiente módulo oficial M11, sin iniciarlo.

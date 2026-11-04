@@ -66,6 +66,7 @@ abstract class AdminController extends Controller
                 'taxes' => AppKernel::access()->hasPermission($id, 'taxes.view', null),
                 'inventory' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'inventory.view') !== [],
                 'purchases' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.view') !== [],
+                'deliveries' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'deliveries.view') !== [],
                 'transfers' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'transfers.view') !== [],
                 'quotes' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.view') !== [],
                 'customers' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.view') !== [],

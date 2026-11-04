@@ -37,6 +37,6 @@ final class PdoTransferRepository extends PdoRepository implements TransferRepos
  }
  public function coverage(int $version,int $variant):string {return (string)$this->rows("SELECT COALESCE(SUM(ti.approved_quantity-ti.received_quantity),0) quantity FROM transfer_items ti JOIN transfers t ON t.id=ti.transfer_id WHERE t.quote_version_id=? AND ti.variant_id=? AND t.status IN('approved','prepared','in_transit')",[$version,$variant])[0]['quantity'];}
  public function destinationReservations(int $version):array {return $this->rows('SELECT ti.* ,t.destination_branch_id branch_id FROM transfer_items ti JOIN transfers t ON t.id=ti.transfer_id WHERE t.quote_version_id=? AND ti.destination_reserved>ti.destination_released ORDER BY ti.variant_id,ti.id FOR UPDATE',[$version]);}
- public function releaseDestination(int $item):void {$this->execute('UPDATE transfer_items SET destination_released=destination_reserved WHERE id=?',[$item]);}
+ public function releaseDestination(int $item,string $consumed='0'):void {$this->execute('UPDATE transfer_items SET destination_released=destination_reserved-? WHERE id=?',[$consumed,$item]);}
  public function assertUntracked(int $variant):void {foreach(['inventory_lots','inventory_serials']as $table)if($this->rows('SELECT id FROM '.$table.' WHERE variant_id=? LIMIT 1 FOR UPDATE',[$variant]))throw new OperationConflict('Esta variante tiene lotes o series. M05 aún no ofrece un traslado trazable de esas identificaciones; no se permite perderlas.');}
 }
