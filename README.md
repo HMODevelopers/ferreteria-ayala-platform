@@ -290,3 +290,10 @@ Pruebas aisladas: `npm run test:mysql:m09` y `npm run test:mysql:m09:http`. El a
 Implementación de entregas parciales desde cotizaciones aceptadas, preparación, asignación logística, salida física contra apartados M08/M09 y confirmación del cliente. Incluye incidencias, cancelación previa a salida, vehículos, repartidores y rutas manuales. Cuatro migraciones aditivas; el cierre verificable de SQL, concurrencia, HTTP, responsive y activación se registra en [integración M10](docs/integration-m10.md). Los resultados anteriores se conservan como historia; no se trasladan automáticamente a este incremento.
 
 Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restrictivas, 20 índices únicos y once permisos GLOBAL_ADMIN. npm test: 1168 comprobaciones; PHP/JS/build/diff, SQL y Chrome M10, regresiones SQL/HTTP M08–M09 y respaldo restaurado PASS. Las 63 tablas previas conservaron sus datos; base aislada vacía y sin fixtures en desarrollo. Los pendientes se calculan en persistencia y las vistas reciben arrays explícitos. Siguiente módulo oficial M11, sin iniciarlo.
+
+
+## M11 · CMS público
+
+Implementación de contenido estructurado, publicación/programación, medios raster privados, galerías M03, comprobantes M06, fotografías históricas M10, legales versionados, condiciones por sucursal y recepción pública real de solicitudes M08 con consentimiento/antispam. Siete migraciones aditivas, 21 tablas y trece permisos. El perfil PAGE_ADMIN no accede a datos comerciales ni usuarios. SMTP y M12 no se inician. Estado de pruebas, respaldo, activación y límites en [integración M11](docs/integration-m11.md).
+
+Cierre M11 del 4 de noviembre de 2026: migrado en desarrollo con 68 migraciones y 93 tablas, sin fixtures. Dominio 1235, SQL 71, Chrome 80 y las seis regresiones M08–M10 PASS; respaldo/restauración y conservación de datos verificados. La publicación pública se habilita desde el panel después de cargar contenido y aviso reales. Siguiente módulo M12, sin iniciarlo.

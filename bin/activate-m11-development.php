@@ -1,0 +1,42 @@
+<?php
+declare(strict_types=1);
+if(PHP_SAPI!=='cli'){http_response_code(404);exit(2);}require dirname(__DIR__).'/bootstrap/cli.php';require dirname(__DIR__).'/bootstrap/app.php';require dirname(__DIR__).'/tests/m11-support.php';
+use App\Core\AppKernel;
+use App\Core\Persistence\{MigrationDiscovery,Migrator,MySqlMigrationStore,DatabaseConfig};
+try{
+ if(($argv[1]??'')!=='--apply'||getenv('APP_ENV')!=='development'||getenv('DB_HOST')!=='mysql-local'||getenv('DB_DATABASE')!=='ferreteria_ayala')throw new RuntimeException('Requires --apply and exact local development target.');
+ foreach(['pdo_mysql','fileinfo','mbstring','gd'] as $extension)if(!extension_loaded($extension))throw new RuntimeException('Required extension missing: '.$extension);if(!function_exists('imagewebp')||!(imagetypes()&IMG_WEBP))throw new RuntimeException('GD WebP support required.');
+ $root=dirname(__DIR__);$source=m11sourceHashes();$proofs=[];
+ foreach(['local','sql','http'] as $suite){$path=$root.'/tests/artifacts/m11-'.$suite.'-pass.json';$proof=is_file($path)?json_decode(file_get_contents($path),true,512,JSON_THROW_ON_ERROR):null;
+  $relevant=static fn(string $path):bool=>str_starts_with($path,'app/Application/')||str_starts_with($path,'app/Domain/')||str_starts_with($path,'app/Core/Persistence/')||str_starts_with($path,'app/Infrastructure/')||$path==='app/Core/AppKernel.php'||str_starts_with($path,'database/')||in_array($path,['tests/mysql-m11-integration.php','tests/m11-support.php','tests/m11-worker.php','tests/m11-concurrency.php','docker/Dockerfile','docker/uploads.ini'],true);
+  $expected=$suite==='sql'?array_filter($source,$relevant,ARRAY_FILTER_USE_KEY):$source;$recorded=$suite==='sql'?array_filter($proof['files']??[],$relevant,ARRAY_FILTER_USE_KEY):($proof['files']??[]);
+  if(!$proof||($proof['passed_at']??0)<time()-86400||$recorded!==$expected)throw new RuntimeException('Run current M11 '.$suite.' checks before activation.');$proofs[$suite]=$proof;
+ }
+ if(($proofs['local']['domain_checks']??0)<1235)throw new RuntimeException('Current domain regression evidence absent.');
+ foreach(['Independent concurrent edits have exactly one winner','Independent request assignment has exactly one seller','Concurrent upload leaves one media and exactly its four files','Real lock timeout leaves content and revisions unchanged','Audit failure rolls back media metadata and removes only owned files','Isolated schema and owned image files empty after PASS','Executed source hashes unchanged during suite'] as $check)if(!in_array($check,$proofs['sql']['checks'],true))throw new RuntimeException('Required executed SQL assertion absent: '.$check);
+ foreach(['Chrome: Public replay returns same folio','Chrome: Seller atomically takes request and creates linked M08 draft','Chrome: Foreign branch cannot read invoice bytes','Chrome: Foreign branch cannot inspect request contact data','Chrome: HTTP rejects executable file disguised as JPEG','HTTP intake, draft preparation and evidence do not move inventory'] as $check)if(!in_array($check,$proofs['http']['checks'],true))throw new RuntimeException('Required executed HTTP assertion absent: '.$check);
+ $p=AppKernel::connection()->pdo();if(strtok((string)$p->query('SELECT CURRENT_USER()')->fetchColumn(),'@')!==getenv('DB_USERNAME'))throw new RuntimeException('Unexpected effective development identity.');
+ if((int)$p->query('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()')->fetchColumn()!==72)throw new RuntimeException('Unexpected development table inventory.');
+ $version=(string)$p->query('SELECT VERSION()')->fetchColumn();if(!str_starts_with($version,'8.4.'))throw new RuntimeException('Unexpected development engine.');
+ $all=(new MigrationDiscovery($root.'/database/migrations'))->all();$ids=array_values(array_map(static fn($m)=>$m->id,$all));$history=$p->query('SELECT id FROM schema_migrations ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
+ if(count($ids)!==68||count($history)!==61||$history!==array_slice($ids,0,61))throw new RuntimeException('Expected exact 61 previous and seven new migrations.');
+ if((int)$p->query("SELECT COUNT(*) FROM roles WHERE code='PAGE_ADMIN'")->fetchColumn()!==0)throw new RuntimeException('Existing page role requires inspection; none overwritten.');
+ // This creates a fresh private backup, compares it, restores every table in the empty isolated schema and removes that restoration only after verification.
+ require $root.'/bin/backup-m11-development.php';
+ $snapshot=json_decode(file_get_contents($file),true,512,JSON_THROW_ON_ERROR);if($snapshot['history']!==$history)throw new RuntimeException('Backup history changed.');
+ foreach($snapshot['tables'] as $table=>$before){$rows=$p->query('SELECT * FROM '.$table)->fetchAll();usort($rows,static fn($a,$b)=>strcmp(json_encode($a),json_encode($b)));if($rows!==$before['rows'])throw new RuntimeException('Development changed during backup/restore: '.$table);}
+ if(m11sourceHashes()!==$source)throw new RuntimeException('Source changed during backup/restore.');
+ $config=DatabaseConfig::fromArray(require $root.'/config/database.php');$store=new MySqlMigrationStore($p);$migrator=new Migrator(new MigrationDiscovery($root.'/database/migrations'),$store,$p,$config->migrationLockName(),10);$applied=$migrator->migrate();if(count($applied)!==7)throw new RuntimeException('Unexpected applied count; inspect development.');
+ foreach($snapshot['tables'] as $table=>$before){$rows=$p->query('SELECT * FROM '.$table)->fetchAll();usort($rows,static fn($a,$b)=>strcmp(json_encode($a),json_encode($b)));
+  if(in_array($table,['permissions','role_permissions','roles','schema_migrations'],true)){foreach($before['rows'] as $row)if(!in_array($row,$rows,true))throw new RuntimeException('Previous technical row changed in '.$table);}
+  elseif($rows!==$before['rows'])throw new RuntimeException('Previous business data changed in '.$table);
+ }
+ $new=['media','media_variants','banners','promotions','events','reviews','pages','site_settings','navigation_items','page_revisions','cms_operations','legal_documents','legal_document_versions','quote_term_templates','product_images','supplier_invoice_files','delivery_evidence','public_quote_requests','public_quote_request_items','legal_acceptances','public_request_limits'];
+ foreach($new as $table)if((int)$p->query('SELECT COUNT(*) FROM '.$table)->fetchColumn()!==0)throw new RuntimeException('Unexpected development fixture in '.$table);
+ $codes=['cms.configure','cms.view','cms.edit','cms.publish','cms.legal','cms.media','cms.terms','media.products','media.invoices','media.evidence.view','media.evidence.create','quote_requests.view','quote_requests.assign'];$marks=implode(',',array_fill(0,count($codes),'?'));
+ $s=$p->prepare("SELECT COUNT(*) FROM role_permissions rp JOIN roles r ON r.id=rp.role_id JOIN permissions p ON p.id=rp.permission_id WHERE r.code='GLOBAL_ADMIN' AND p.code IN ($marks)");$s->execute($codes);if((int)$s->fetchColumn()!==13)throw new RuntimeException('Expected 13 global admin assignments.');
+ if((int)$p->query("SELECT COUNT(*) FROM role_permissions rp JOIN roles r ON r.id=rp.role_id WHERE r.code='PAGE_ADMIN'")->fetchColumn()!==5||(int)$p->query("SELECT COUNT(*) FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE r.code='PAGE_ADMIN'")->fetchColumn()!==0)throw new RuntimeException('Dedicated page role differs or was assigned unexpectedly.');
+ $after=$p->query('SELECT id FROM schema_migrations ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);if($after!==$ids)throw new RuntimeException('Post-activation history differs.');
+ $result=['passed_at'=>time(),'migrations'=>68,'new_migrations'=>$applied,'new_tables'=>21,'preserved_tables'=>count($snapshot['tables']),'permissions'=>13,'page_role_permissions'=>5,'page_role_user_assignments'=>0,'backup'=>basename($file),'backup_sha256'=>hash_file('sha256',$file),'restore_verified'=>true,'isolated_database_empty'=>true,'public_module_enabled'=>(bool)$p->query("SELECT COUNT(*) FROM modules WHERE code='M11' AND is_globally_enabled=1")->fetchColumn(),'engine'=>$version];
+ file_put_contents($root.'/tests/artifacts/m11-activation.json',json_encode($result,JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR));echo json_encode($result,JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR),PHP_EOL;
+}catch(Throwable $e){fwrite(STDERR,'M11 activation: '.($e instanceof PDOException?'SQLSTATE '.$e->getCode().' driver '.($e->errorInfo[1]??0):$e->getMessage())."\n");exit(1);}

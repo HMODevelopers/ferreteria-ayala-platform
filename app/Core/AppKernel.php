@@ -65,4 +65,12 @@ final class AppKernel
     public static function transferManagement(): \App\Application\Services\TransferManagementService {return new \App\Application\Services\TransferManagementService(self::transfers(),self::inventory(),self::inventoryManagement(),self::connection());}
     public static function customers(): PdoCustomerRepository { return new PdoCustomerRepository(self::connection()); }
     public static function customerManagement(): CustomerManagementService { return new CustomerManagementService(self::customers(), self::connection()); }
+
+    public static function cms(): \App\Infrastructure\Persistence\PdoCmsRepository {return new \App\Infrastructure\Persistence\PdoCmsRepository(self::connection());}
+    public static function cmsManagement(): \App\Application\Services\CmsManagementService {return new \App\Application\Services\CmsManagementService(self::cms(),self::connection());}
+    public static function mediaDirectory(): string {return getenv('APP_ENV')==='testing'&&getenv('M11_MEDIA_DIRECTORY')?getenv('M11_MEDIA_DIRECTORY'):dirname(__DIR__,2).'/storage/media';}
+    public static function cmsPrivateDirectory(): string {return getenv('APP_ENV')==='testing'&&getenv('M11_PRIVATE_DIRECTORY')?getenv('M11_PRIVATE_DIRECTORY'):dirname(__DIR__,2).'/storage/private';}
+    public static function imageStorage(): \App\Infrastructure\Media\ImageStorage {return new \App\Infrastructure\Media\ImageStorage(self::mediaDirectory());}
+    public static function mediaManagement(): \App\Application\Services\MediaManagementService {return new \App\Application\Services\MediaManagementService(self::cms(),self::connection(),self::imageStorage());}
+    public static function publicRequests(): \App\Application\Services\PublicQuoteRequestService {return new \App\Application\Services\PublicQuoteRequestService(self::cms(),self::connection());}
 }

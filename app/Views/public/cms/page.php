@@ -1,0 +1,1 @@
+<article class="cms-section"><h1><?= e($page['title']) ?></h1><?php if($page['media_token']):?><img class="cms-page-image" src="/media?token=<?= e($page['media_token']) ?>" width="<?= e($page['media_width']) ?>" height="<?= e($page['media_height']) ?>" alt="<?= e($page['media_alt']) ?>"><?php endif?><div class="cms-prose"><?= e($page['body']) ?></div></article>

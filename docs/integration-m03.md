@@ -58,3 +58,8 @@ La aplicación normal usa `DB_*`; el punto de control nunca los reutiliza. Las
 migraciones M03 son aditivas y no insertan catálogo comercial. La última agrega
 los nueve permisos técnicos M03 y los asigna únicamente al rol
 `GLOBAL_ADMIN` existente.
+
+
+## Continuidad M11 · 4 de noviembre de 2026
+
+Los pendientes de medios y contenido relacionados con este módulo se atienden en [integración M11](integration-m11.md). Ese informe conserva las decisiones autorizadas, los límites de formatos, la recepción pública con consentimiento y los resultados reales; los estados anteriores de este documento permanecen como historia del incremento original.

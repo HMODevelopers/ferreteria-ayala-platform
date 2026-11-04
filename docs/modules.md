@@ -4,7 +4,7 @@ Este archivo es el índice para solicitar trabajo a Codex. Los identificadores
 son estables: una tarea debe mencionar el módulo, sus fuentes y el incremento
 concreto que se desea implementar.
 
-Estado general al 3 de noviembre de 2026: la Home demostrativa está aprobada.
+Estado general al 4 de noviembre de 2026: la Home demostrativa está aprobada.
 M00 y M01.1–M01.4 están implementados y pasan sus pruebas aisladas e integración
 real en MariaDB 10.11. La ejecución M01 fallida fue respaldada, restaurada en un
 destino temporal y recuperada de forma controlada; la repetición completa pasó
@@ -17,7 +17,7 @@ aislada vacía. M03 está integrado en MariaDB, migrado en desarrollo y aprobado
 con flujos HTTP autenticados. M04 está integrado, activado en desarrollo y pasa
 MariaDB y HTTP autenticado. M05 también está integrado, migrado y aprobado con
 concurrencia real y HTTP autenticado. M06 también está integrado, migrado y
-aprobado con recepciones parciales, idempotencia y concurrencia real. M07 está integrado. M08 administrativo está activado en MySQL Docker local, con 53 migraciones y SQL/HTTP PASS. M09 está activado en MySQL Docker local con 57 migraciones, SQL/HTTP y respaldo restaurado verificados. M10 de entregas está activado en MySQL local con 61 migraciones y SQL/HTTP PASS. M11–M14 no están implementados.
+aprobado con recepciones parciales, idempotencia y concurrencia real. M07 está integrado. M08 administrativo está activado en MySQL Docker local, con 53 migraciones y SQL/HTTP PASS. M09 está activado en MySQL Docker local con 57 migraciones, SQL/HTTP y respaldo restaurado verificados. M10 de entregas está activado en MySQL local con 61 migraciones y SQL/HTTP PASS. M11 está implementado, probado y migrado en desarrollo con 68 migraciones; su publicación pública permanece desactivada hasta cargar contenido real. Cierre en integration-m11.md. M12–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -237,3 +237,10 @@ no los reemplaza.
 Implementación de entregas parciales desde cotizaciones aceptadas, preparación, asignación logística, salida física contra apartados M08/M09 y confirmación del cliente. Incluye incidencias, cancelación previa a salida, vehículos, repartidores y rutas manuales. Cuatro migraciones aditivas; el cierre verificable de SQL, concurrencia, HTTP, responsive y activación se registra en [integración M10](integration-m10.md). Los resultados anteriores se conservan como historia; no se trasladan automáticamente a este incremento.
 
 Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restrictivas, 20 índices únicos y once permisos GLOBAL_ADMIN. npm test: 1168 comprobaciones; PHP/JS/build/diff, SQL y Chrome M10, regresiones SQL/HTTP M08–M09 y respaldo restaurado PASS. Las 63 tablas previas conservaron sus datos; base aislada vacía y sin fixtures en desarrollo. Los pendientes se calculan en persistencia y las vistas reciben arrays explícitos. Siguiente módulo oficial M11, sin iniciarlo.
+
+
+## Incremento M11 · CMS público
+
+Contenido y publicación estructurados, biblioteca raster segura, galerías/fichas M03, comprobantes privados M06, fotografías de confirmaciones/incidencias M10, aviso versionado y plantillas por sucursal. Recepción pública real M08 autorizada con consentimiento y antispam, sin SMTP. Detalles y resultados actuales: [integración M11](integration-m11.md). Siguiente módulo oficial M12, sin iniciarlo.
+
+Cierre M11 confirmado: dominio 1235, SQL 71 y HTTP/Chrome 80 comprobaciones registradas; sintaxis PHP/JS y build PASS; regresiones SQL/HTTP M08–M10 PASS. Respaldo restaurado y conservación de las 72 tablas anteriores verificados. Hay 93 tablas, trece permisos M11 y cero fixtures en las 21 tablas nuevas. Siguiente módulo M12, sin iniciar.

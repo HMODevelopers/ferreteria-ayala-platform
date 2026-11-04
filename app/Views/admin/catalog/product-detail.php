@@ -28,3 +28,5 @@
 </article>
 <?php endforeach ?>
 </section>
+
+<?php if($canMedia??false):?><section class="admin-panel"><a class="admin-secondary-button" href="/admin/media?kind=product&amp;parent_id=<?= e($detail['product']->id) ?>">Imágenes y fichas del producto</a></section><?php endif?>

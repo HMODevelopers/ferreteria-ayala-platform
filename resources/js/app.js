@@ -16,3 +16,6 @@ initTransfers();
 
 import { initDeliveries } from './modules/deliveries.js';
 initDeliveries();
+
+import { initCmsTerms } from './modules/cms.js';
+initCmsTerms();

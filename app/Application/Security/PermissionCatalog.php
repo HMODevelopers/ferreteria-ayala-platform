@@ -6,6 +6,19 @@ namespace App\Application\Security;
 final class PermissionCatalog
 {
     public const ITEMS = [
+        ['cms.configure', 'cms', 'configure', 'global', 'Habilitar sitio CMS y recepción pública por sucursal'],
+        ['cms.view', 'cms', 'view', 'global', 'Consultar contenido público y sus revisiones'],
+        ['cms.edit', 'cms', 'edit', 'global', 'Editar formularios estructurados del sitio'],
+        ['cms.publish', 'cms', 'publish', 'global', 'Publicar programar y archivar contenido'],
+        ['cms.legal', 'cms', 'legal', 'global', 'Administrar versiones de documentos legales'],
+        ['cms.media', 'cms', 'media', 'global', 'Administrar medios públicos autorizados'],
+        ['cms.terms', 'cms', 'terms', 'either', 'Administrar plantillas de condiciones por sucursal'],
+        ['media.products', 'products', 'media', 'global', 'Administrar imágenes y fichas técnicas del catálogo'],
+        ['media.invoices', 'purchases', 'files', 'either', 'Adjuntar y consultar comprobantes privados'],
+        ['media.evidence.view', 'delivery_evidence', 'view', 'either', 'Consultar fotografías privadas de entregas'],
+        ['media.evidence.create', 'delivery_evidence', 'create', 'either', 'Añadir fotografías a confirmaciones e incidencias'],
+        ['quote_requests.view', 'quote_requests', 'view', 'either', 'Consultar solicitudes públicas recibidas'],
+        ['quote_requests.assign', 'quote_requests', 'assign', 'either', 'Tomar solicitudes públicas de la sucursal'],
         ['deliveries.view', 'deliveries', 'view', 'either', 'Consultar entregas y pendientes'],
         ['deliveries.create', 'deliveries', 'create', 'either', 'Crear entregas parciales'],
         ['deliveries.edit', 'deliveries', 'edit', 'either', 'Editar cantidades pendientes'],

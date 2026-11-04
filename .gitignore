@@ -7,3 +7,6 @@ storage/sessions/*
 storage/backups/*
 !storage/backups/.gitkeep
 tests/artifacts/
+
+storage/media/
+storage/private/

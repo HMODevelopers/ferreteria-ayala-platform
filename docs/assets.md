@@ -23,3 +23,8 @@ Ver [licencia de Unsplash](https://unsplash.com/license). Se consultó al prepar
 ## Dependencias y licencias
 
 Inter y Barlow Condensed se distribuyen localmente desde Fontsource bajo SIL OFL. Swiper utiliza licencia MIT. El build copia sus licencias a `public/assets/licenses/`; mantenerlas en el despliegue. Las bibliotecas restantes son herramientas de compilación y pruebas y no se ejecutan en PHP/cPanel.
+
+
+## Medios M11
+
+No se añadieron fotografías comerciales, logotipos ni recursos externos. Las imágenes de QA se generan con GD en tests/m11-support.php y se almacenan exclusivamente en fixtures aislados; no son contenido de desarrollo. Las cargas futuras conservan nombre original, actor, fecha, descripción y SHA-256 de sus variantes recodificadas. El negocio debe aportar imágenes autorizadas. Las licencias de fuentes y Swiper permanecen conservadas. Formatos/límites y control de acceso: [integración M11](integration-m11.md).

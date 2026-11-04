@@ -59,3 +59,8 @@ tablas; su SHA-256 es
 Después se aplicó el lote 6 y se verificaron 46 historiales, siete permisos M06
 y siete asociaciones a `GLOBAL_ADMIN`. Las seis tablas comerciales nuevas
 permanecen vacías y los conteos previos no cambiaron.
+
+
+## Continuidad M11 · 4 de noviembre de 2026
+
+Los pendientes de medios y contenido relacionados con este módulo se atienden en [integración M11](integration-m11.md). Ese informe conserva las decisiones autorizadas, los límites de formatos, la recepción pública con consentimiento y los resultados reales; los estados anteriores de este documento permanecen como historia del incremento original.

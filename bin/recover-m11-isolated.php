@@ -1,0 +1,35 @@
+<?php
+declare(strict_types=1);
+if(PHP_SAPI!=='cli')exit(2);$cliEnvironment='testing';require dirname(__DIR__).'/bootstrap/cli.php';require dirname(__DIR__).'/bootstrap/app.php';require dirname(__DIR__).'/tests/m11-support.php';
+if(!in_array($argv[1]??'',['--recover-known-fixture','--backup-known-fixture'],true))throw new RuntimeException('Explicit known-fixture recovery required.');
+$cn=m10connection();$p=$cn->pdo();$store=new App\Core\Persistence\MySqlMigrationStore($p);if(!$store->acquireLock('ayala_m10_isolated_integration',10))throw new RuntimeException('Isolated database busy.');
+try{
+ $root=dirname(__DIR__);$objects=m10inventory($p,(string)getenv('TEST_DB_DATABASE_M10'));$history=$p->query('SELECT id FROM schema_migrations ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);$ids=array_values(array_map(static fn($m)=>$m->id,(new App\Core\Persistence\MigrationDiscovery($root.'/database/migrations'))->all()));
+ m11check(count($objects)===93&&count($history)===68&&$history===$ids,'Recovery schema and migration history exact');
+ $manifestFile=$root.'/tests/artifacts/m11-owned-schema.json';
+ if(is_file($manifestFile)){$manifest=json_decode(file_get_contents($manifestFile),true,512,JSON_THROW_ON_ERROR);m11check($manifest['objects']===$objects&&$manifest['history']===$history,'Recovery object ownership matches recorded isolated run');}
+ else{
+  // The first run failed before the ownership recorder was added; prove its exact initial fixture.
+  m11check((int)$p->query('SELECT COUNT(*) FROM users')->fetchColumn()===2&&(int)$p->query('SELECT COUNT(*) FROM branches')->fetchColumn()===2,'First-run initial fixture counts exact');
+  m11check((int)$p->query("SELECT COUNT(*) FROM users WHERE email LIKE 'm10-%@example.test' OR email LIKE 'm11-page-%@example.test'")->fetchColumn()===2,'First-run user namespaces exact');
+  m11check($p->query('SELECT code FROM branches ORDER BY code')->fetchAll(PDO::FETCH_COLUMN)===['M10_A','M10_B'],'First-run branch namespaces exact');
+  foreach(['media','pages','legal_documents','public_quote_requests','deliveries','quotes','supplier_invoices'] as $t)m11check((int)$p->query('SELECT COUNT(*) FROM '.$t)->fetchColumn()===0,'First-run empty business table '.$t);
+ }
+ $ownedPath=$root.'/tests/artifacts/m11-owned-fixture.json';$imageDir=null;if(is_file($ownedPath)){$data=json_decode(file_get_contents($ownedPath),true,512,JSON_THROW_ON_ERROR);$imageDir=dirname($data['source']);}else{$imageDirs=glob($root.'/tests/artifacts/m11-media-*',GLOB_ONLYDIR)?:[];m11check(count($imageDirs)===1,'First-run image directory identified');$imageDir=$imageDirs[0];}
+ m11check(str_starts_with(realpath($imageDir),realpath($root.'/tests/artifacts').DIRECTORY_SEPARATOR.'m11-media-'),'Image backup target stays inside owned test artifacts');
+ $snapshot=['history'=>$history,'objects'=>$objects,'tables'=>[],'image_files'=>[]];foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($imageDir,FilesystemIterator::SKIP_DOTS)) as $image){if(!$image->isFile())continue;$relative=str_replace(DIRECTORY_SEPARATOR,'/',substr($image->getPathname(),strlen($imageDir)+1));m11check((bool)preg_match('~^(?:source\.jpg|evil\.jpg|[a-f0-9]{48}\.webp|private/request-hmac\.key)$~D',$relative),'Only known fixture files enter the recovery backup');$bytes=file_get_contents($image->getPathname());$snapshot['image_files'][$relative]=['sha256'=>hash('sha256',$bytes),'base64'=>base64_encode($bytes)];}
+foreach($objects as $object){m11check(str_starts_with($object,'TABLES:'),'Recovery refuses hidden objects');$t=substr($object,7);if(!preg_match('/^[a-z_]+$/D',$t))throw new RuntimeException('Unexpected table');$snapshot['tables'][$t]=['ddl'=>$p->query('SHOW CREATE TABLE '.$t)->fetch(PDO::FETCH_NUM)[1],'rows'=>$p->query('SELECT * FROM '.$t)->fetchAll()];}
+ $json=json_encode($snapshot,JSON_THROW_ON_ERROR|JSON_PRETTY_PRINT);$backup=$root.'/storage/backups/m11-failed-isolated-'.gmdate('Ymd-His').'.json';$h=fopen($backup,'x');if(!$h)throw new RuntimeException('Backup creation failed');chmod($backup,0600);if(fwrite($h,$json)!==strlen($json))throw new RuntimeException('Incomplete backup');fclose($h);m11check(json_decode(file_get_contents($backup),true,512,JSON_THROW_ON_ERROR)===$snapshot&&hash_equals(hash('sha256',$json),hash_file('sha256',$backup)),'Failed isolated fixture backup verified before cleanup');
+ foreach($snapshot['image_files'] as $relative=>$entry)m11check(hash_equals($entry['sha256'],hash('sha256',base64_decode($entry['base64'],true)))&&hash_equals($entry['sha256'],hash_file('sha256',$imageDir.'/'.$relative)),'Recovery image bytes verified: '.$relative);
+ foreach($snapshot['tables'] as $t=>$data)m11check($p->query('SELECT * FROM '.$t)->fetchAll()===$data['rows'],'Recovery live rows still match backup '.$t);
+ if(($argv[1]??'')==='--backup-known-fixture'){$manifest=['backup'=>basename($backup),'sha256'=>hash_file('sha256',$backup)];file_put_contents($root.'/tests/artifacts/m11-inspection.json',json_encode($manifest,JSON_THROW_ON_ERROR));echo json_encode($manifest,JSON_THROW_ON_ERROR),PHP_EOL;return;}
+ $dirs=glob($root.'/tests/artifacts/m11-media-*',GLOB_ONLYDIR)?:[];$ownedFile=$root.'/tests/artifacts/m11-owned-fixture.json';$mediaDir=null;
+ if(is_file($ownedFile)){$owned=json_decode(file_get_contents($ownedFile),true,512,JSON_THROW_ON_ERROR);$mediaDir=dirname($owned['source']);}else{m11check(count($dirs)===1,'First-run image directory uniquely identified');$mediaDir=$dirs[0];}
+ m11check(str_starts_with(realpath($mediaDir),realpath($root.'/tests/artifacts').DIRECTORY_SEPARATOR.'m11-media-'),'Recovery image target stays inside test artifacts');
+ $fixture=new M11Fixture();$fixture->base=new M10Fixture();$fixture->cn=$cn;$fixture->pdo=$p;$fixture->base->cn=$cn;$fixture->base->pdo=$p;$fixture->base->store=$store;$fixture->base->v=App\Core\Persistence\IntegrationDatabaseEnvironment::forSuite('m10');$fixture->base->owned=true;
+ $new=['media','media_variants','banners','promotions','events','reviews','pages','site_settings','navigation_items','page_revisions','cms_operations','legal_documents','legal_document_versions','quote_term_templates','product_images','supplier_invoice_files','delivery_evidence','public_quote_requests','public_quote_request_items','legal_acceptances','public_request_limits'];
+ $fixture->base->objects=array_values(array_filter($objects,static fn($o)=>!in_array(substr($o,7),$new,true)));$fixture->objects=$objects;$fixture->mediaDir=$mediaDir;
+ $fixture->migrator=new App\Core\Persistence\Migrator(new App\Core\Persistence\MigrationDiscovery($root.'/database/migrations'),$store,$p,'ayala_m11_migrations',10);
+ $fixture->base->migrator=new App\Core\Persistence\Migrator(new App\Core\Persistence\MigrationDiscovery($root.'/database/migrations','20261103100300_register_delivery_permissions'),$store,$p,'ayala_m10_migrations',10);
+ $fixture->cleanup();echo json_encode(['recovered'=>true,'backup'=>basename($backup),'sha256'=>hash_file('sha256',$backup),'isolated_objects'=>0],JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR),PHP_EOL;
+}finally{$store->releaseLock('ayala_m10_isolated_integration');}

@@ -115,3 +115,10 @@ No se soporta hoy despliegue bajo subcarpeta URL (`/ayala`). Los assets y enlace
 ## Actualizaciones
 
 Guardar copia del despliegue anterior. Compilar en local y transferir los assets y vistas de una misma versión; usar ventana de mantenimiento si FTP no permite publicación atómica. Probar rutas y revisar logs después. Rollback: restaurar la versión anterior completa. Nunca almacenar backups, secretos o logs en la carpeta pública.
+
+
+## Requisitos adicionales M11
+
+PHP 8.2+, pdo_mysql, fileinfo, mbstring y GD con codificación WebP/JPEG/PNG. Configurar upload_max_filesize=10M y post_max_size=12M, con memoria suficiente; el procesamiento rechaza imágenes que excederían la memoria. storage/media y storage/private deben ser privados, escribibles por PHP y estar fuera del document root public/. La clave HMAC de runtime no debe publicarse ni incorporarse a Git. En Windows local se aplicó a esos directorios la ACL restringida existente de storage/backups.
+
+No se requieren Node, colas ni procesos residentes en producción. La programación de contenido se calcula al consultar. Configurar variables de entorno con el mecanismo del hosting; el servidor público no carga .env automáticamente. No publicar datos demostrativos como reales. Habilitar M11/M08/sucursal desde configuración administrativa únicamente después de cargar contenido y aviso de privacidad aprobado. No se ha probado este despliegue en cPanel/Apache real dentro del encargo M11.

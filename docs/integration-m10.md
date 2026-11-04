@@ -170,3 +170,8 @@ Modificados:
 - tests/run.php
 
 El .env privado también recibió exclusivamente la configuración de la identidad M10 autorizada; no se incluye en el inventario de Git ni se publican sus secretos. Los respaldos y artefactos de prueba permanecen privados e ignorados.
+
+
+## Continuidad M11 · 4 de noviembre de 2026
+
+Los pendientes de medios y contenido relacionados con este módulo se atienden en [integración M11](integration-m11.md). Ese informe conserva las decisiones autorizadas, los límites de formatos, la recepción pública con consentimiento y los resultados reales; los estados anteriores de este documento permanecen como historia del incremento original.

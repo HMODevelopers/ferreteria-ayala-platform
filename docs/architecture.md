@@ -2,7 +2,7 @@
 
 ## Flujo de peticiones
 
-Apache dirige las peticiones al front controller `public/index.php`, salvo assets permitidos. `bootstrap/app.php` registra autoload equivalente PSR-4, configura zona horaria y crea el router. Request captura método y ruta; el router resuelve controlador/acción; HomeController recibe DemoHomeData, renderiza Home dentro de layout y devuelve Response.
+Apache dirige las peticiones al front controller `public/index.php`, salvo assets permitidos. `bootstrap/app.php` registra autoload equivalente PSR-4, configura zona horaria y crea el router. Request captura método y ruta; el router resuelve controlador/acción; HomeController selecciona DemoHomeData o el contenido CMS M11 según su habilitación, renderiza la vista y devuelve Response.
 
 Response centraliza código, cabeceras de seguridad, HTML y redirecciones locales. HEAD utiliza GET sin cuerpo. Las rutas no encontradas producen 404; métodos no implementados para una ruta existente producen 405. No hay resolución dinámica de archivos o clases a partir de parámetros públicos.
 
@@ -44,7 +44,7 @@ No existe endpoint para modificar `audit_logs`.
 
 `DatabaseConfig` valida el resultado de `config/database.php`; `Connection`
 comprueba `pdo_mysql` y crea una única instancia PDO solo al llamar `pdo()`.
-La Home no construye estas clases y continúa con `DemoHomeData`. Las opciones
+La Home comprueba la instalación/habilitación de M11 y conserva `DemoHomeData` cuando el CMS no está disponible o habilitado. Las opciones
 obligatorias activan excepciones, desactivan consultas preparadas emuladas y
 devuelven arrays asociativos; el DSN usa `utf8mb4` y un timeout acotado.
 
@@ -307,3 +307,12 @@ QuoteManagementService coordina QuoteRepository/PdoQuoteRepository, M07, Pricing
 Implementación de entregas parciales desde cotizaciones aceptadas, preparación, asignación logística, salida física contra apartados M08/M09 y confirmación del cliente. Incluye incidencias, cancelación previa a salida, vehículos, repartidores y rutas manuales. Cuatro migraciones aditivas; el cierre verificable de SQL, concurrencia, HTTP, responsive y activación se registra en [integración M10](integration-m10.md). Los resultados anteriores se conservan como historia; no se trasladan automáticamente a este incremento.
 
 Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restrictivas, 20 índices únicos y once permisos GLOBAL_ADMIN. npm test: 1168 comprobaciones; PHP/JS/build/diff, SQL y Chrome M10, regresiones SQL/HTTP M08–M09 y respaldo restaurado PASS. Las 63 tablas previas conservaron sus datos; base aislada vacía y sin fixtures en desarrollo. Los pendientes se calculan en persistencia y las vistas reciben arrays explícitos. Siguiente módulo oficial M11, sin iniciarlo.
+
+
+## CMS público M11
+
+M11 mantiene PHP/MVC y autoload App\. CmsRules, servicios transaccionales y PdoCmsRepository separan validación, permisos, persistencia y renderizado. El contenido es texto escapado y campos explícitos, no HTML editable libre. El proveedor público consulta publicaciones efectivas M11; la Home demostrativa permanece cuando no está habilitado.
+
+Los medios se decodifican y recodifican con GD en almacenamiento privado fuera de public/. Solo una referencia publicada o un producto activo habilitan bytes públicos; evidencias y comprobantes exigen sesión/permiso/sucursal y verificación SHA-256. El perfil de página tiene cinco permisos de contenido sin acceso comercial.
+
+La recepción pública usa sesión/CSRF, nonce temporal, honeypot, rate limit persistente y versión legal vigente. PublicQuoteRequestService reutiliza el guardado M08 para crear el borrador y enlazarlo en la misma transacción; no mueve stock. Más detalles en [integración M11](integration-m11.md).

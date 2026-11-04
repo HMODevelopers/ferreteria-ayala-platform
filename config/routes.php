@@ -133,3 +133,24 @@ $router->get('/admin/deliveries/detail', [App\Controllers\Admin\DeliveriesContro
 $router->post('/admin/deliveries/action', [App\Controllers\Admin\DeliveriesController::class, 'action']);
 $router->get('/admin/deliveries/resources', [App\Controllers\Admin\DeliveriesController::class, 'resources']);
 $router->post('/admin/deliveries/resources', [App\Controllers\Admin\DeliveriesController::class, 'saveResource']);
+
+$router->get('/admin/cms', [App\Controllers\Admin\CmsController::class, 'index']);
+$router->post('/admin/cms/save', [App\Controllers\Admin\CmsController::class, 'save']);
+$router->get('/admin/cms/legal', [App\Controllers\Admin\CmsController::class, 'legal']);
+$router->post('/admin/cms/legal', [App\Controllers\Admin\CmsController::class, 'saveLegal']);
+$router->get('/admin/cms/terms', [App\Controllers\Admin\CmsController::class, 'terms']);
+$router->post('/admin/cms/terms', [App\Controllers\Admin\CmsController::class, 'saveTerms']);
+$router->get('/admin/media', [App\Controllers\Admin\MediaController::class, 'index']);
+$router->post('/admin/media/upload', [App\Controllers\Admin\MediaController::class, 'upload']);
+$router->get('/admin/media/file', [App\Controllers\Admin\MediaController::class, 'file']);
+$router->get('/admin/quote-requests', [App\Controllers\Admin\QuoteRequestsController::class, 'index']);
+$router->post('/admin/quote-requests/action', [App\Controllers\Admin\QuoteRequestsController::class, 'action']);
+$router->get('/pagina', [App\Controllers\Public\CmsController::class, 'page']);
+$router->get('/legal', [App\Controllers\Public\CmsController::class, 'legal']);
+$router->get('/media', [App\Controllers\Public\CmsController::class, 'image']);
+$router->get('/solicitar-cotizacion', [App\Controllers\Public\CmsController::class, 'requestForm']);
+$router->post('/solicitar-cotizacion', [App\Controllers\Public\CmsController::class, 'receive']);
+$router->post('/admin/media/arrange', [App\Controllers\Admin\MediaController::class, 'arrange']);
+$router->get('/sitemap.xml', [App\Controllers\Public\CmsController::class, 'sitemap']);
+$router->get('/admin/cms/settings', [App\Controllers\Admin\CmsController::class, 'settings']);
+$router->post('/admin/cms/settings', [App\Controllers\Admin\CmsController::class, 'configure']);

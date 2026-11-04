@@ -25,7 +25,7 @@ final class ProductsController extends CatalogAdminController
     public function detail(Request $request): Response
     {
         $user=$this->requireUser();if($user instanceof Response)return $user;if(($d=$this->requirePermission($user,'catalog.view'))!==null)return $d;$id=$request->integer('id');$detail=AppKernel::catalog()->productDetail($id);if($detail===null)return $this->adminView('admin/error',['title'=>'Producto no encontrado','message'=>'El registro solicitado no existe.','user'=>$user],404);
-        return $this->adminView('admin/catalog/product-detail',['title'=>$detail['product']->name,'activeNav'=>'catalog','user'=>$user,'detail'=>$detail,'units'=>AppKernel::catalog()->unitOptions()]);
+        return $this->adminView('admin/catalog/product-detail',['title'=>$detail['product']->name,'activeNav'=>'catalog','user'=>$user,'detail'=>$detail,'canMedia'=>AppKernel::cms()->installed()&&AppKernel::access()->hasPermission($user->id,'media.products',null),'units'=>AppKernel::catalog()->unitOptions()]);
     }
     public function create(Request $request): Response
     {

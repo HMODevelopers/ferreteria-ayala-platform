@@ -76,3 +76,8 @@ Cierre M09 confirmado: SQL/HTTP, respaldo restaurado y activación en desarrollo
 Implementación de entregas parciales desde cotizaciones aceptadas, preparación, asignación logística, salida física contra apartados M08/M09 y confirmación del cliente. Incluye incidencias, cancelación previa a salida, vehículos, repartidores y rutas manuales. Cuatro migraciones aditivas; el cierre verificable de SQL, concurrencia, HTTP, responsive y activación se registra en [integración M10](integration-m10.md). Los resultados anteriores se conservan como historia; no se trasladan automáticamente a este incremento.
 
 Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restrictivas, 20 índices únicos y once permisos GLOBAL_ADMIN. npm test: 1168 comprobaciones; PHP/JS/build/diff, SQL y Chrome M10, regresiones SQL/HTTP M08–M09 y respaldo restaurado PASS. Las 63 tablas previas conservaron sus datos; base aislada vacía y sin fixtures en desarrollo. Los pendientes se calculan en persistencia y las vistas reciben arrays explícitos. Siguiente módulo oficial M11, sin iniciarlo.
+
+
+## Incremento M11 · CMS público · 4 de noviembre de 2026
+
+Implementación y activación administrativa verificadas: contenido estructurado, publicación, medios raster, legales versionados, plantillas por sucursal, galerías M03, comprobantes M06, evidencias M10 y recepción pública real M08 con consentimiento/antispam. Desarrollo conserva 68 migraciones, 93 tablas y ningún fixture M11. Respaldo restaurado, dominio/SQL/HTTP/responsive y las seis regresiones M08–M10 aprobaron. La publicación pública sigue apagada hasta cargar insumos reales y habilitarla explícitamente. Cierre y límites: [integración M11](integration-m11.md). Siguiente módulo oficial M12; no se inicia.

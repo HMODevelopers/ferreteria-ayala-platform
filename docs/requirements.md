@@ -236,3 +236,8 @@ Todos usan paginación y filtros del servidor y respetan el alcance del usuario.
 - Credenciales SMTP, dominio definitivo y proveedor de mapas.
 
 Ningún secreto debe compartirse en documentos o confirmarse dentro del código.
+
+
+## Decisiones de integración M11 · 3–4 de noviembre de 2026
+
+El propietario autorizó fotografías append-only en eventos confirm/incident de M10, incluidos históricos. No se aprobó captura de firmas. Tras retirar su elección inicial de la segunda pregunta y explicarla de nuevo, confirmó hacer operativa la recepción pública de solicitudes M08 con consentimiento, validación y antispam; SMTP queda pendiente. El directorio de clientes no se altera automáticamente: Ventas selecciona un cliente interno al convertir la solicitud en borrador. No hay apartados ni cotización final al recibir. Ver [cierre M11](integration-m11.md).

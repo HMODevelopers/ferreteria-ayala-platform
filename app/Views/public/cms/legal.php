@@ -1,0 +1,1 @@
+<article class="cms-section"><h1><?= e($document['title']) ?></h1><p>Versión <?= e($document['version_number']) ?> · Publicada <?= e($document['published_at']) ?> UTC</p><div class="cms-prose"><?= e($document['body']) ?></div></article>

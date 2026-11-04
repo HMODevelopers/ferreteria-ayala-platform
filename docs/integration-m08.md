@@ -142,3 +142,8 @@ Validación final: npm test PASS (1052), 291 archivos PHP válidos, 16 archivos 
 | N · Git | Sin staging, commit, push ni cambios de historial |
 | O · Pendientes | Datos reales, privacidad para solicitud pública y canal SMTP autorizado; PDF fuera de Windows-1252 se translitera |
 | P · Continuidad | Siguiente módulo oficial M09, sin comenzar |
+
+
+## Continuidad M11 · 4 de noviembre de 2026
+
+Los pendientes de medios y contenido relacionados con este módulo se atienden en [integración M11](integration-m11.md). Ese informe conserva las decisiones autorizadas, los límites de formatos, la recepción pública con consentimiento y los resultados reales; los estados anteriores de este documento permanecen como historia del incremento original.
