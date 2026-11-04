@@ -25,7 +25,9 @@
     "recover:mysql:m01-recovery": "php tests/mysql-m01-recovery.php recover",
     "test:browser": "node tests/browser.mjs",
     "test:mysql:m08": "php tests/mysql-m08-integration.php",
-    "test:mysql:m08:http": "node tests/m08-http-integration.mjs"
+    "test:mysql:m08:http": "node tests/m08-http-integration.mjs",
+    "test:mysql:m09": "php tests/mysql-m09-integration.php",
+    "test:mysql:m09:http": "node tests/m09-http-integration.mjs"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",

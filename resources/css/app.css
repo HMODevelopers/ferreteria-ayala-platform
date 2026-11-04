@@ -101,3 +101,8 @@
  .quote-document-bottom { display:grid; grid-template-columns:1fr 1fr; break-inside:avoid; }
  .admin-table-wrap { overflow:visible; } .quote-totals { print-color-adjust:exact; }
 }
+
+[data-transfer-create] .admin-table input, [data-transfer-create] .admin-table select { width:100%; min-width:6rem; max-width:15rem; border:1px solid #cbd5e1; border-radius:6px; padding:10px; background:#fff; color:#172033; }
+[data-transfer-create] [role="status"] { margin:12px 0; color:#64748b; font-size:0.875rem; }
+[data-transfer-event] { display:grid; gap:16px; }
+[data-transfer-event] button { justify-self:start; }

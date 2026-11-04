@@ -278,3 +278,9 @@ La Home fue aprobada como base el 17 de octubre de 2026. Las siguientes mejoras 
 ## Cotizaciones comerciales M08
 
 El panel /admin/quotes permite crear borradores con clientes M07, agregar variantes M03, calcular desde M04 y consultar M05. Incluye emisión, PDF, versiones históricas, autorización de descuentos, aceptación manual con apartado y cancelación con liberación. Consulta [alcance, pruebas y activación M08](docs/integration-m08.md). El entorno vigente es Windows/Docker con MySQL 8.4; la Home pública conserva su demo local y no envía solicitudes.
+
+## M09 · Transferencias
+
+Administración en `/admin/transfers`: solicitud, aprobación con apartado en origen, preparación, salida física, tránsito, recepción parcial y trazabilidad M05. Incluye cobertura de faltantes de cotizaciones y apartados al recibir para una aceptada. Modelo, permisos, pruebas, activación y límites: [integración M09](docs/integration-m09.md).
+
+Pruebas aisladas: `npm run test:mysql:m09` y `npm run test:mysql:m09:http`. El activador privado es `php bin/activate-m09-development.php --apply`; exige desarrollo confirmado, evidencias SQL/HTTP y respaldo restaurado. No cargar fixtures en desarrollo.

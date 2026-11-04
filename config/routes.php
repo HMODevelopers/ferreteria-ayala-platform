@@ -118,3 +118,10 @@ $router->get('/admin/quotes/detail', [App\Controllers\Admin\QuotesController::cl
 $router->post('/admin/quotes/action', [App\Controllers\Admin\QuotesController::class, 'action']);
 $router->get('/admin/quotes/lookup', [App\Controllers\Admin\QuotesController::class, 'lookup']);
 $router->get('/admin/quotes/pdf', [App\Controllers\Admin\QuotesController::class, 'pdf']);
+
+$router->get('/admin/transfers', [App\Controllers\Admin\TransfersController::class, 'index']);
+$router->get('/admin/transfers/create', [App\Controllers\Admin\TransfersController::class, 'createForm']);
+$router->post('/admin/transfers/create', [App\Controllers\Admin\TransfersController::class, 'create']);
+$router->get('/admin/transfers/detail', [App\Controllers\Admin\TransfersController::class, 'detail']);
+$router->get('/admin/transfers/products', [App\Controllers\Admin\TransfersController::class, 'products']);
+$router->post('/admin/transfers/action', [App\Controllers\Admin\TransfersController::class, 'action']);

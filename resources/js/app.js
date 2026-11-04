@@ -10,3 +10,6 @@ if (document.querySelector('.hero-swiper')) import('./components/sliders.js').th
 
 import { initAdminQuotes } from './modules/admin-quotes.js';
 initAdminQuotes();
+
+import { initTransfers } from './modules/transfers.js';
+initTransfers();

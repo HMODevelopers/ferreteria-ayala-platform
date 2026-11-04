@@ -297,3 +297,7 @@ recursos locales; revisar cualquier integración sin relajarla globalmente.
 ## Cotizaciones comerciales M08
 
 QuoteManagementService coordina QuoteRepository/PdoQuoteRepository, M07, PricingManagementService y CommercialCalculator M04. QuoteReservationService compone bloqueos/saldos de InventoryRepository M05 en la transacción exterior. Partidas, versiones, autorización, historial y auditoría confirman o revierten juntos. El controlador coordina permisos, CSRF, entradas y vistas; QuotePdf produce el archivo en PHP. Véase [integración M08](integration-m08.md).
+
+## Transferencias M09
+
+`TransferRules`, `TransferRepository`/`PdoTransferRepository` y `TransferManagementService` separan dominio, SQL y casos de uso. El controlador sólo coordina sesión, permisos por responsabilidad/origen/destino, CSRF y vistas. `Request::keyedValues` conserva los identificadores de partidas sin cambiar `values()` de módulos anteriores. Los eventos comparten una transacción exterior con los adaptadores de M05 y auditoría; las recepciones no se registran como stock de destino antes de ocurrir. `QuoteReservationService` reconoce cobertura aprobada mediante contrato opcional M09, sin duplicar el motor de saldos. Véase [integración M09](integration-m09.md).

@@ -6,6 +6,16 @@ namespace App\Application\Security;
 final class PermissionCatalog
 {
     public const ITEMS = [
+        ['transfers.view', 'transfers', 'view', 'either', 'Consultar transferencias'],
+        ['transfers.create', 'transfers', 'create', 'either', 'Solicitar en destino'],
+        ['transfers.edit', 'transfers', 'edit', 'either', 'Editar solicitud en destino'],
+        ['transfers.approve', 'transfers', 'approve', 'either', 'Aprobar y apartar en origen'],
+        ['transfers.prepare', 'transfers', 'prepare', 'either', 'Preparar mercancía en origen'],
+        ['transfers.dispatch', 'transfers', 'dispatch', 'either', 'Despachar desde origen'],
+        ['transfers.receive', 'transfers', 'receive', 'either', 'Recibir en destino'],
+        ['transfers.cancel', 'transfers', 'cancel', 'either', 'Cancelar antes del despacho'],
+        ['transfers.history', 'transfers', 'history', 'either', 'Consultar trazabilidad'],
+        ['transfers.incident', 'transfers', 'incident', 'either', 'Registrar incidencias sin alterar saldos'],
         ['dashboard.view', 'dashboard', 'view', 'either', 'Ver el panel administrativo dentro del alcance autorizado'],
         ['users.view', 'users', 'view', 'either', 'Consultar usuarios autorizados'],
         ['users.create', 'users', 'create', 'either', 'Crear usuarios dentro del alcance autorizado'],

@@ -32,6 +32,24 @@ final class InventoryManagementService
         return $this->recordWithinTransactionInternal($input, $actorId, $audit, true);
     }
 
+    /** M09 reservations compose with the same M05 balance and scope lock. */
+    public function transferReservationWithinTransaction(int $branch,int $variant,string $quantity,bool $release=false):void
+    {
+        if(!$release)$this->inventory->lockScope($branch,$variant);
+        $balance=$this->inventory->findBalance($branch,$variant,true)??throw new OperationConflict('No existe saldo para apartar.');
+        $delta=Decimal::parse($quantity,6);$before=Decimal::parse($balance['reserved_quantity'],6);
+        $after=$release?$before->subtract($delta):$before->add($delta);
+        if($after->compare(Decimal::parse($balance['physical_quantity'],6))>0)throw new OperationConflict('Disponibilidad insuficiente; se respetan los apartados existentes.');
+        $this->inventory->updateBalance((int)$balance['id'],$balance['physical_quantity'],$after->format(6),false);
+    }
+
+    public function recordTransferWithinTransaction(array $input,int $actor,bool $incoming):array
+    {
+        if(($input['source_type']??null)!=='transfer_event')throw new \InvalidArgumentException('Falta la referencia de transferencia.');
+        $input['type']=$incoming?'adjustment_in':'adjustment_out';
+        return $this->recordWithinTransactionInternal($input,$actor,null,$incoming);
+    }
+
     private function recordWithinTransactionInternal(array $input, int $actorId, ?callable $audit, bool $allowInitialization): array
     {
         $branchId = self::id($input['branch_id'] ?? 0, 'La sucursal');

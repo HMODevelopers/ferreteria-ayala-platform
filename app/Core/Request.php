@@ -24,6 +24,12 @@ final class Request {
         $value = $this->body[$key] ?? [];
         return is_array($value) ? array_values(array_filter($value, 'is_string')) : [];
     }
+    /** Scalar form map retaining documentary item identifiers. */
+    public function keyedValues(string $key): array {
+        $value=$this->body[$key]??[];
+        if(!is_array($value))return [];
+        return array_filter($value,'is_string');
+    }
     public function cookie(string $key, string $default = ''): string { $v = $this->cookies[$key] ?? $default; return is_string($v) ? $v : $default; }
     public function ip(): string {
         $value = $this->server['REMOTE_ADDR'] ?? '0.0.0.0';

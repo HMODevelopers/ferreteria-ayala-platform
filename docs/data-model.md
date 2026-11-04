@@ -322,3 +322,9 @@ guardarán en Git ni en esta documentación.
 ## Implementación comercial M08
 
 Cinco migraciones aditivas materializan quotes, quote_contacts, quote_versions, quote_items, quote_status_history, quote_assignments, quote_approvals, inventory_reservations e inventory_reservation_items. Las versiones emitidas son inmutables; los apartados aparecen únicamente al aceptar y se liberan al cancelar. Contratos, índices, precisión y estados: [integración M08](integration-m08.md).
+
+## Transferencias M09
+
+Cuatro migraciones aditivas crean `transfers`, `transfer_items`, `transfer_events` y `transfer_event_items`, más diez permisos en la última migración. El historial acumulado previsto es 57. Cantidades exactas en unidad base: solicitada, aprobada, despachada, recibida y asignación/liberación para cotización en destino. Tránsito y pendiente se derivan; eventos enlazan movimiento M05 único y conservan idempotencia, actor y notas. FKs restrictivas; rollbacks protegidos. Detalle en [integración M09](integration-m09.md).
+
+Activación M09 confirmada: 57 migraciones acumuladas, cuatro tablas nuevas vacías y diez permisos. Las 59 tablas previas conservaron sus datos.

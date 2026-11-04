@@ -56,8 +56,10 @@ final class AppKernel
     public static function purchasingManagement(): PurchasingManagementService { return new PurchasingManagementService(self::purchasing(), self::inventoryManagement(), self::connection()); }
     public static function quotes(): \App\Infrastructure\Persistence\PdoQuoteRepository { return new \App\Infrastructure\Persistence\PdoQuoteRepository(self::connection()); }
     public static function quoteManagement(): \App\Application\Services\QuoteManagementService {
-        return new \App\Application\Services\QuoteManagementService(self::quotes(),self::customers(),self::pricing(),self::pricingManagement(),new \App\Application\Services\QuoteReservationService(self::inventory(),self::quotes()),self::connection());
+        return new \App\Application\Services\QuoteManagementService(self::quotes(),self::customers(),self::pricing(),self::pricingManagement(),new \App\Application\Services\QuoteReservationService(self::inventory(),self::quotes(),self::transfers()->installed()?self::transfers():null),self::connection());
     }
+    public static function transfers(): \App\Infrastructure\Persistence\PdoTransferRepository {return new \App\Infrastructure\Persistence\PdoTransferRepository(self::connection());}
+    public static function transferManagement(): \App\Application\Services\TransferManagementService {return new \App\Application\Services\TransferManagementService(self::transfers(),self::inventory(),self::inventoryManagement(),self::connection());}
     public static function customers(): PdoCustomerRepository { return new PdoCustomerRepository(self::connection()); }
     public static function customerManagement(): CustomerManagementService { return new CustomerManagementService(self::customers(), self::connection()); }
 }

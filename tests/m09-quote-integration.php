@@ -1,0 +1,10 @@
+<?php
+$quotes=new App\Infrastructure\Persistence\PdoQuoteRepository($cn);$prices=new App\Infrastructure\Persistence\PdoPricingRepository($cn);
+$qs=new App\Application\Services\QuoteManagementService($quotes,new App\Infrastructure\Persistence\PdoCustomerRepository($cn),$prices,new App\Application\Services\PricingManagementService($prices,$cn),new App\Application\Services\QuoteReservationService($stock,$quotes,$repo),$cn);
+$qid=$qs->save(m09input($f),[['variant_id'=>$f['variant'],'quantity'=>'90','discount_rate'=>'0']],null,$f['actor']);$q=$quotes->quote($qid,null);$qs->action($qid,(int)$q['lock_version'],'issue',null,$f['actor'],bin2hex(random_bytes(20)));$q=$quotes->quote($qid,null);$qv=$quotes->version($qid,1);
+$reject(fn()=>$qs->action($qid,(int)$q['lock_version'],'accepted',null,$f['actor'],bin2hex(random_bytes(20))),'Acceptance without coverage succeeded');
+$linked=$service->create(['source_branch_id'=>$f['other'],'destination_branch_id'=>$f['branch'],'quote_version_id'=>$qv['id'],'reason'=>'Completar faltante de cotización','operation_key'=>bin2hex(random_bytes(20))],[['variant_id'=>$f['variant'],'unit_id'=>$f['unit'],'quantity'=>'5']],null,$f['actor']);$act($linked,'approve','5');
+$q=$quotes->quote($qid,null);$qs->action($qid,(int)$q['lock_version'],'accepted',null,$f['actor'],bin2hex(random_bytes(20)));m09check($stock->findBalance($f['branch'],$f['variant'])['reserved_quantity']==='85.000000','Coverage reserved nonexistent stock');
+$act($linked,'prepare');$act($linked,'dispatch','5');$act($linked,'receive','3');m09check($stock->findBalance($f['branch'],$f['variant'])['reserved_quantity']==='88.000000','Received stock was not reserved for accepted quote');
+$q=$quotes->quote($qid,null);$qs->action($qid,(int)$q['lock_version'],'cancelled',null,$f['actor'],bin2hex(random_bytes(20)),'Cancelación del cliente');m09check($stock->findBalance($f['branch'],$f['variant'])['reserved_quantity']==='0.000000','Quote cancel did not release received transfer allocation');
+$act($linked,'receive','2');m09check($stock->findBalance($f['branch'],$f['variant'])['reserved_quantity']==='0.000000','Receipt re-reserved cancelled quote');

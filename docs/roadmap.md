@@ -64,3 +64,9 @@ Dashboard y estadísticas basadas en datos reales; copias de seguridad, restaura
 ## Incremento administrativo M08 · 3 de noviembre de 2026
 
 Cotizaciones con borradores, versiones, M04, cliente M07, PDF, aceptación y apartado M05 implementados. El entorno vigente es Docker local con MySQL 8.4, confirmado por el propietario. Cierre de pruebas/activación: [integración M08](integration-m08.md). No se inicia M09. Solicitud pública y SMTP conservan las fronteras descritas allí.
+
+## Incremento M09 · 3 de noviembre de 2026
+
+Transferencias entre sucursales con aprobación/apartado, preparación, despacho, tránsito y recepción. La cobertura de faltantes se integra con M08 sin cambiar versiones comerciales ni disponer de apartados ajenos. Estado verificado y fronteras en [integración M09](integration-m09.md). El siguiente módulo es M10, sin implementación dentro de este encargo.
+
+Cierre M09 confirmado: SQL/HTTP, respaldo restaurado y activación en desarrollo PASS; 57 migraciones, sin datos ficticios. M10 permanece pendiente de un encargo independiente.

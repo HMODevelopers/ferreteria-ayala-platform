@@ -17,7 +17,7 @@ aislada vacía. M03 está integrado en MariaDB, migrado en desarrollo y aprobado
 con flujos HTTP autenticados. M04 está integrado, activado en desarrollo y pasa
 MariaDB y HTTP autenticado. M05 también está integrado, migrado y aprobado con
 concurrencia real y HTTP autenticado. M06 también está integrado, migrado y
-aprobado con recepciones parciales, idempotencia y concurrencia real. M07 está integrado. M08 administrativo está activado en MySQL Docker local, con 53 migraciones y SQL/HTTP PASS. M09–M14 no están implementados.
+aprobado con recepciones parciales, idempotencia y concurrencia real. M07 está integrado. M08 administrativo está activado en MySQL Docker local, con 53 migraciones y SQL/HTTP PASS. M09 está activado en MySQL Docker local con 57 migraciones, SQL/HTTP y respaldo restaurado verificados. M10–M14 no están implementados.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -160,12 +160,11 @@ registro ni portal público; la integración histórica M07 está documentada en
 
 Alcance oficial: solicitud, toma por vendedor, versiones históricas, vigencia, PDF, SMTP, enlace de WhatsApp, autorizaciones, aceptación y cancelación; sin cobros, facturación ni ventas financieras.
 
-Incremento administrativo activado el 3 de noviembre de 2026: borradores, cliente M07, variantes M03, motor M04, disponibilidad/apartados M05, revisiones, autorizaciones, emisión, PDF, estados e historial. SQL y HTTP PASS, 53 migraciones y nueve permisos. Solicitud pública y SMTP no se declaran implementados en este incremento; véanse [fronteras y cierre M08](integration-m08.md). M09 no se inició.
+Incremento administrativo activado el 3 de noviembre de 2026: borradores, cliente M07, variantes M03, motor M04, disponibilidad/apartados M05, revisiones, autorizaciones, emisión, PDF, estados e historial. SQL y HTTP PASS, 53 migraciones y nueve permisos. Solicitud pública y SMTP no se declaran implementados en este incremento; véanse [fronteras y cierre M08](integration-m08.md). M09 quedó integrado posteriormente; véase su cierre.
 
 ### M09 · Transferencias
 
-Incluye faltantes de cotizaciones y movimientos entre sucursales con aprobación
-configurable. No genera compras cuando la red completa carece de existencia.
+Integrado y activado el 3 de noviembre de 2026: solicitudes, aprobación con apartado en origen, preparación, despachos y recepciones parciales, tránsito, incidencias, cobertura de cotizaciones y movimientos M05. Cuatro migraciones aditivas elevan el total a 57; diez permisos configurables por sucursal. SQL, concurrencia independiente, HTTP/Chrome y respaldo restaurado: PASS. No genera compras ni implementa M10. Alcance y límites de lotes/series: [integración M09](integration-m09.md).
 
 ### M10 · Entregas y devoluciones
 
