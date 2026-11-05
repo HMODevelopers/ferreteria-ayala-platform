@@ -117,3 +117,6 @@
 .cms-coordinate-map{display:block;width:100%;height:auto;max-height:28rem;margin-bottom:1rem}
 
 .cms-site{--orange:#f58220}.cms-site .admin-primary-button,.cms-site .admin-secondary-button{font-size:1rem;min-height:44px;padding:.75rem 1.1rem}.cms-site .admin-primary-button{background:#f58220;color:#171717}.cms-site .admin-primary-button:hover{background:#e86e0a}.cms-site .admin-field{font-size:1rem}.cms-site .admin-field input,.cms-site .admin-field textarea,.cms-site .admin-field select{font-size:1rem;min-height:44px;padding:.75rem}.cms-map-legend{list-style:decimal;padding-left:1.5rem}
+
+/* Published home keeps the approved public composition when data is still empty. */
+.public-section-empty{background:#fff;border:1px dashed #c8cdd3;border-radius:3px;grid-column:1/-1;min-height:180px;padding:38px;text-align:center}.public-section-empty>span{color:#9aa2ad;display:flex;justify-content:center}.public-section-empty h3{font-size:15px;font-weight:600;margin-top:12px}.public-section-empty p{color:#64748b;font-size:11px;line-height:1.7;margin:8px auto 0;max-width:420px}.promotion-grid>.public-section-empty{min-height:240px}.branch-status[href]{color:#8f3c00;text-decoration:underline;text-underline-offset:3px}

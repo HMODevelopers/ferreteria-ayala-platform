@@ -21,3 +21,10 @@ foreach(App\Domain\Cms\CmsRules::TYPES as $type=>$label){
  foreach(App\Domain\Cms\CmsRules::FIELDS as $other=>$otherFields)foreach($otherFields as $key=>$fieldLabel)if(!isset(App\Domain\Cms\CmsRules::FIELDS[$type][$key]))check(!str_contains($html,'name="fields['.$key.']"'),'Editor omits irrelevant field '.$type.'.'.$key);
  check(strpos($html,'cms-editor-primary')<strpos($html,'cms-editor-publication'),'Primary content precedes publication: '.$type);
 }
+$legal=['values'=>[],'error'=>null,'csrf'=>'legal-design-fixture-only','versions'=>[],'offset'=>0];
+$html=App\Core\View::partial('admin/cms/legal',$legal);
+check(str_contains($html,'legal-workspace')&&str_contains($html,'legal-empty'),'Legal documents have a dedicated workspace and empty state');
+check(!str_contains($html,'M11'),'Legal documents omit internal module identifiers');
+$legal['versions']=[['id'=>1,'code'=>'privacy','version_number'=>1,'title'=>'<script>unsafe</script>','body'=>'<img src=x onerror=alert(1)>','content_hash'=>'fixture-hash','created_at'=>'2026-11-04 12:00:00','published_at'=>null]];
+$html=App\Core\View::partial('admin/cms/legal',$legal);
+check(!str_contains($html,'<script>')&&!str_contains($html,'<img src=x'),'Legal version history escapes dynamic text');

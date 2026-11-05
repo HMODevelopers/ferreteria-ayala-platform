@@ -81,6 +81,7 @@ require __DIR__ . '/m10-deliveries.php';
 require __DIR__ . '/m11-cms.php';
 require __DIR__ . '/admin-navigation.php';
 require __DIR__ . '/publication-settings.php';
+require __DIR__ . '/published-home.php';
 require __DIR__ . '/cms-design.php';
 require __DIR__ . '/media-library.php';
 require __DIR__ . '/customers-design.php';

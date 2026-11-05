@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once dirname(__DIR__) . '/app/Core/Config/EnvironmentFile.php';
+App\Core\Config\EnvironmentFile::load(dirname(__DIR__) . '/.env');
 require_once dirname(__DIR__) . '/app/Core/helpers.php';
 spl_autoload_register(static function (string $class): void {
     if (!str_starts_with($class, 'App\\')) return;

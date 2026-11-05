@@ -25,11 +25,12 @@ php -S 127.0.0.1:8080 -t public public/router.php
 
 Abre **http://127.0.0.1:8080**. También puedes ejecutar `npm run serve`.
 
-PHP lee configuración con `getenv()`. Los comandos CLI privados cargan el archivo
-`.env` local mediante un parser de datos que no evalúa shell; las variables ya
-exportadas tienen precedencia. Las integraciones fuerzan `APP_ENV=testing` solo
-en su proceso. La aplicación web no carga `.env`; en cPanel se definen las
-variables de producción en el entorno del sitio.
+PHP lee configuración con `getenv()`. El bootstrap común de la aplicación y los
+comandos CLI privados cargan el archivo `.env` local mediante un parser de datos
+que no evalúa shell; las variables ya exportadas tienen precedencia. Las
+integraciones fuerzan `APP_ENV=testing` solo en su proceso. En cPanel pueden
+definirse las variables de producción en el entorno del sitio y esos valores no
+son reemplazados por el archivo local.
 
 ## Persistencia y migraciones
 

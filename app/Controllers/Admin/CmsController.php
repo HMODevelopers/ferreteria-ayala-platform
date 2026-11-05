@@ -24,7 +24,7 @@ final class CmsController extends AdminController
     public function legal(Request $r,array $values=[],?string $error=null):Response
     {
         $u=$this->requireUser();if($u instanceof Response)return $u;if($e=$this->requirePermission($u,'cms.legal'))return $e;
-        return $this->adminView('admin/cms/legal',['values'=>$values,'error'=>$error,'title'=>'Documentos legales','activeNav'=>'cms','user'=>$u,'versions'=>AppKernel::cms()->query('SELECT v.*,d.code FROM legal_document_versions v JOIN legal_documents d ON d.id=v.legal_document_id ORDER BY v.id DESC LIMIT 26 OFFSET '.max(0,min(100000,(int)$r->query('offset','0'))))->fetchAll(),'offset'=>max(0,(int)$r->query('offset','0'))],$error?422:200);
+        return $this->adminView('admin/cms/legal',['values'=>$values,'error'=>$error,'title'=>'Documentos legales','activeNav'=>'legal','user'=>$u,'versions'=>AppKernel::cms()->query('SELECT v.*,d.code FROM legal_document_versions v JOIN legal_documents d ON d.id=v.legal_document_id ORDER BY v.id DESC LIMIT 26 OFFSET '.max(0,min(100000,(int)$r->query('offset','0'))))->fetchAll(),'offset'=>max(0,(int)$r->query('offset','0'))],$error?422:200);
     }
     public function saveLegal(Request $r):Response
     {
@@ -45,7 +45,7 @@ final class CmsController extends AdminController
         if($selected&&!in_array((int)$selected['branch_id'],array_map(static fn($b)=>(int)$b['id'],$branches),true))$branches[]=['id'=>$selected['branch_id'],'name'=>$selected['branch_name']];
         $data=['title'=>'Condiciones para cotizaciones','activeNav'=>'terms','user'=>$u,'branches'=>$branches,'selected'=>$selected,'values'=>$values?:($selected??[]),'error'=>$error];
         if($r->query('editor')==='1'||$selected||$error)return $this->adminView('admin/cms/terms-editor',$data,$error?422:200);
-        $filters=['q'=>mb_substr(trim($r->query('q')),0,120),'branch_id'=>$r->integer('branch_id')?(string)$r->integer('branch_id'):'','state'=>in_array($r->query('state'),['0','1'],true)?$r->query('state'):''];
+        $filters=['q'=>CmsRules::truncate($r->query('q'),120),'branch_id'=>$r->integer('branch_id')?(string)$r->integer('branch_id'):'','state'=>in_array($r->query('state'),['0','1'],true)?$r->query('state'):''];
         $params=[];$where=[];
         if($allowed!==null){$where[]='t.branch_id IN('.implode(',',array_fill(0,count($allowed),'?')).')';array_push($params,...$allowed);}
         if($filters['branch_id']!==''){$where[]='t.branch_id=?';$params[]=$filters['branch_id'];}

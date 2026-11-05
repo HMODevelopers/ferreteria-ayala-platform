@@ -6,8 +6,9 @@ pertenecen a su entorno original. La conexión entre contenedores usa
 `DB_HOST=mysql-local` y `DB_PORT=3306` en el `.env` local, que no se versiona.
 
 Los comandos usan `--env-file .env.example` para la configuración de Compose.
-PHP carga el `.env` real con el parser del proyecto, sin interpolar sus secretos
-mediante Compose. Ninguna credencial se incorpora a las imágenes.
+El bootstrap común de PHP carga el `.env` real con el parser del proyecto, sin
+interpolar sus secretos mediante Compose. Ninguna credencial se incorpora a las
+imágenes.
 
 ```powershell
 docker compose --env-file .env.example up -d --build
@@ -16,9 +17,9 @@ docker compose --env-file .env.example exec php php bin/migrations.php migrate
 docker compose --env-file .env.example exec php php tests/run.php
 ```
 
-Abre http://127.0.0.1:8080. El document root es `public/`. El router privado de
-Docker carga `.env` como datos solamente en este entorno de desarrollo; Apache
-y cPanel siguen usando las variables de entorno del servidor.
+Abre http://127.0.0.1:8080. El document root es `public/`. El bootstrap intenta
+cargar `.env` en todos los entornos y conserva cualquier variable que Apache,
+cPanel o Docker ya haya definido en el proceso.
 
 Para crear la primera cuenta administradora, ejecuta en una terminal interactiva:
 

@@ -20,8 +20,17 @@ final class CmsRules
     {
         if (!is_string($value)||!preg_match('//u',$value)) throw new \InvalidArgumentException('Texto inválido.');
         $value=trim($value);
-        if (mb_strlen($value)>$max||preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u',$value)||($required&&$value==='')) throw new \InvalidArgumentException('Texto vacío, demasiado largo o con caracteres inválidos.');
+        $length=preg_match_all('/./us',$value);
+        if ($length===false||$length>$max||preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u',$value)||($required&&$value==='')) throw new \InvalidArgumentException('Texto vacío, demasiado largo o con caracteres inválidos.');
         return $value;
+    }
+    public static function truncate(mixed $value,int $max):string
+    {
+        if (!is_string($value)||$max<0||!preg_match('//u',$value)) return '';
+        $value=trim($value);
+        if ($max===0)return '';
+        preg_match_all('/./us',$value,$characters);
+        return implode('',array_slice($characters[0]??[],0,$max));
     }
     public static function id(mixed $v,bool $optional=false):?int
     {

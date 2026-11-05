@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace App\Controllers\Public;
 use App\Core\{AppKernel,Controller,Request,Response};
+use App\Data\CmsHomeData;
 use App\Domain\Cms\CmsRules;
 final class CmsController extends Controller
 {
@@ -19,9 +20,8 @@ final class CmsController extends Controller
     }
     public function home(Request $r):Response
     {
-        if(!self::enabled())return $this->missing();$branch=$r->integer('branch_id')?:null;$data=['title'=>'Ferretería Ayala','branchId'=>$branch,'branches'=>AppKernel::cms()->branches()];
-        foreach(['banners','promotions','events','reviews','site_settings'] as $t)$data[$t]=AppKernel::cms()->publicContent($t,$branch);
-        return $this->render('public/cms/home',$data);
+        if(!self::enabled())return $this->missing();$branch=$r->integer('branch_id')?:null;$search=substr(trim($r->query('q')),0,100);$data=CmsHomeData::from(AppKernel::cms(),$branch,$search);
+        return new Response(\App\Core\View::render('public/home',$data,'layouts/public'),200,['Cache-Control'=>'no-store']);
     }
     public function page(Request $r):Response
     {
