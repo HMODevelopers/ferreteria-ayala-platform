@@ -72,5 +72,7 @@ final class AppKernel
     public static function cmsPrivateDirectory(): string {return getenv('APP_ENV')==='testing'&&getenv('M11_PRIVATE_DIRECTORY')?getenv('M11_PRIVATE_DIRECTORY'):dirname(__DIR__,2).'/storage/private';}
     public static function imageStorage(): \App\Infrastructure\Media\ImageStorage {return new \App\Infrastructure\Media\ImageStorage(self::mediaDirectory());}
     public static function mediaManagement(): \App\Application\Services\MediaManagementService {return new \App\Application\Services\MediaManagementService(self::cms(),self::connection(),self::imageStorage());}
+    public static function quoteWorkflows(): \App\Infrastructure\Persistence\PdoQuoteWorkflowRepository {return new \App\Infrastructure\Persistence\PdoQuoteWorkflowRepository(self::connection());}
+    public static function quoteWorkflow(): \App\Application\Services\QuoteWorkflowService {return new \App\Application\Services\QuoteWorkflowService(self::connection(),self::quoteManagement());}
     public static function publicRequests(): \App\Application\Services\PublicQuoteRequestService {return new \App\Application\Services\PublicQuoteRequestService(self::cms(),self::connection());}
 }

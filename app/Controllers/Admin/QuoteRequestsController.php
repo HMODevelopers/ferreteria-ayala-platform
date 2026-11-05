@@ -7,6 +7,7 @@ final class QuoteRequestsController extends AdminController
     public function index(Request $r):Response
     {
         $u=$this->requireUser();if($u instanceof Response)return $u;$allowed=AppKernel::access()->accessibleBranchIdsForPermission($u->id,'quote_requests.view');if($allowed===[])return $this->requirePermission($u,'quote_requests.view')??Response::redirect('/admin');
+        if(AppKernel::quoteWorkflows()->installed())return Response::redirect($r->integer('id')?'/admin/quotes/workflow?kind=request&id='.$r->integer('id'):'/admin/quotes?origin=web');
         $id=$r->integer('id')?:null;$offset=max(0,(int)$r->query('offset','0'));$rows=AppKernel::cms()->requests($allowed,$offset,$id);$selected=$id?($rows[0]??null):null;
         if($id&&!$selected)return $this->adminView('admin/error',['title'=>'Solicitud no disponible','message'=>'No existe o está fuera de tu alcance.','user'=>$u],404);
         $branch=$selected?(int)$selected['branch_id']:null;

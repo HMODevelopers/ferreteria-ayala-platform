@@ -73,7 +73,7 @@ abstract class AdminController extends Controller
                 'purchases' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.view') !== [],
                 'deliveries' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'deliveries.view') !== [],
                 'transfers' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'transfers.view') !== [],
-                'quotes' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.view') !== [],
+                'quotes' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.view') !== [] || AppKernel::access()->accessibleBranchIdsForPermission($id, 'quote_requests.view') !== [],
                 'customers' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.view') !== [],
             ];
             if ($isFragment) {

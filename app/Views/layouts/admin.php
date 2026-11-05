@@ -15,11 +15,11 @@
     <main id="admin-content" class="admin-login-shell"><?= $content ?></main>
 <?php else: ?>
     <div class="admin-shell">
-        <?php admin_component('sidebar', ['activeNav' => $activeNav ?? '', 'navAccess' => $navAccess ?? []]); ?>
+        <?php admin_component('sidebar', ['activeNav' => $activeNav ?? '', 'navAccess' => $navAccess ?? [], 'navUserId' => $user->id ?? 0]); ?>
         <button class="admin-sidebar-scrim" type="button" data-admin-scrim aria-label="Cerrar navegación"></button>
         <div class="admin-main">
             <header class="admin-topbar">
-                <button class="admin-menu-button" type="button" data-admin-menu aria-label="Abrir navegación" aria-expanded="false">☰</button>
+                <button class="admin-menu-button" type="button" data-admin-menu aria-controls="admin-sidebar" aria-label="Abrir navegación" aria-expanded="false">☰</button>
                 <details class="admin-account-menu" data-admin-account-menu>
                     <summary class="admin-account-trigger" aria-label="Abrir menú de cuenta">
                         <span class="admin-account-avatar" aria-hidden="true"><?= e(strtoupper(substr($user->displayName ?? 'A', 0, 1))) ?></span>

@@ -4,7 +4,7 @@ if(PHP_SAPI!=='cli')exit(2);$cliEnvironment='testing';require dirname(__DIR__).'
 if(!in_array($argv[1]??'',['--recover-known-fixture','--backup-known-fixture'],true))throw new RuntimeException('Explicit known-fixture recovery required.');
 $cn=m10connection();$p=$cn->pdo();$store=new App\Core\Persistence\MySqlMigrationStore($p);if(!$store->acquireLock('ayala_m10_isolated_integration',10))throw new RuntimeException('Isolated database busy.');
 try{
- $root=dirname(__DIR__);$objects=m10inventory($p,(string)getenv('TEST_DB_DATABASE_M10'));$history=$p->query('SELECT id FROM schema_migrations ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);$ids=array_values(array_map(static fn($m)=>$m->id,(new App\Core\Persistence\MigrationDiscovery($root.'/database/migrations'))->all()));
+ $root=dirname(__DIR__);$objects=m10inventory($p,(string)getenv('TEST_DB_DATABASE_M10'));$history=$p->query('SELECT id FROM schema_migrations ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);$ids=array_values(array_map(static fn($m)=>$m->id,(new App\Core\Persistence\MigrationDiscovery($root.'/database/migrations','20261103110600_create_page_admin_role'))->all()));
  m11check(count($objects)===93&&count($history)===68&&$history===$ids,'Recovery schema and migration history exact');
  $manifestFile=$root.'/tests/artifacts/m11-owned-schema.json';
  if(is_file($manifestFile)){$manifest=json_decode(file_get_contents($manifestFile),true,512,JSON_THROW_ON_ERROR);m11check($manifest['objects']===$objects&&$manifest['history']===$history,'Recovery object ownership matches recorded isolated run');}

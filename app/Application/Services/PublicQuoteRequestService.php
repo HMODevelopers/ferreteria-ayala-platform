@@ -75,6 +75,7 @@ final class PublicQuoteRequestService
             $r=$this->repo->one('SELECT * FROM public_quote_requests WHERE id=? FOR UPDATE',[$id])??throw new OperationConflict('Solicitud no disponible.');
             if((int)$r['assigned_user_id']!==$actor||(int)$r['branch_id']!==$branch||$r['quote_id']!==null)throw new OperationConflict('La solicitud cambió. Recarga antes de continuar.');
             $this->repo->query('UPDATE public_quote_requests SET quote_id=?,lock_version=lock_version+1 WHERE id=?',[$quote,$id]);
+            if($this->repo->one("SELECT id FROM schema_migrations WHERE id='20261104200100_create_quote_workflows'"))$this->repo->query("UPDATE quote_workflows SET quote_id=?,stage='verifying',verified_hash=NULL,lock_version=lock_version+1 WHERE request_id=?",[$quote,$id]);
             (new PdoAuditRepository($this->connection))->record($actor,'quote_request.prepared','public_quote_request',$id,$branch,'success');
             (new PdoAuditRepository($this->connection))->record($actor,'quote.'.$action,'quote',$quote,$branch,'success');
         });

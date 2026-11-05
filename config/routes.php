@@ -108,6 +108,7 @@ $router->post('/admin/customers/create', [App\Controllers\Admin\CustomersControl
 $router->get('/admin/customers/detail', [App\Controllers\Admin\CustomersController::class, 'detail']);
 $router->get('/admin/customers/edit', [App\Controllers\Admin\CustomersController::class, 'editForm']);
 $router->post('/admin/customers/update', [App\Controllers\Admin\CustomersController::class, 'update']);
+$router->get('/admin/customers/status', [App\Controllers\Admin\CustomersController::class, 'statusForm']);
 $router->post('/admin/customers/status', [App\Controllers\Admin\CustomersController::class, 'status']);
 
 $router->get('/admin/quotes', [App\Controllers\Admin\QuotesController::class, 'index']);
@@ -154,3 +155,13 @@ $router->post('/admin/media/arrange', [App\Controllers\Admin\MediaController::cl
 $router->get('/sitemap.xml', [App\Controllers\Public\CmsController::class, 'sitemap']);
 $router->get('/admin/cms/settings', [App\Controllers\Admin\CmsController::class, 'settings']);
 $router->post('/admin/cms/settings', [App\Controllers\Admin\CmsController::class, 'configure']);
+
+$router->get('/admin/quotes/intake', [App\Controllers\Admin\QuoteWorkflowsController::class, 'intake']);
+$router->post('/admin/quotes/intake', [App\Controllers\Admin\QuoteWorkflowsController::class, 'receive']);
+$router->get('/admin/quotes/workflow', [App\Controllers\Admin\QuoteWorkflowsController::class, 'show']);
+$router->get('/admin/quotes/workflow/action', [App\Controllers\Admin\QuoteWorkflowsController::class, 'actionForm']);
+$router->post('/admin/quotes/workflow/action', [App\Controllers\Admin\QuoteWorkflowsController::class, 'act']);
+$router->get('/admin/quotes/workflow/prepare', [App\Controllers\Admin\QuoteWorkflowsController::class, 'prepareForm']);
+$router->post('/admin/quotes/workflow/prepare', [App\Controllers\Admin\QuoteWorkflowsController::class, 'prepare']);
+
+$router->get('/admin/quotes/action', [App\Controllers\Admin\QuotesController::class, 'actionForm']);

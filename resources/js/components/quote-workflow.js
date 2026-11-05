@@ -1,0 +1,3 @@
+export function initQuoteWorkflow(scope=document){
+ scope.querySelectorAll('[data-intake-add]').forEach(button=>{const form=button.closest('form');if(form.dataset.intakeBound)return;form.dataset.intakeBound='1';button.addEventListener('click',()=>{const container=form.querySelector('[data-intake-items]');if(container.children.length>=100)return;const row=container.firstElementChild.cloneNode(true);for(const input of row.querySelectorAll('input'))input.value=input.name==='quantity[]'?'1':'';container.append(row);row.querySelector('input')?.focus();});form.addEventListener('click',event=>{const remove=event.target.closest('[data-intake-remove]');if(remove&&form.querySelectorAll('[data-intake-item]').length>1)remove.closest('[data-intake-item]').remove();});});
+}

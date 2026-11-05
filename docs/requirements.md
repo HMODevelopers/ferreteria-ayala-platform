@@ -241,3 +241,8 @@ Ningún secreto debe compartirse en documentos o confirmarse dentro del código.
 ## Decisiones de integración M11 · 3–4 de noviembre de 2026
 
 El propietario autorizó fotografías append-only en eventos confirm/incident de M10, incluidos históricos. No se aprobó captura de firmas. Tras retirar su elección inicial de la segunda pregunta y explicarla de nuevo, confirmó hacer operativa la recepción pública de solicitudes M08 con consentimiento, validación y antispam; SMTP queda pendiente. El directorio de clientes no se altera automáticamente: Ventas selecciona un cliente interno al convertir la solicitud en borrador. No hay apartados ni cotización final al recibir. Ver [cierre M11](integration-m11.md).
+
+
+## Aclaración del flujo de cotizaciones (2026-11-04)
+
+Las solicitudes recibidas desde el sitio, correo, WhatsApp, teléfono y mostrador forman un único flujo comercial, identificado por su origen. El equipo puede capturar una solicitud externa sin inventar productos ni precios. Debe verificar existencias, registrar consultas por faltantes y la conformidad ante cambios, preparar el documento con precios y total, emitir su versión formal y registrar su entrega manual. Una sola bandeja conserva la solicitud original, responsable e historial; las acciones dependientes utilizan el modal administrativo compartido. Véase [flujo de cotizaciones](quote-workflow.md). SMTP y mensajería automática siguen pendientes.

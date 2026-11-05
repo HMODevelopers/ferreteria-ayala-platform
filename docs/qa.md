@@ -201,3 +201,59 @@ Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restr
 PASS: 1235 comprobaciones locales M00–M11; 375 archivos PHP y 26 JS/MJS con sintaxis válida; build local; SQL M11 con 71 aserciones registradas y carreras entre conexiones independientes; HTTP/Chrome M11 con 80 comprobaciones registradas, sesiones/CSRF/permisos/sucursal, contenido/legales/plantillas/galería, antispam y archivos privados. Responsive 360/768/1024/1440 px en Home, formulario, bandeja, publicación, evidencias y editor. Capturas revisadas visualmente tras corregir contraste público y corte de folios; sin errores inesperados de consola/red en la ejecución final.
 
 Las seis regresiones SQL y HTTP/Chrome de M08–M10 aprobaron y dejaron vacío el esquema aislado. El respaldo final se restauró y comparó antes de aplicar únicamente siete migraciones en desarrollo; se preservaron las 72 tablas previas. Estado final: 68 migraciones, 93 tablas, trece permisos nuevos, ninguna cuenta creada en desarrollo y 21 tablas M11 sin fixtures. Publicación pública aún apagada por insumos reales pendientes. No se declaran cPanel/Apache remoto, dispositivos físicos ni lectores de pantalla probados. Evidencias y limitaciones en [integración M11](integration-m11.md).
+
+
+## Mejora de navegación administrativa · 4 de noviembre de 2026
+
+PASS: 1250 comprobaciones locales, sintaxis PHP (378 archivos), JS modificado/nuevo, build y 47 comprobaciones Chrome de grupos, preferencias, permisos, teclado, móvil y responsive. Pruebas sobre el layout real con datos de presentación, sin MySQL ni cuentas nuevas. Rutas reales sin sesión conservan la redirección al login. Ver [navegación administrativa](admin-navigation.md) para método y evidencias.
+
+
+## Diseño de publicación del sitio · 4 de noviembre de 2026
+
+PASS: 1265 comprobaciones locales, 381 archivos PHP válidos, build y 45 comprobaciones Chrome de estados, permisos de accesos, contrato de formularios, teclado y responsive hasta 1920 px. Capturas revisadas. Sin cambios de configuración ni uso de MySQL; se conservan las mejoras del menú previas. Ver [diseño de publicación](publication-settings-design.md).
+
+
+Ajuste final del menú: grupos expandidos por defecto y barra de desplazamiento oculta, conservando rueda, teclado y Resumen fijo. PASS: 1266 comprobaciones locales, 381 archivos PHP, build y 50 comprobaciones Chrome. Sin cambios de cuentas ni base de datos.
+
+Orientación del scroll administrativo: menú compacto, encabezados de grupo persistentes, degradados condicionados al contenido fuera de vista y barra estrecha al interactuar. PASS: 54 comprobaciones Chrome, 1266 locales, sintaxis PHP/JS y build. Capturas desktop/móvil revisadas.
+
+
+## Diseño y modales de contenido del sitio · 4 de noviembre de 2026
+
+PASS: 1307 comprobaciones locales, sintaxis de 385 archivos PHP y JS modificado, build; 80 comprobaciones Chrome del diseño en las siete categorías y responsive 360/768/1440/2560; regresiones de menú (51) y publicación (63). La regresión autenticada M11 aprobó 80 aserciones y dejó limpio el esquema aislado. Se verificaron valores preservados en errores, confirmación del guardado, publicación, archivado y programación. Se corrigió la pérdida del mensaje al usar respuestas parciales; los dos fixtures fallidos se respaldaron y verificaron antes de recuperar exclusivamente el esquema aislado. Sin datos nuevos ni cambios de configuración en desarrollo. Ver [diseño del contenido](cms-content-design.md).
+
+Editores específicos del contenido: PASS, 1377 comprobaciones locales, 393 PHP válidos, build y 128 comprobaciones Chrome. Se revisaron formularios de las siete categorías en escritorio/móvil, campos propios y orden, y se conservó el modal compartido. Sin cambios en datos ni servicios.
+
+
+## Biblioteca de imágenes y carga guiada · 4 de noviembre de 2026
+
+PASS: 1391 comprobaciones locales, 398 archivos PHP válidos, JS y build; 38 comprobaciones Chrome de biblioteca/vista previa/arrastre/errores/carga y responsive hasta 2560 px; regresión de editores por tipo con 128 comprobaciones. HTTP/Chrome M11: 81 aserciones con carga pública real, rechazo de archivo inválido, galerías privadas y limpieza aislada. Capturas vacías, con imágenes y de carga revisadas en escritorio/móvil. Ver [biblioteca de imágenes](media-library-design.md).
+
+Ajuste visual del menú: títulos sin iconos, neutros y pequeños; opciones alineadas con sus iconos y un único enlace activo en naranja. PASS: PHP del componente, build, diff y 53 comprobaciones Chrome responsive. Sin cambios de rutas, permisos ni persistencia.
+
+
+## Clientes: diseño y modales · 4 de noviembre de 2026
+
+PASS: 1427 comprobaciones locales, 403 PHP válidos, JS y build; 25 comprobaciones Chrome de Clientes y responsive hasta 2560 px, más regresiones del modal compartido de contenido (128) y biblioteca (38). HTTP/Chrome M11 --customers: 92 aserciones y limpieza aislada, con 11 comprobaciones autenticadas de Clientes. Se conservaron contactos, direcciones, validación, control de versiones, filtros y auditoría. Ver [diseño de Clientes](customers-design.md).
+
+
+## Cotizaciones unificadas — 2026-11-04
+
+- Pruebas locales: 1453 comprobaciones aprobadas; sintaxis PHP: 421 archivos.
+- Navegador con páginas de prueba: menú 53, CMS 128, biblioteca 38 y clientes 25 comprobaciones aprobadas tras los cambios del modal compartido.
+- Flujo de cotizaciones con páginas de prueba: 28 comprobaciones aprobadas, incluyendo escritorio y móvil, canales, captura de múltiples materiales, conservación de búsquedas y validación en modal.
+- Documentación operativa: [flujo de cotizaciones](quote-workflow.md).
+
+- Integración real SQL/HTTP y Chrome: **54 comprobaciones aprobadas**, incluyendo los cuatro orígenes de captura manual y el sitio web, ausencia de duplicados, consulta y respuesta del cliente, cálculo financiero, verificación con existencias, rechazo de emisión sin verificar, PDF real, registro de entrega de la versión emitida y denegación al editor de páginas. Limpieza aislada completada. Evidencia: `tests/artifacts/m11-workflow-sql-pass.json`.
+- Verificación final: sintaxis PHP 421 archivos, JavaScript 38 archivos, 1453 comprobaciones y compilación local aprobadas.
+- Actualización de desarrollo aplicada: **69 migraciones y 95 tablas**. Se conservaron los registros de las 92 tablas previas de negocio y acceso; solo cambió el historial de migraciones. Las dos tablas nuevas quedaron vacías; no se crearon usuarios ni datos sintéticos en desarrollo.
+- Respaldo privado previo: `pre-quote-workflow-20261105-025611.json`, SHA-256 `7b2e2693f7527aeaf84ba26c8777057aa34256040f751138c54028d1f639d448`. El actualizador verificó el respaldo y comparó los registros previos después de migrar.
+- Alcance pendiente: envío automático por SMTP/WhatsApp. La interfaz genera el PDF y registra una entrega manual confirmada.
+
+
+## Condiciones para cotizaciones — 2026-11-04
+
+- Biblioteca por sucursal con contexto de uso, vista previa, filtros y estados de disponibilidad; creación y edición en modal compartido. [Comportamiento documentado](terms-design.md).
+- Navegador con servidor de páginas de prueba: **30 comprobaciones aprobadas** en anchos 360, 768, 1440 y 2560; creación y edición modal, cancelación, respuesta 422 con valores conservados, confirmación de guardado, filtros, paginación, texto escapado y formulario nativo sin JavaScript. Evidencia: `tests/artifacts/terms-design/pass.json`. No se escribieron datos en la base.
+- Regresión de editores CMS: **128 comprobaciones aprobadas** tras ampliar las rutas del modal.
+- Verificación local: **1453 comprobaciones**, sintaxis PHP de **424 archivos**, sintaxis JavaScript de **39 archivos** y compilación de assets aprobadas. No se modificaron tablas ni reglas de guardado comercial.
