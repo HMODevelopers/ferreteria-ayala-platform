@@ -16,14 +16,14 @@ final class BranchesController extends AdminController
         $allowed = AppKernel::access()->accessibleBranchIds($user->id ?? 0);
         if ($allowed === [] && ($denied = $this->requirePermission($user, 'branches.view')) !== null) return $denied;
         $page = AppKernel::branchReads()->page(50, 0, $allowed);
-        return $this->adminView('admin/branches/index', ['title' => 'Sucursales', 'activeNav' => 'branches', 'user' => $user, 'page' => $page]);
+        return $this->adminView('admin/branches/index', ['title' => 'Sucursales', 'activeNav' => 'branches', 'user' => $user, 'page' => $page, 'mapOptions' => $this->mapOptions()]);
     }
 
     public function createForm(Request $request): Response
     {
         $user = $this->requireUser(); if ($user instanceof Response) return $user;
         if (($denied = $this->requirePermission($user, 'branches.create')) !== null) return $denied;
-        return $this->adminView('admin/branches/form', ['title' => 'Nueva sucursal', 'activeNav' => 'branches', 'user' => $user, 'branch' => null]);
+        return $this->adminView('admin/branches/form', ['title' => 'Nueva sucursal', 'activeNav' => 'branches', 'user' => $user, 'branch' => null, 'mapOptions' => $this->mapOptions()]);
     }
 
     public function editForm(Request $request): Response
@@ -33,7 +33,7 @@ final class BranchesController extends AdminController
         if (($denied = $this->requirePermission($user, 'branches.edit', $id)) !== null) return $denied;
         $branch = AppKernel::branches()->findById($id);
         if ($branch === null) return $this->adminView('admin/error', ['title' => 'Sucursal no encontrada', 'message' => 'El registro solicitado no existe.', 'user' => $user], 404);
-        return $this->adminView('admin/branches/form', ['title' => 'Editar sucursal', 'activeNav' => 'branches', 'user' => $user, 'branch' => $branch]);
+        return $this->adminView('admin/branches/form', ['title' => 'Editar sucursal', 'activeNav' => 'branches', 'user' => $user, 'branch' => $branch, 'mapOptions' => $this->mapOptions()]);
     }
 
     public function detail(Request $request): Response
@@ -45,7 +45,7 @@ final class BranchesController extends AdminController
         if ($branch === null) return $this->adminView('admin/error', ['title' => 'Sucursal no encontrada', 'message' => 'El registro solicitado no existe.', 'user' => $user], 404);
         $hours = AppKernel::access()->hasPermission($user->id ?? 0, 'branches.schedule.view', $id) ? AppKernel::branchReads()->regularHours($id) : null;
         $services = AppKernel::access()->hasPermission($user->id ?? 0, 'branches.services.view', $id) ? AppKernel::branchReads()->services($id) : null;
-        return $this->adminView('admin/branches/detail', compact('user', 'branch', 'hours', 'services') + ['title' => $branch->name, 'activeNav' => 'branches']);
+        return $this->adminView('admin/branches/detail', compact('user', 'branch', 'hours', 'services') + ['title' => $branch->name, 'activeNav' => 'branches', 'mapOptions' => $this->mapOptions()]);
     }
 
     public function create(Request $request): Response
@@ -81,6 +81,16 @@ final class BranchesController extends AdminController
         return $this->run(fn() => AppKernel::branchManagement()->setActive(
             $id, $active, fn(Branch $updated) => AppKernel::audit()->record($user->id, $active ? 'branches.activate' : 'branches.deactivate', 'branch', $updated->id, $updated->id, 'success'),
         ), $active ? 'Sucursal activada.' : 'Sucursal desactivada.', '/admin/branches', $user->id, $active ? 'branches.activate' : 'branches.deactivate', 'branch', $id, $id);
+    }
+
+    private function mapOptions(): array
+    {
+        $config = require dirname(__DIR__, 3) . '/config/maps.php';
+        $parts = parse_url($config['tile_url']);
+        if (($parts['scheme'] ?? '') !== 'https' || empty($parts['host']) || !filter_var($parts['host'], FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) || isset($parts['user']) || isset($parts['pass'])) throw new \RuntimeException('Invalid map tile configuration.');
+         $geocoder = parse_url($config['geocoder_url']);
+        if (($geocoder['scheme'] ?? '') !== 'https' || empty($geocoder['host']) || !filter_var($geocoder['host'], FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) || isset($geocoder['user']) || isset($geocoder['query'])) throw new \RuntimeException('Invalid map geocoder configuration.');
+        return ['geocoder_url' => $config['geocoder_url'], 'geocoder_origin' => 'https://' . $geocoder['host'] . (isset($geocoder['port']) ? ':' . $geocoder['port'] : ''), 'tile_url' => $config['tile_url'], 'tile_origin' => 'https://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '')];
     }
 
     private function branchFromRequest(Request $request): Branch

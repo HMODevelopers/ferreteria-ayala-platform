@@ -78,7 +78,7 @@ try {
   page.once('dialog', dialog => dialog.accept());
   await submit(row.locator('form[action="/admin/units/status"]'));
 
-  await page.goto(`${base}/admin/attributes`);
+  await page.goto(`${base}/admin/attributes?new=1`);
   form = page.locator('form[action="/admin/attributes/create"]');
   await form.locator('input[name="code"]').fill('M03_HTTP_POWER');
   await form.locator('input[name="name"]').fill('Potencia sintética M03');
@@ -116,6 +116,7 @@ try {
   assert.ok(detailHref);
   await page.goto(`${base}${detailHref}`);
   assert.match(await page.locator('body').textContent(), /M03-HTTP-SKU-1/);
+  await page.goto(new URL(await page.getByRole('link',{name:'Administrar variante',exact:true}).getAttribute('href'),base).href);
   assert.match(await page.locator('body').textContent(), /7500000000032/);
   page.once('dialog', dialog => dialog.accept());
   await submit(page.locator('form[action="/admin/products/variants/status"]'));

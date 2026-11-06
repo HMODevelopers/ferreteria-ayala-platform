@@ -1,0 +1,17 @@
+<?php
+declare(strict_types=1);
+if(PHP_SAPI!=='cli')exit(2);
+require dirname(__DIR__).'/bootstrap/app.php';require __DIR__.'/support/admin-navigation.php';
+$dir=__DIR__.'/artifacts/transfers-design';if(!is_dir($dir))mkdir($dir,0700,true);
+$transfer=['id'=>51,'folio'=>'TR-PRUEBA-001','status'=>'requested','source_name'=>'Sucursal origen de prueba','destination_name'=>'Sucursal destino de prueba','reason'=>'Traslado de prueba aislada','lock_version'=>3,'quote_version_id'=>null,'created_at'=>'2026-01-01 10:00:00','actor_name'=>'Usuario de prueba','item_count'=>1];
+$item=['id'=>61,'sku'=>'SKU-PRUEBA','product_name'=>'Producto de prueba','symbol'=>'pz','requested_quantity'=>'10.000000','approved_quantity'=>'10.000000','dispatched_quantity'=>'10.000000','received_quantity'=>'0.000000','pending_dispatch'=>'0.000000','in_transit'=>'10.000000'];
+$base=['csrf'=>'transfers-fixture-only','q'=>'','status'=>'','branchId'=>0,'canCreate'=>true,'branches'=>[['id'=>21,'name'=>'Sucursal origen de prueba'],['id'=>22,'name'=>'Sucursal destino de prueba']],'destinations'=>[['id'=>22,'name'=>'Sucursal destino de prueba']],'quoteOptions'=>[],'values'=>['operation_key'=>str_repeat('c',40)],'error'=>null,'products'=>[['id'=>31,'product_name'=>'Producto de prueba','sku'=>'SKU-PRUEBA','unit_id'=>71,'symbol'=>'pz']],'page'=>new App\Application\Read\Page([],25,0,false),'transfer'=>$transfer,'selectedAction'=>'','items'=>[$item],'actions'=>array_fill_keys(['edit','approve','prepare','dispatch','receive','cancel','incident'],true),'history'=>[['action'=>'create','actor_name'=>'Usuario de prueba','created_at'=>'2026-01-01 10:00:00','notes'=>'Solicitud de prueba','quantity'=>null,'inventory_movement_id'=>null]]];
+foreach(['empty','filtered','populated','restricted','create','error','detail','detail-restricted','approve','prepare','dispatch','receive','cancel','incident','received','list-received'] as $case){$data=$base;$template='index';
+ if(in_array($case,['populated','list-received'],true)){$row=$transfer;if($case==='list-received')$row['status']='received';$data['page']=new App\Application\Read\Page([$row],25,0,true);}
+ if($case==='filtered')$data['q']='Sin coincidencias';if($case==='restricted')$data['canCreate']=false;
+ if(in_array($case,['create','error'],true))$template='create';
+ if($case==='error'){$data['error']='Selecciona sucursales diferentes.';$data['values']+=['source_branch_id'=>'21','destination_branch_id'=>'22','reason'=>'Motivo conservado de prueba','quantities'=>[31=>'4'],'units'=>[31=>71]];}
+ if(in_array($case,['detail','detail-restricted','approve','prepare','dispatch','receive','cancel','incident','received'],true)){$template='detail';if($case==='detail-restricted')$data['actions']=array_fill_keys(array_keys($base['actions']),false);if(in_array($case,['approve','prepare','dispatch','receive','cancel','incident'],true))$data['selectedAction']=$case;if($case==='prepare')$data['transfer']['status']='approved';if($case==='dispatch'){$data['transfer']['status']='prepared';$data['items'][0]['pending_dispatch']='10.000000';}if(in_array($case,['receive','incident'],true))$data['transfer']['status']='in_transit';if($case==='received')$data['transfer']['status']='received';}
+ $layout=navigationFixtureData('all','transfers');$layout['title']='Transferencias · Prueba aislada';$layout['content']=App\Core\View::partial('admin/transfers/'.$template,$data);file_put_contents($dir.'/'.$case.'.html',App\Core\View::partial('layouts/admin',$layout));
+}
+echo "Transfer fixtures rendered without database access.\n";

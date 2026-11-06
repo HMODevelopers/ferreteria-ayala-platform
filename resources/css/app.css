@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @import "swiper/css" layer(base);
 @import "swiper/css/pagination" layer(base);
+@import "leaflet/dist/leaflet.css" layer(components);
 @import "./admin.css" layer(components);
 @source "../../app/Views";
 @source "../js";

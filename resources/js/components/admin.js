@@ -1,3 +1,6 @@
+import { initBranchMaps } from './branch-map.js';
+import { initDeliveries } from '../modules/deliveries.js';
+import { initTransfers } from '../modules/transfers.js';
 import { initAdminQuotes } from '../modules/admin-quotes.js';
 import { initQuoteWorkflow } from './quote-workflow.js';
 import { initMediaUpload } from './admin-media-upload.js';
@@ -5,6 +8,7 @@ import { initAdminNavigation } from './admin-navigation.js';
 
 export function admin() {
   initAdminNavigation();
+  initBranchMaps();
   initQuoteWorkflow();
   initMediaUpload(document.querySelector('[data-media-upload-form]'));
   const menu = document.querySelector('[data-admin-menu]');
@@ -83,8 +87,9 @@ export function admin() {
   const formCache = new Map();
   let activeModalRequest = 0;
   let cleanupModalMedia = () => {};
+  let cleanupModalMaps = () => {};
   const closeModal = () => modal?.close();
-  modal?.addEventListener('close', () => { activeModalRequest++; cleanupModalMedia(); });
+  modal?.addEventListener('close', () => { activeModalRequest++; cleanupModalMedia(); cleanupModalMaps(); });
   modal?.querySelector('[data-admin-modal-close]')?.addEventListener('click', closeModal);
   modal?.addEventListener('click', event => {
     if (event.target === modal) closeModal();
@@ -92,7 +97,7 @@ export function admin() {
 
   const isFormLink = link => {
     const url = new URL(link.href, window.location.href);
-    return url.origin === window.location.origin && ((link.hasAttribute('data-admin-form-link') && ['/admin/cms','/admin/cms/terms','/admin/media','/admin/customers/create','/admin/customers/edit','/admin/customers/detail','/admin/customers/status','/admin/quotes/intake','/admin/quotes/workflow','/admin/quotes/workflow/action','/admin/quotes/workflow/prepare','/admin/quotes/create','/admin/quotes/edit','/admin/quotes/detail','/admin/quotes/action'].includes(url.pathname)) || /\/admin\/(?:users|branches|categories|brands|units|products|prices|roles)\/(?:create|edit)$/.test(url.pathname));
+    return url.origin === window.location.origin && ((link.hasAttribute('data-admin-form-link') && ['/admin/branches/create','/admin/branches/edit','/admin/branches/detail','/admin/prices/create','/admin/prices/edit','/admin/prices/calculate','/admin/products/create','/admin/products/edit','/admin/products/detail','/admin/categories/create','/admin/categories/edit','/admin/brands/create','/admin/brands/edit','/admin/units/create','/admin/units/edit','/admin/attributes','/admin/deliveries/create','/admin/deliveries/detail','/admin/deliveries/resources','/admin/transfers/create','/admin/transfers/detail','/admin/purchases/create','/admin/purchases/edit','/admin/purchases/detail','/admin/purchases/receipts/create','/admin/suppliers/create','/admin/suppliers/edit','/admin/inventory/adjustments','/admin/inventory/movements','/admin/cms','/admin/cms/terms','/admin/media','/admin/customers/create','/admin/customers/edit','/admin/customers/detail','/admin/customers/status','/admin/quotes/intake','/admin/quotes/workflow','/admin/quotes/workflow/action','/admin/quotes/workflow/prepare','/admin/quotes/create','/admin/quotes/edit','/admin/quotes/detail','/admin/quotes/action'].includes(url.pathname)) || /\/admin\/(?:users|branches|categories|brands|units|products|prices|roles)\/(?:create|edit)$/.test(url.pathname));
   };
 
   const skeleton = () => {
@@ -105,7 +110,7 @@ export function admin() {
   };
 
   const loadForm = url => {
-    const cacheable = !['/admin/cms','/admin/cms/terms','/admin/media'].includes(new URL(url).pathname) && !new URL(url).pathname.startsWith('/admin/customers/') && !new URL(url).pathname.startsWith('/admin/quotes/');
+    const cacheable = !['/admin/cms','/admin/cms/terms','/admin/media'].includes(new URL(url).pathname) && !new URL(url).pathname.startsWith('/admin/customers/') && !new URL(url).pathname.startsWith('/admin/quotes/') && !new URL(url).pathname.startsWith('/admin/inventory/') && !new URL(url).pathname.startsWith('/admin/purchases/') && !new URL(url).pathname.startsWith('/admin/suppliers/') && !new URL(url).pathname.startsWith('/admin/transfers/') && !new URL(url).pathname.startsWith('/admin/deliveries/') && !/^\/admin\/(branches|prices|products|categories|brands|units|attributes)(\/|$)/.test(new URL(url).pathname);
     if (cacheable && formCache.has(url)) return formCache.get(url);
     const request = fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
       .then(async response => {
@@ -126,6 +131,7 @@ export function admin() {
 
   const renderModalContent = html => {
     cleanupModalMedia();
+    cleanupModalMaps();
     const page = new DOMParser().parseFromString(html, 'text/html');
     const content = page.querySelector('#admin-content');
     if (!content) throw new Error('El formulario no está disponible.');
@@ -137,6 +143,9 @@ export function admin() {
     cleanupModalMedia = initMediaUpload(modalContent.querySelector('[data-media-upload-form]'));
     initAdminQuotes(modalContent);
     initQuoteWorkflow(modalContent);
+    initTransfers(modalContent);
+    initDeliveries(modalContent);
+    cleanupModalMaps = initBranchMaps(modalContent);
   };
 
   document.querySelectorAll('a[href]').forEach(link => {
@@ -146,6 +155,19 @@ export function admin() {
     link.addEventListener('focus', prefetch, {once: true});
   });
   document.addEventListener('click', async event => {
+    const minimumButton = event.target.closest('[data-inventory-minimum]');
+    if (minimumButton && modal && modalContent) {
+      const template = document.getElementById(minimumButton.dataset.inventoryMinimum);
+      if (!(template instanceof HTMLTemplateElement)) return;
+      activeModalRequest++;
+      cleanupModalMedia();
+      modalContent.replaceChildren(template.content.cloneNode(true));
+      modalContent.removeAttribute('aria-busy');
+      modalTitle.textContent = 'Configurar existencia mínima';
+      if (!modal.open) modal.showModal();
+      modalContent.querySelector('input:not([type="hidden"])')?.focus();
+      return;
+    }
     const link = event.target.closest('a[href]');
     if (link?.hasAttribute('data-admin-modal-cancel') && modal?.open) {
       event.preventDefault();
@@ -190,7 +212,7 @@ export function admin() {
       const requestId=++activeModalRequest;const url=new URL(form.getAttribute('action') || window.location.href, window.location.href);url.search=new URLSearchParams(new FormData(form)).toString();modalContent.setAttribute('aria-busy','true');
       try{const html=await loadForm(url.href);if(html!==null&&requestId===activeModalRequest&&modal.open){renderModalContent(html);restorePreparation();}}catch{if(requestId===activeModalRequest){const alert=document.createElement('p');alert.className='admin-alert admin-alert-error';alert.setAttribute('role','alert');alert.textContent='No se pudo actualizar la búsqueda. Intenta nuevamente.';form.prepend(alert);modalContent.removeAttribute('aria-busy');}}return;
     }
-    if (!form.matches('[data-cms-editor-form],[data-media-upload-form],[data-customer-form],[data-quote-workflow-form]')) return;
+    if (!form.matches('[data-cms-editor-form],[data-media-upload-form],[data-customer-form],[data-quote-workflow-form],[data-purchasing-form],[data-transfer-create],[data-transfer-event],[data-delivery-create],[data-delivery-event],[data-delivery-resource],[data-catalog-form],[data-pricing-form],[data-branch-form]')) return;
     event.preventDefault();
     if (form.dataset.submitting === '1') return;
     form.dataset.submitting = '1';
@@ -204,12 +226,24 @@ export function admin() {
       if (requestId !== activeModalRequest) return;
       if (response.redirected) {
         const destination = new URL(response.url);
-        if(response.ok&&destination.origin===window.location.origin&&['/admin/quotes/workflow','/admin/quotes/edit','/admin/quotes/detail'].includes(destination.pathname)){
+        if(response.ok&&destination.origin===window.location.origin&&(['/admin/branches/edit','/admin/branches/detail','/admin/products/detail','/admin/products/edit','/admin/categories/edit','/admin/brands/edit','/admin/units/edit','/admin/deliveries/detail','/admin/deliveries/resources','/admin/transfers/detail','/admin/purchases/detail','/admin/quotes/workflow','/admin/quotes/edit','/admin/quotes/detail'].includes(destination.pathname)||(destination.pathname==='/admin/attributes'&&destination.searchParams.has('attribute_id')))){
           const html=await response.text();if(requestId!==activeModalRequest||!modal.open)return;renderModalContent(html);
-          if(document.querySelector('.quote-inbox')){try{const listResponse=await fetch(window.location.href,{headers:{Accept:'text/html'}});if(!listResponse.ok||listResponse.redirected)return;const doc=new DOMParser().parseFromString(await listResponse.text(),'text/html');const content=doc.querySelector('#admin-content');if(content&&document.querySelector('.quote-inbox'))document.querySelector('#admin-content').replaceChildren(...[...content.childNodes].map(node=>node.cloneNode(true)));}catch{/* The modal retains the saved result; refreshing the list remains available. */}}
+          if (document.querySelector('.quote-inbox,.purchasing-workspace,.transfers-workspace,.deliveries-workspace,.catalog-workspace,.branches-workspace')) {
+            try {
+              const listResponse = await fetch(window.location.href, {headers: {Accept: 'text/html'}});
+              if (!listResponse.ok || listResponse.redirected) return;
+              const doc = new DOMParser().parseFromString(await listResponse.text(), 'text/html');
+              const content = doc.querySelector('#admin-content');
+              const current = document.querySelector('#admin-content');
+              if (content && current && document.querySelector('.quote-inbox,.purchasing-workspace,.transfers-workspace,.deliveries-workspace,.catalog-workspace,.branches-workspace')) {
+                current.replaceChildren(...[...content.childNodes].map(node => node.cloneNode(true)));
+                current.querySelectorAll('[data-confirm]').forEach(bindConfirmation);
+              }
+            } catch { /* The modal retains the saved result; the list can be refreshed. */ }
+          }
           return;
         }
-        if (response.ok && destination.origin === window.location.origin && ['/admin/cms','/admin/cms/terms','/admin/media','/admin/customers'].includes(destination.pathname)) {
+        if (response.ok && destination.origin === window.location.origin && ['/admin/branches','/admin/prices','/admin/products','/admin/categories','/admin/brands','/admin/units','/admin/attributes','/admin/purchases','/admin/suppliers','/admin/cms','/admin/cms/terms','/admin/media','/admin/customers'].includes(destination.pathname)) {
           // The redirected GET already consumed the flash; reuse its rendered list.
           const html = await response.text();
           if (requestId !== activeModalRequest || !modal.open) return;
@@ -218,6 +252,7 @@ export function admin() {
           const current = document.querySelector('#admin-content');
           if (!content || !current) throw new Error('El contenido se guardó, pero no fue posible actualizar la lista. Recarga la página.');
           current.replaceChildren(...[...content.childNodes].map(node => node.cloneNode(true)));
+          current.querySelectorAll('[data-confirm]').forEach(bindConfirmation);
           window.history.replaceState(null, '', destination.href);
           closeModal();
           const heading = current.querySelector('h1');

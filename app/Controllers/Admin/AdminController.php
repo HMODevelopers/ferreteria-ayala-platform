@@ -77,6 +77,30 @@ abstract class AdminController extends Controller
                 'customers' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.view') !== [],
             ];
             if ($isFragment) {
+                if (str_starts_with($template, 'admin/branches/')) {
+                    $data['capabilities'] ??= [
+                        'branches.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'branches.edit') !== [],
+                        'branches.status' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'branches.status') !== [],
+                        'branches.create' => AppKernel::access()->hasPermission($id, 'branches.create', null),
+                    ];
+                }
+                if (str_starts_with($template, 'admin/catalog/')) {
+                    $catalogCapabilities = [];
+                    foreach (['products.create','products.edit','products.status','products.variants','categories.manage','brands.manage','units.manage','attributes.manage'] as $permission) {
+                        $catalogCapabilities[$permission] = AppKernel::access()->hasPermission($id, $permission, null);
+                    }
+                    $data['capabilities'] ??= $catalogCapabilities;
+                    $data['navAccess'] ??= ['prices' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'prices.view') !== []];
+                }
+                if (str_starts_with($template, 'admin/purchasing/')) {
+                    $data['capabilities'] ??= [
+                        'suppliers.manage' => AppKernel::access()->hasPermission($id, 'suppliers.manage', null),
+                        'purchases.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.create') !== [],
+                        'purchases.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.edit') !== [],
+                        'purchases.confirm' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.confirm') !== [],
+                        'purchases.receive' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'purchases.receive') !== [],
+                    ];
+                }
                 $data['capabilities'] ??= $template === 'admin/users/form' ? [
                     'users.password' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.password') !== [],
                     'users.assign' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'users.assign') !== [],
@@ -137,6 +161,7 @@ abstract class AdminController extends Controller
             'Pragma' => 'no-cache',
             'Vary' => 'X-Requested-With',
             'X-Admin-Fragment' => $isFragment ? '1' : '0',
+            'Content-Security-Policy' => isset($data['mapOptions']['tile_origin']) ? str_replace(["img-src 'self' data:;", "connect-src 'self';"], ["img-src 'self' data: " . $data['mapOptions']['tile_origin'] . ";", "connect-src 'self' " . $data['mapOptions']['geocoder_origin'] . ";"], Response::DEFAULT_CSP) : Response::DEFAULT_CSP,
         ]);
     }
 

@@ -24,7 +24,7 @@
                     <summary class="admin-account-trigger" aria-label="Abrir menú de cuenta">
                         <span class="admin-account-avatar" aria-hidden="true"><?= e(strtoupper(substr($user->displayName ?? 'A', 0, 1))) ?></span>
                         <span class="admin-account-trigger-name"><?= e($user->displayName ?? '') ?></span>
-                        <span class="admin-account-chevron" aria-hidden="true">⌄</span>
+                        <svg class="admin-account-chevron" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg>
                     </summary>
                     <div class="admin-account-dropdown">
                         <div class="admin-account-identity"><strong><?= e($user->displayName ?? '') ?></strong><small><?= e($user->email ?? '') ?></small></div>

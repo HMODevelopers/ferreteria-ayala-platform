@@ -42,7 +42,8 @@
     "@playwright/test": "^1.56.0"
   },
   "dependencies": {
-    "swiper": "^12.0.0"
+    "swiper": "^12.0.0",
+    "leaflet": "1.9.4"
   },
   "overrides": {
     "@parcel/watcher": "^2.6.0"

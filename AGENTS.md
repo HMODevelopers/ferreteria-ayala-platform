@@ -14,3 +14,4 @@
 - Compatibilidad cPanel/Apache y FTP obligatoria. Secretos por variables de entorno; `.env` nunca en Git, no se carga automáticamente.
 - Ejecutar sintaxis PHP, pruebas relevantes, compilación y verificación de rutas. Tras cambios visuales, revisar responsive si hay navegador. Reportar pruebas pendientes con honestidad.
 - Conservar licencias de fuentes/Swiper y documentar procedencia de imágenes. No reemplazar por logotipos externos sin recursos autorizados.
+- Mantener uniformidad visual entre módulos y modales: alinear campos y anchos; los campos sin pareja en una fila deben ocupar todo el ancho disponible. En solicitudes de transferencia, origen y destino comparten fila; cotización relacionada y motivo ocupan una fila completa cada uno.
