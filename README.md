@@ -1,5 +1,10 @@
 # Ferretería Ayala · Plataforma
 
+> Actualización del 8 de noviembre de 2026: existe un núcleo privado de trabajos
+> manuales/programados con cola durable, leases protegidos, reintentos, recuperación e historial.
+> La suite SQL multiproceso aprobó en MariaDB 10.11.15 con 60 reclamaciones concurrentes y rollback aislado; no implementa aún M12,
+> SMTP ni respaldos. Véase [operación de trabajos](docs/operation-jobs.md).
+
 Home comercial y base modular en PHP puro, con arquitectura MVC mínima y assets locales. Identidad naranja, negro y blanco; catálogo y campañas demostrativos. No requiere Node.js en producción.
 
 ## Requisitos

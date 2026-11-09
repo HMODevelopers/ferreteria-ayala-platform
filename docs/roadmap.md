@@ -61,6 +61,14 @@ Componente propio, sin DataTables. Paginación server-side, búsqueda, ordenamie
 
 Dashboard y estadísticas basadas en datos reales; copias de seguridad, restauración, rendimiento, accesibilidad formal, límites de solicitudes y observabilidad. Pagos, facturación y contabilidad requieren proyectos aprobados aparte.
 
+Actualización del 8 de noviembre de 2026: se implementó, sin migrar desarrollo,
+el núcleo mínimo de trabajos requerido por M12/M14. Incluye cola durable,
+historial, CLI/cron, concurrencia, leases protegidos, latidos, recuperación, reintentos e
+idempotencia. La suite local pasa y la suite SQL multiproceso aprobó contra MariaDB 10.11.15 con 60 reclamaciones concurrentes, recuperación y rollback aislado.
+El núcleo queda operativo en minilab; M12,
+SMTP, devoluciones, M13 y respaldos continúan no iniciados; detalle en
+[operación de trabajos](operation-jobs.md).
+
 ## Incremento administrativo M08 · 3 de noviembre de 2026
 
 Cotizaciones con borradores, versiones, M04, cliente M07, PDF, aceptación y apartado M05 implementados. El entorno vigente es Docker local con MySQL 8.4, confirmado por el propietario. Cierre de pruebas/activación: [integración M08](integration-m08.md). No se inicia M09. Solicitud pública y SMTP conservan las fronteras descritas allí.

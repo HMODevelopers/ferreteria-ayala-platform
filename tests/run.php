@@ -56,6 +56,9 @@ foreach ([
     'TEST_DB_HOST_M07', 'TEST_DB_PORT_M07', 'TEST_DB_DATABASE_M07',
     'TEST_DB_USERNAME_M07', 'TEST_DB_PASSWORD_M07', 'TEST_DB_CHARSET_M07',
     'M07_TEST_AUTHORIZATION',
+    'TEST_DB_HOST_M12', 'TEST_DB_PORT_M12', 'TEST_DB_DATABASE_M12',
+    'TEST_DB_USERNAME_M12', 'TEST_DB_PASSWORD_M12', 'TEST_DB_CHARSET_M12',
+    'M12_TEST_AUTHORIZATION',
     'M01_RECOVERY_AUTHORIZATION', 'M01_RECOVERY_CONFIRMATION', 'M01_RECOVERY_SESSION_CONFIRMATION',
     'M01_RECOVERY_BACKUP_PATH', 'M01_RECOVERY_BACKUP_MANIFEST', 'M01_RECOVERY_BACKUP_SHA256',
     'SESSION_NAME', 'SESSION_LIFETIME', 'SESSION_SECURE_COOKIE', 'SESSION_SAME_SITE',
@@ -79,6 +82,7 @@ require __DIR__ . '/m08-quotes.php';
 require __DIR__ . '/m09-transfers.php';
 require __DIR__ . '/m10-deliveries.php';
 require __DIR__ . '/m11-cms.php';
+require __DIR__ . '/m12-jobs.php';
 require __DIR__ . '/admin-navigation.php';
 require __DIR__ . '/publication-settings.php';
 require __DIR__ . '/published-home.php';
@@ -86,4 +90,4 @@ require __DIR__ . '/cms-design.php';
 require __DIR__ . '/media-library.php';
 require __DIR__ . '/customers-design.php';
 require __DIR__ . '/quote-workflow.php';
-echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4, M02, M03 catalog, M04 pricing, M05 inventory, M06 purchasing M07 customers M08 quotes M09 transfers M10 deliveries and M11 CMS).\n";
+echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4, M02, M03 catalog, M04 pricing, M05 inventory, M06 purchasing M07 customers M08 quotes M09 transfers M10 deliveries M11 CMS and operation jobs core).\n";

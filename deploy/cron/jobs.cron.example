@@ -1,0 +1,4 @@
+# Ferretería Ayala: materialización y ejecución son responsabilidades separadas.
+# Archivo listo para este checkout local. En cPanel sustituir únicamente la ruta absoluta.
+*/5 * * * * cd /home/carlos-lafarga/Desarrollo/ferreteria-ayala-platform && /usr/bin/flock -n storage/jobs-schedule.lock /usr/bin/timeout 55s /usr/bin/php bin/jobs.php schedule >> storage/logs/jobs-schedule.log 2>&1
+* * * * * cd /home/carlos-lafarga/Desarrollo/ferreteria-ayala-platform && /usr/bin/flock -n storage/jobs-worker.lock /usr/bin/timeout 55s /usr/bin/php bin/jobs.php work --limit=25 >> storage/logs/jobs-worker.log 2>&1

@@ -166,11 +166,13 @@ Incremento administrativo activado el 3 de noviembre de 2026: borradores, client
 
 Integrado y activado el 3 de noviembre de 2026: solicitudes, aprobación con apartado en origen, preparación, despachos y recepciones parciales, tránsito, incidencias, cobertura de cotizaciones y movimientos M05. Cuatro migraciones aditivas elevan el total a 57; diez permisos configurables por sucursal. SQL, concurrencia independiente, HTTP/Chrome y respaldo restaurado: PASS. No genera compras ni implementa M10. Alcance y límites de lotes/series: [integración M09](integration-m09.md).
 
-### M10 · Entregas y devoluciones
+### M10 · Entregas (devoluciones pendientes)
 
 Incluye recolección/domicilio, entregas parciales, rutas manuales, vehículos
-propios, repartidores sin acceso, evidencia y devoluciones. No incluye GPS
-continuo ni mantenimiento de flotilla.
+propios, repartidores sin acceso y evidencia. El código vigente no implementa
+devoluciones; ese flujo necesita un incremento independiente y reglas de
+disposición física aprobadas. No incluye GPS continuo ni mantenimiento de
+flotilla.
 
 ### M11 · CMS público
 
@@ -210,6 +212,14 @@ requieren autorización separada.
 Cada paso debe dividirse en incrementos pequeños con migraciones, pruebas y un
 criterio de aceptación observable. Terminar un módulo no autoriza comenzar el
 siguiente automáticamente.
+
+## Infraestructura M14 iniciada · 8 de noviembre de 2026
+
+Núcleo durable de trabajos implementado con CLI privado, origen
+manual/programado/reintento, historial por intento, reclamación concurrente,
+leases con token aleatorio, latidos, recuperación de interrupciones, reintento exponencial, intervención e
+idempotencia de cola. Las comprobaciones aisladas y la suite SQL multiproceso pasan en MariaDB 10.11.15: 50 aserciones, 70 migraciones y 60 reclamaciones concurrentes con rollback vacío; M12, SMTP
+y respaldos aún no están implementados. Véase [operación de trabajos](operation-jobs.md).
 
 ## Cómo solicitar un módulo a Codex
 
