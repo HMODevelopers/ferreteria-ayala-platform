@@ -194,9 +194,13 @@ documento de negocio. Arquitectura, rutas, pruebas y límites:
 
 ### M13 · Reportes e intercambio
 
-Incluye consulta paginada en servidor, filtros, Excel/PDF, importaciones con
-vista previa e impresión/lectura de códigos. Toda acción respeta permisos y
-sucursales.
+Implementado en código el 10 de noviembre de 2026: reportes paginados de
+cotizaciones, inventario, compras, transferencias y entregas; filtros comunes,
+XLSX OOXML, PDF y alta básica de productos desde CSV con vista previa firmada,
+revalidación y transacción atómica. Tres permisos separan consulta, exportación
+e importación. La validación local aprobó; SQL aislado y Chrome quedan
+pendientes porque la conexión de prueba configurada rechazó acceso. No se migró
+desarrollo. Detalle: [integración M13](integration-m13.md).
 
 ### M14 · Operación
 

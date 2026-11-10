@@ -81,6 +81,7 @@ abstract class AdminController extends Controller
                 'transfers' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'transfers.view') !== [],
                 'quotes' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'quotes.view') !== [] || AppKernel::access()->accessibleBranchIdsForPermission($id, 'quote_requests.view') !== [],
                 'customers' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.view') !== [],
+                'reports' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'reports.view') !== [],
             ];
             if ($isFragment) {
                 if (str_starts_with($template, 'admin/branches/')) {
@@ -157,6 +158,8 @@ abstract class AdminController extends Controller
                 'customers.create' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.create') !== [],
                 'customers.edit' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.edit') !== [],
                 'customers.status' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'customers.status') !== [],
+                'reports.export' => AppKernel::access()->accessibleBranchIdsForPermission($id, 'reports.export') !== [],
+                'catalog.import' => AppKernel::access()->hasPermission($id, 'catalog.import', null),
             ];
         }
         $body = $isFragment

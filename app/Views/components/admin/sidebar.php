@@ -19,6 +19,7 @@
         <symbol id="admin-icon-legal" viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 6h6L5 7ZM19 7l-3 6h6l-3-6ZM2 13a3 3 0 0 0 6 0M16 13a3 3 0 0 0 6 0M8 21h8"/></symbol>
         <symbol id="admin-icon-publication" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c4 5 4 13 0 18-4-5-4-13 0-18Z"/></symbol>
         <symbol id="admin-icon-terms" viewBox="0 0 24 24"><path d="M5 3.5h14v17H5zM8 8h8M8 12h8M8 16h3"/><path d="m13 16 1.5 1.5L18 14"/></symbol>
+        <symbol id="admin-icon-reports" viewBox="0 0 24 24"><path d="M4 20V10h4v10M10 20V4h4v16M16 20v-7h4v7M3 20h18"/></symbol>
     </svg>
     <div class="admin-sidebar-heading">
         <a class="admin-brand" href="/admin"><span class="admin-brand-mark">A</span><span><small>FERRETERÍA</small>AYALA</span></a>
@@ -36,6 +37,7 @@
                     ['customers','/admin/customers','Clientes','customers'],
                     ['quotes','/admin/quotes','Cotizaciones','quotes'],
                     ['terms','/admin/cms/terms','Condiciones por sucursal','terms'],
+                    ['reports','/admin/reports','Reportes','reports'],
                 ]],
                 'logistics'=>['Inventario y logística',[
                     ['inventory','/admin/inventory','Inventario','inventory'],

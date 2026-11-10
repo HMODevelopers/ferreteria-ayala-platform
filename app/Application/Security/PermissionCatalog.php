@@ -103,5 +103,8 @@ final class PermissionCatalog
         ['quotes.accept', 'quotes', 'accept', 'either', 'Cotizaciones: accept dentro de la sucursal autorizada'],
         ['quotes.status', 'quotes', 'status', 'either', 'Cotizaciones: status dentro de la sucursal autorizada'],
         ['quotes.history', 'quotes', 'history', 'either', 'Cotizaciones: history dentro de la sucursal autorizada'],
+        ['reports.view', 'reports', 'view', 'either', 'Consultar reportes operativos dentro del alcance autorizado'],
+        ['reports.export', 'reports', 'export', 'either', 'Exportar reportes operativos dentro del alcance autorizado'],
+        ['catalog.import', 'products', 'import', 'global', 'Importar altas básicas de productos mediante archivo validado'],
     ];
 }

@@ -186,6 +186,12 @@ El prototipo usa `noindex, nofollow`; el dominio, URL absoluta Open Graph, SEO d
 
 ## Pruebas
 
+M13 incorpora /admin/reports y /admin/products/import. Genera XLSX y PDF
+localmente y acepta la plantilla CSV oficial para altas básicas inactivas, sin
+precios ni inventario. Requiere aplicar la migración M13 y asignar
+reports.view, reports.export y catalog.import. Arquitectura, límites y estado
+de validación: [integración M13](docs/integration-m13.md).
+
 ```bash
 npm test
 find app bootstrap config public tests -name '*.php' -exec php -l {} \;

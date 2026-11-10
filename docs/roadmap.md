@@ -102,3 +102,15 @@ paginación y lectura individual con CSRF. La suite aislada aprobó 27 asercione
 trabajos aprobó 50 aserciones y 60 reclamaciones. Chrome headless verificó
 360/768/1440 px, teclado, polling, lectura, navegación y vacío. No se migró
 desarrollo ni se implementó SMTP. Cierre: [integración M12](integration-m12.md).
+
+## Incremento M13 · Reportes e intercambio · 10 de noviembre de 2026
+
+Implementación en código terminada: centro de reportes con cinco áreas,
+aislamiento por sucursal, paginación y filtros compartidos por UI/XLSX/PDF.
+Importación CSV de productos básicos con vista previa, catálogos existentes,
+confirmación ligada al usuario y transacción atómica. La suite local, sintaxis,
+build y validadores reales de XLSX/PDF pasan. Las consultas SQL fueron
+ejecutadas en MariaDB 10.11.15 con alcance vacío. La suite aislada y Chrome
+autenticado están pendientes por indisponibilidad de las credenciales de
+prueba; desarrollo no se migró. Véase [integración M13](integration-m13.md).
+M14 no se desarrolla en este incremento.

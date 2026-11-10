@@ -76,4 +76,6 @@ final class AppKernel
     public static function quoteWorkflows(): \App\Infrastructure\Persistence\PdoQuoteWorkflowRepository {return new \App\Infrastructure\Persistence\PdoQuoteWorkflowRepository(self::connection());}
     public static function quoteWorkflow(): \App\Application\Services\QuoteWorkflowService {return new \App\Application\Services\QuoteWorkflowService(self::connection(),self::quoteManagement());}
     public static function publicRequests(): \App\Application\Services\PublicQuoteRequestService {return new \App\Application\Services\PublicQuoteRequestService(self::cms(),self::connection());}
+    public static function reports(): \App\Infrastructure\Persistence\PdoReportRepository {return new \App\Infrastructure\Persistence\PdoReportRepository(self::connection());}
+    public static function catalogImport(): \App\Application\Services\CatalogImportService {return new \App\Application\Services\CatalogImportService(self::connection(),dirname(__DIR__,2).'/storage/private/imports');}
 }

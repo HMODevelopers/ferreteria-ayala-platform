@@ -169,3 +169,9 @@ $router->get('/admin/quotes/workflow/prepare', [App\Controllers\Admin\QuoteWorkf
 $router->post('/admin/quotes/workflow/prepare', [App\Controllers\Admin\QuoteWorkflowsController::class, 'prepare']);
 
 $router->get('/admin/quotes/action', [App\Controllers\Admin\QuotesController::class, 'actionForm']);
+$router->get('/admin/reports', [App\Controllers\Admin\ReportsController::class, 'index']);
+$router->get('/admin/reports/export', [App\Controllers\Admin\ReportsController::class, 'export']);
+$router->get('/admin/products/import', [App\Controllers\Admin\ProductImportsController::class, 'form']);
+$router->get('/admin/products/import/template', [App\Controllers\Admin\ProductImportsController::class, 'template']);
+$router->post('/admin/products/import/preview', [App\Controllers\Admin\ProductImportsController::class, 'preview']);
+$router->post('/admin/products/import/confirm', [App\Controllers\Admin\ProductImportsController::class, 'confirm']);

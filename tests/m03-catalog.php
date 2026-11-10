@@ -58,7 +58,7 @@ foreach(['abc','with spaces','***'] as $barcode)expectException(fn()=>CatalogRul
 check(CatalogRules::barcode('7501234567890')==='7501234567890','M03 accepts a valid commercial barcode shape');
 
 $m03Permissions=array_values(array_filter(array_column(PermissionCatalog::ITEMS,0),static fn(string $code):bool=>str_starts_with($code,'catalog.')||str_starts_with($code,'categories.')||str_starts_with($code,'brands.')||str_starts_with($code,'units.')||str_starts_with($code,'attributes.')||str_starts_with($code,'products.')));
-check(count($m03Permissions)===9&&count($m03Permissions)===count(array_unique($m03Permissions)),'M03 declares nine unique server-side permissions');
+check(count($m03Permissions)===10&&count($m03Permissions)===count(array_unique($m03Permissions)),'M03 plus M13 import declare ten unique catalog permissions');
 
 $migrationFiles=glob(dirname(__DIR__).'/database/migrations/2026103103*.php')?:[];sort($migrationFiles);check(count($migrationFiles)===12,'M03 defines twelve ordered additive migrations');
 $source=implode("\n",array_map(static fn(string $file):string=>(string)file_get_contents($file),$migrationFiles));
