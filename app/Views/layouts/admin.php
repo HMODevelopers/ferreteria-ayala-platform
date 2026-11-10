@@ -20,6 +20,10 @@
         <div class="admin-main">
             <header class="admin-topbar">
                 <button class="admin-menu-button" type="button" data-admin-menu aria-controls="admin-sidebar" aria-label="Abrir navegación" aria-expanded="false">☰</button>
+                <?php if(isset($notificationCenter)): ?><details class="admin-notification-menu" data-notification-center data-status-url="/admin/notifications/status">
+                    <summary class="admin-notification-trigger" aria-label="Abrir notificaciones"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="admin-notification-badge" data-notification-count <?= (int)$notificationCenter['unread']===0?'hidden':'' ?>><?= e((int)$notificationCenter['unread']) ?></span></summary>
+                    <div class="admin-notification-dropdown"><header><div><strong>Notificaciones</strong><small><?= e((int)$notificationCenter['unread']) ?> sin leer</small></div><a href="/admin/notifications">Ver historial</a></header><?php if($notificationCenter['recent']===[]): ?><p class="admin-notification-empty">No tienes notificaciones disponibles.</p><?php else: ?><ul><?php foreach($notificationCenter['recent'] as $notification): ?><li class="<?= $notification['read_at']===null?'is-unread':'' ?>"><a href="/admin/notifications/open?id=<?= e($notification['delivery_id']) ?>"><strong><?= e($notification['title']) ?></strong><span><?= e($notification['message']) ?></span><small><?= e($notification['branch_name'].' · '.$notification['occurred_at'].' UTC') ?></small></a></li><?php endforeach ?></ul><?php endif ?></div>
+                </details><?php endif ?>
                 <details class="admin-account-menu" data-admin-account-menu>
                     <summary class="admin-account-trigger" aria-label="Abrir menú de cuenta">
                         <span class="admin-account-avatar" aria-hidden="true"><?= e(strtoupper(substr($user->displayName ?? 'A', 0, 1))) ?></span>

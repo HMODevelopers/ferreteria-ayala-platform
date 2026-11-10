@@ -1,8 +1,8 @@
 # Núcleo durable de trabajos operativos
 
-Estado al 8 de noviembre de 2026: **implementación e integración multiproceso comprobadas contra MariaDB 10.11.15 en el minilab**. La ejecución aprobó 50 aserciones SQL, 70 migraciones, 60 reclamaciones concurrentes, recuperación, fencing y rollback; la base aislada terminó vacía.
+Estado al 10 de noviembre de 2026: **implementación e integración multiproceso comprobadas contra MariaDB 10.11.15 en el minilab**. La regresión posterior a M12 aprobó 50 aserciones SQL, 71 migraciones, 60 reclamaciones concurrentes, recuperación, fencing y rollback; la base aislada terminó vacía. La migración y la suite contemplan MySQL 8.4, pero esa versión no está instalada en este host y por tanto su ejecución real continúa pendiente.
 
-El núcleo es infraestructura para M12, mensajería y M14. Este incremento no implementa notificaciones, SMTP, devoluciones, reportes ni respaldos, y no expone rutas HTTP para ejecutar trabajos.
+El núcleo es infraestructura disponible para M12, mensajería y M14. El primer evento M12 implementado después de este núcleo usa una escritura transaccional directa porque nace dentro de la misma base y transacción que la incidencia M10; no necesita cola ni handler. El núcleo sigue sin implementar SMTP, devoluciones, reportes o respaldos y no expone rutas HTTP para ejecutar trabajos.
 
 ## Arquitectura y ciclo de vida
 
@@ -102,7 +102,7 @@ npm run test:mysql:m12:jobs
 
 La suite aplica todas las migraciones con `Migrator`, repite `migrate`, inspecciona columnas/índices/FK, ejecuta el diagnóstico, lanza procesos PHP independientes, repite 60 reclamaciones concurrentes, prueba seis productores con la misma clave, mantiene un row lock para validar `SKIP LOCKED`, mata un worker, recupera el lease, prueba fencing, heartbeats, backoff 1/2 segundos, agotamiento, fallos permanentes, sanitización e invariantes SQL. Después demuestra que el rollback se niega con historial y que, una vez eliminados únicamente los registros propios, revierte el batch y deja vacía la base. Si no existen variables M12, el ejecutor reutiliza las variables base de prueba y la identidad limitada M02 ya establecida; una configuración M12 parcial se rechaza.
 
-Resultado real del minilab: `PASS: M12 jobs SQL, 50 assertions, 70 migrations, 60 concurrent claims, recovery, fencing and isolated rollback on 10.11.15-MariaDB-ubu2204.` Durante el cierre se reprodujo un deadlock de índice pese a `SKIP LOCKED`; la reclamación ahora reintenta hasta cinco veces con jitter y rollback confirmado.
+Resultado real repetido después de integrar notificaciones el 10 de noviembre de 2026 con PHP 8.5.4, `PDO` y `pdo_mysql`: `PASS: M12 jobs SQL, 50 assertions, 71 migrations, 60 concurrent claims, recovery, fencing and isolated rollback on 10.11.15-MariaDB-ubu2204.` Durante el cierre se reprodujo un deadlock de índice pese a `SKIP LOCKED`; la reclamación ahora reintenta hasta cinco veces con jitter y rollback confirmado. El host no dispone del comando Docker; la prueba se conectó directamente al servicio MySQL/MariaDB aislado ya configurado.
 
 ## Diagnóstico
 

@@ -60,7 +60,8 @@ final class AppKernel
     }
     public static function deliveries(): \App\Infrastructure\Persistence\PdoDeliveryRepository {return new \App\Infrastructure\Persistence\PdoDeliveryRepository(self::connection());}
     public static function deliveryReservations(): \App\Application\Services\QuoteReservationService {return new \App\Application\Services\QuoteReservationService(self::inventory(),self::quotes(),self::transfers(),self::deliveries());}
-    public static function deliveryManagement(): \App\Application\Services\DeliveryManagementService {return new \App\Application\Services\DeliveryManagementService(self::deliveries(),self::transfers(),self::inventory(),self::inventoryManagement(),self::deliveryReservations(),self::connection());}
+    public static function notifications(): \App\Infrastructure\Persistence\PdoNotificationRepository {return new \App\Infrastructure\Persistence\PdoNotificationRepository(self::connection());}
+    public static function deliveryManagement(): \App\Application\Services\DeliveryManagementService {return new \App\Application\Services\DeliveryManagementService(self::deliveries(),self::transfers(),self::inventory(),self::inventoryManagement(),self::deliveryReservations(),self::connection(),self::notifications());}
     public static function transfers(): \App\Infrastructure\Persistence\PdoTransferRepository {return new \App\Infrastructure\Persistence\PdoTransferRepository(self::connection());}
     public static function transferManagement(): \App\Application\Services\TransferManagementService {return new \App\Application\Services\TransferManagementService(self::transfers(),self::inventory(),self::inventoryManagement(),self::connection());}
     public static function customers(): PdoCustomerRepository { return new PdoCustomerRepository(self::connection()); }

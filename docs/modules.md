@@ -17,7 +17,7 @@ aislada vacía. M03 está integrado en MariaDB, migrado en desarrollo y aprobado
 con flujos HTTP autenticados. M04 está integrado, activado en desarrollo y pasa
 MariaDB y HTTP autenticado. M05 también está integrado, migrado y aprobado con
 concurrencia real y HTTP autenticado. M06 también está integrado, migrado y
-aprobado con recepciones parciales, idempotencia y concurrencia real. M07 está integrado. M08 administrativo está activado en MySQL Docker local, con 53 migraciones y SQL/HTTP PASS. M09 está activado en MySQL Docker local con 57 migraciones, SQL/HTTP y respaldo restaurado verificados. M10 de entregas está activado en MySQL local con 61 migraciones y SQL/HTTP PASS. M11 está implementado, probado y migrado en desarrollo con 68 migraciones; su publicación pública permanece desactivada hasta cargar contenido real. Cierre en integration-m11.md. M12–M14 no están implementados.
+aprobado con recepciones parciales, idempotencia y concurrencia real. M07 está integrado. M08 administrativo está activado en MySQL Docker local, con 53 migraciones y SQL/HTTP PASS. M09 está activado en MySQL Docker local con 57 migraciones, SQL/HTTP y respaldo restaurado verificados. M10 de entregas está activado en MySQL local con 61 migraciones y SQL/HTTP PASS. M11 está implementado, probado y migrado en desarrollo con 68 migraciones; su publicación pública permanece desactivada hasta cargar contenido real. Cierre en integration-m11.md. El primer incremento vertical M12 está implementado y probado en base aislada con incidencias M10; no se ha migrado a desarrollo. M13–M14 continúan pendientes.
 
 | ID | Módulo | Alcance principal | Depende de | Activación |
 | --- | --- | --- | --- | --- |
@@ -182,8 +182,15 @@ cotización. No incluye constructor libre de páginas.
 
 ### M12 · Notificaciones internas
 
-Incluye avisos dentro del panel. No envía notificaciones internas por correo,
-SMS o WhatsApp.
+Primer incremento integrado el 10 de noviembre de 2026: una incidencia M10
+confirmada crea, dentro de la misma transacción, un evento persistente y una
+entrega por cada usuario activo con `deliveries.view` y
+`deliveries.incident` en la sucursal. Campana, contador, resumen, historial,
+filtros, paginación y lectura revalidan el permiso actual del recurso. Las
+restricciones únicas protegen evento y destinatario incluso con productores
+concurrentes. No envía correo, SMS o WhatsApp y no cambia el estado del
+documento de negocio. Arquitectura, rutas, pruebas y límites:
+[integración M12](integration-m12.md).
 
 ### M13 · Reportes e intercambio
 
@@ -218,7 +225,7 @@ siguiente automáticamente.
 Núcleo durable de trabajos implementado con CLI privado, origen
 manual/programado/reintento, historial por intento, reclamación concurrente,
 leases con token aleatorio, latidos, recuperación de interrupciones, reintento exponencial, intervención e
-idempotencia de cola. Las comprobaciones aisladas y la suite SQL multiproceso pasan en MariaDB 10.11.15: 50 aserciones, 70 migraciones y 60 reclamaciones concurrentes con rollback vacío; M12, SMTP
+idempotencia de cola. Las comprobaciones aisladas y la suite SQL multiproceso pasan en MariaDB 10.11.15: 50 aserciones, 71 migraciones y 60 reclamaciones concurrentes con rollback vacío. M12 usa consistencia transaccional directa para su primer evento y no encola un trabajo innecesario; SMTP
 y respaldos aún no están implementados. Véase [operación de trabajos](operation-jobs.md).
 
 ## Cómo solicitar un módulo a Codex
@@ -253,4 +260,4 @@ Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restr
 
 Contenido y publicación estructurados, biblioteca raster segura, galerías/fichas M03, comprobantes privados M06, fotografías de confirmaciones/incidencias M10, aviso versionado y plantillas por sucursal. Recepción pública real M08 autorizada con consentimiento y antispam, sin SMTP. Detalles y resultados actuales: [integración M11](integration-m11.md). Siguiente módulo oficial M12, sin iniciarlo.
 
-Cierre M11 confirmado: dominio 1235, SQL 71 y HTTP/Chrome 80 comprobaciones registradas; sintaxis PHP/JS y build PASS; regresiones SQL/HTTP M08–M10 PASS. Respaldo restaurado y conservación de las 72 tablas anteriores verificados. Hay 93 tablas, trece permisos M11 y cero fixtures en las 21 tablas nuevas. Siguiente módulo M12, sin iniciar.
+Cierre M11 confirmado: dominio 1235, SQL 71 y HTTP/Chrome 80 comprobaciones registradas; sintaxis PHP/JS y build PASS; regresiones SQL/HTTP M08–M10 PASS. Respaldo restaurado y conservación de las 72 tablas anteriores verificados. Hay 93 tablas, trece permisos M11 y cero fixtures en las 21 tablas nuevas. El incremento vertical M12 posterior se documenta por separado.

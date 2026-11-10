@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace App\Application\Services;
-use App\Application\Repositories\{DeliveryRepository,TransferRepository,InventoryRepository};
+use App\Application\Repositories\{DeliveryRepository,TransferRepository,InventoryRepository,NotificationRepository};
 use App\Application\Exceptions\{EntityNotFound,OperationConflict};
 use App\Core\Persistence\TransactionManager;
 use App\Domain\Deliveries\DeliveryRules as Rules;
@@ -9,7 +9,7 @@ use App\Domain\Inventory\InventoryRules;
 use App\Domain\Quotes\QuoteRules;
 use App\Domain\Pricing\Decimal;
 final class DeliveryManagementService {
- public function __construct(private readonly DeliveryRepository $deliveries,private readonly TransferRepository $transfers,private readonly InventoryRepository $stock,private readonly InventoryManagementService $inventory,private readonly QuoteReservationService $reservations,private readonly TransactionManager $transactions){}
+ public function __construct(private readonly DeliveryRepository $deliveries,private readonly TransferRepository $transfers,private readonly InventoryRepository $stock,private readonly InventoryManagementService $inventory,private readonly QuoteReservationService $reservations,private readonly TransactionManager $transactions,private readonly ?NotificationRepository $notifications=null){}
  private function authorized(int $branch,?array $allowed):void{if($allowed!==null&&!in_array($branch,$allowed,true))throw new OperationConflict('La sucursal está fuera de tu alcance.');}
  private function duplicate(string $key,string $hash,?int $id=null):?array{$e=$this->deliveries->operation($key);if($e&&(!hash_equals($hash,$e['request_hash'])||($id!==null&&(int)$e['delivery_id']!==$id)))throw new OperationConflict('La clave ya fue usada con otros datos.');return $e;}
  private function eligible(array $q):void{if($q['quote_status']!=='accepted'||$q['status']!=='issued'||(int)$q['version_number']!==(int)$q['current_version'])throw new OperationConflict('Selecciona la versión emitida actual de una cotización aceptada.');}
@@ -61,6 +61,15 @@ final class DeliveryManagementService {
    $this->deliveries->update($id,$to);if($to!==Rules::transition($d['status'],$action)){
     // Complete state belongs to the same immutable confirmation event.
     $this->finishConfirmation($event,$to);
+   }
+   if($action==='incident'&&$this->notifications!==null){
+    $this->notifications->createForAuthorizedRecipients([
+     'event_type'=>'delivery.incident','source_type'=>'delivery_event','source_id'=>(string)$event,
+     'resource_type'=>'delivery','resource_id'=>$id,'branch_id'=>$branch,'importance'=>'high',
+     'title'=>'Incidencia en '.$d['folio'],
+     'message'=>'La entrega requiere seguimiento. Motivo registrado: '.$notes,
+     'required_permission'=>'deliveries.view','idempotency_key'=>'delivery.incident:'.$event,
+    ],['deliveries.view','deliveries.incident']);
    }
    if($audit)$audit($id,$branch,$action);return $event;
   });

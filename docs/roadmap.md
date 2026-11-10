@@ -65,8 +65,9 @@ Actualización del 8 de noviembre de 2026: se implementó, sin migrar desarrollo
 el núcleo mínimo de trabajos requerido por M12/M14. Incluye cola durable,
 historial, CLI/cron, concurrencia, leases protegidos, latidos, recuperación, reintentos e
 idempotencia. La suite local pasa y la suite SQL multiproceso aprobó contra MariaDB 10.11.15 con 60 reclamaciones concurrentes, recuperación y rollback aislado.
-El núcleo queda operativo en minilab; M12,
-SMTP, devoluciones, M13 y respaldos continúan no iniciados; detalle en
+El núcleo queda operativo en minilab. El primer incremento vertical M12 se
+implementó posteriormente sin usar la cola para el evento transaccional de
+incidencia; SMTP, devoluciones, M13 y respaldos continúan no iniciados; detalle en
 [operación de trabajos](operation-jobs.md).
 
 ## Incremento administrativo M08 · 3 de noviembre de 2026
@@ -89,3 +90,15 @@ Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restr
 ## Incremento M11 · CMS público · 4 de noviembre de 2026
 
 Implementación y activación administrativa verificadas: contenido estructurado, publicación, medios raster, legales versionados, plantillas por sucursal, galerías M03, comprobantes M06, evidencias M10 y recepción pública real M08 con consentimiento/antispam. Desarrollo conserva 68 migraciones, 93 tablas y ningún fixture M11. Respaldo restaurado, dominio/SQL/HTTP/responsive y las seis regresiones M08–M10 aprobaron. La publicación pública sigue apagada hasta cargar insumos reales y habilitarla explícitamente. Cierre y límites: [integración M11](integration-m11.md). Siguiente módulo oficial M12; no se inicia.
+
+## Incremento M12 · Notificaciones internas · 10 de noviembre de 2026
+
+Primer evento vertical implementado: la incidencia formal de una entrega M10.
+Evento, destinatarios y operación confirman o revierten juntos; los usuarios
+destino deben conservar permiso de consulta sobre el recurso para verlo o
+marcarlo. El panel ofrece campana, contador, recientes, historial, filtros,
+paginación y lectura individual con CSRF. La suite aislada aprobó 27 aserciones,
+71 migraciones y cinco productores concurrentes; la regresión del núcleo de
+trabajos aprobó 50 aserciones y 60 reclamaciones. Chrome headless verificó
+360/768/1440 px, teclado, polling, lectura, navegación y vacío. No se migró
+desarrollo ni se implementó SMTP. Cierre: [integración M12](integration-m12.md).

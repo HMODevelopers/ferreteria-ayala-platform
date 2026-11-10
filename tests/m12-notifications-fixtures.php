@@ -1,0 +1,7 @@
+<?php
+declare(strict_types=1);if(PHP_SAPI!=='cli')exit(2);
+require dirname(__DIR__).'/bootstrap/app.php';require __DIR__.'/support/admin-navigation.php';
+$dir=__DIR__.'/artifacts/m12-notifications';if(!is_dir($dir))mkdir($dir,0700,true);
+$notification=['delivery_id'=>71,'read_at'=>null,'delivered_at'=>'2026-11-10 10:00:00','event_id'=>31,'event_type'=>'delivery.incident','source_type'=>'delivery_event','source_id'=>'91','resource_type'=>'delivery','resource_id'=>51,'branch_id'=>21,'importance'=>'high','title'=>'Incidencia en ENT-PRUEBA-001','message'=>'La entrega requiere seguimiento. Motivo registrado: cliente no disponible.','occurred_at'=>'2026-11-10 10:00:00','branch_name'=>'Sucursal de prueba'];
+foreach(['populated','empty','read']as$case){$items=$case==='empty'?[]:[$notification];if($case==='read')$items[0]['read_at']='2026-11-10 10:05:00';$data=['page'=>new App\Application\Read\Page($items,25,0,false),'readFilter'=>'all','typeFilter'=>'','csrf'=>'notifications-fixture-only'];$layout=navigationFixtureData('all','notifications');$layout['title']='Notificaciones · Prueba aislada';$layout['notificationCenter']=['unread'=>$case==='populated'?1:0,'recent'=>$items];$layout['content']=App\Core\View::partial('admin/notifications/index',$data);file_put_contents($dir.'/'.$case.'.html',App\Core\View::partial('layouts/admin',$layout));}
+echo "M12 notification fixtures rendered without database access.\n";

@@ -55,6 +55,12 @@ abstract class AdminController extends Controller
         $viewUser = $data['user'] ?? null;
         if ($viewUser instanceof User) {
             $id = $viewUser->id ?? 0;
+            if (!$isFragment && AppKernel::notifications()->installed()) {
+                $data['notificationCenter'] ??= [
+                    'unread' => AppKernel::notifications()->unreadCount($id),
+                    'recent' => AppKernel::notifications()->recent($id),
+                ];
+            }
             if (!$isFragment) $data['navAccess'] ??= [
                 'cms_settings' => AppKernel::access()->hasPermission($id,'cms.configure',null),
                 'cms' => AppKernel::access()->hasPermission($id,'cms.view',null),

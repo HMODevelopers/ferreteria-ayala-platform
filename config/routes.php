@@ -4,6 +4,10 @@ $router->get('/admin/login', [App\Controllers\Admin\LoginController::class, 'for
 $router->post('/admin/login', [App\Controllers\Admin\LoginController::class, 'login']);
 $router->post('/admin/logout', [App\Controllers\Admin\LoginController::class, 'logout']);
 $router->get('/admin', [App\Controllers\Admin\DashboardController::class, 'index']);
+$router->get('/admin/notifications', [App\Controllers\Admin\NotificationsController::class, 'index']);
+$router->get('/admin/notifications/status', [App\Controllers\Admin\NotificationsController::class, 'status']);
+$router->get('/admin/notifications/open', [App\Controllers\Admin\NotificationsController::class, 'open']);
+$router->post('/admin/notifications/read', [App\Controllers\Admin\NotificationsController::class, 'read']);
 $router->get('/admin/users', [App\Controllers\Admin\UsersController::class, 'index']);
 $router->get('/admin/users/create', [App\Controllers\Admin\UsersController::class, 'createForm']);
 $router->post('/admin/users/create', [App\Controllers\Admin\UsersController::class, 'create']);
