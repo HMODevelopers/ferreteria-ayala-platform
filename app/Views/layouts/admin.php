@@ -1,3 +1,4 @@
+<?php $adminAssetVersion = max((int) @filemtime(dirname(__DIR__, 3) . '/public/assets/css/app.css'), (int) @filemtime(dirname(__DIR__, 3) . '/public/assets/js/app.js')); ?>
 <!doctype html>
 <html lang="es-MX">
 <head>
@@ -6,8 +7,8 @@
     <meta name="robots" content="noindex, nofollow">
     <title><?= e($title ?? 'Administración') ?> · Ferretería Ayala</title>
     <link rel="icon" href="/assets/images/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/assets/css/app.css">
-    <script type="module" src="/assets/js/app.js"></script>
+    <link rel="stylesheet" href="/assets/css/app.css?v=<?= e($adminAssetVersion) ?>">
+    <script type="module" src="/assets/js/app.js?v=<?= e($adminAssetVersion) ?>"></script>
 </head>
 <body class="admin-body">
 <a class="skip-link" href="#admin-content">Saltar al contenido</a>
@@ -44,6 +45,13 @@
         </div>
     </div>
     <dialog class="admin-modal" data-admin-modal aria-labelledby="admin-modal-title"><div class="admin-modal-shell"><header class="admin-modal-header"><strong id="admin-modal-title">Formulario</strong><button class="admin-modal-close" type="button" data-admin-modal-close aria-label="Cerrar">×</button></header><div class="admin-modal-content" data-admin-modal-content></div></div></dialog>
+    <dialog class="admin-confirm-modal" data-admin-confirm-modal aria-labelledby="admin-confirm-title" aria-describedby="admin-confirm-message">
+        <div class="admin-confirm-card">
+            <div class="admin-confirm-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01M10.3 3.8 2.7 17a2 2 0 0 0 1.8 3h15a2 2 0 0 0 1.8-3L13.7 3.8a2 2 0 0 0-3.4 0Z"/></svg></div>
+            <div class="admin-confirm-copy"><h2 id="admin-confirm-title">Confirmar acción</h2><p id="admin-confirm-message">Confirma para aplicar este cambio.</p></div>
+            <div class="admin-confirm-actions"><button class="admin-secondary-button" type="button" data-admin-confirm-cancel>Cancelar</button><button class="admin-primary-button" type="button" data-admin-confirm-accept>Confirmar</button></div>
+        </div>
+    </dialog>
 <?php endif ?>
 </body>
 </html>

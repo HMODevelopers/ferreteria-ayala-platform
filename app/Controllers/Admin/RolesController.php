@@ -13,10 +13,21 @@ final class RolesController extends AdminController
     {
         $user = $this->requireUser(); if ($user instanceof Response) return $user;
         if (($denied = $this->requirePermission($user, 'roles.view')) !== null) return $denied;
+        $roles = array_map(function (array $role): array {
+            $role['permission_count'] = count(AppKernel::access()->rolePermissionIds((int) $role['id']));
+            return $role;
+        }, AppKernel::access()->roles());
         return $this->adminView('admin/roles/index', [
             'title' => 'Roles y permisos', 'activeNav' => 'roles', 'user' => $user,
-            'roles' => AppKernel::access()->roles(), 'permissions' => AppKernel::access()->permissions(),
+            'roles' => $roles, 'permissions' => AppKernel::access()->permissions(),
         ]);
+    }
+
+    public function createForm(Request $request): Response
+    {
+        $user = $this->requireUser(); if ($user instanceof Response) return $user;
+        if (($denied = $this->requirePermission($user, 'roles.create')) !== null) return $denied;
+        return $this->adminView('admin/roles/form', ['title' => 'Nuevo rol', 'activeNav' => 'roles', 'user' => $user, 'edited' => null, 'permissions' => AppKernel::access()->permissions(), 'selected' => []]);
     }
 
     public function create(Request $request): Response

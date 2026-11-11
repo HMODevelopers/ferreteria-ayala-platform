@@ -43,7 +43,7 @@ final class PdoBranchAdminReadRepository extends PdoRepository
     public function regularHours(int $branchId): array
     {
         $statement = $this->pdo()->prepare(
-            'SELECT iso_weekday, opens_at, closes_at, crosses_midnight, interval_order FROM branch_hours '
+            'SELECT id, iso_weekday, opens_at, closes_at, crosses_midnight, interval_order FROM branch_hours '
             . 'WHERE branch_id = :branch ORDER BY iso_weekday, interval_order, id'
         );
         $statement->execute(['branch' => self::id($branchId)]);

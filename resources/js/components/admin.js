@@ -5,9 +5,12 @@ import { initAdminQuotes } from '../modules/admin-quotes.js';
 import { initQuoteWorkflow } from './quote-workflow.js';
 import { initMediaUpload } from './admin-media-upload.js';
 import { initAdminNavigation } from './admin-navigation.js';
+import { initAdminRoles } from './admin-roles.js';
+import { initCmsEditor } from '../modules/cms.js';
 
 export function admin() {
   initAdminNavigation();
+  initAdminRoles(document);
   initBranchMaps();
   initQuoteWorkflow();
   initMediaUpload(document.querySelector('[data-media-upload-form]'));
@@ -145,6 +148,8 @@ export function admin() {
     initQuoteWorkflow(modalContent);
     initTransfers(modalContent);
     initDeliveries(modalContent);
+    initAdminRoles(modalContent);
+    initCmsEditor(modalContent);
     cleanupModalMaps = initBranchMaps(modalContent);
   };
 
@@ -212,7 +217,7 @@ export function admin() {
       const requestId=++activeModalRequest;const url=new URL(form.getAttribute('action') || window.location.href, window.location.href);url.search=new URLSearchParams(new FormData(form)).toString();modalContent.setAttribute('aria-busy','true');
       try{const html=await loadForm(url.href);if(html!==null&&requestId===activeModalRequest&&modal.open){renderModalContent(html);restorePreparation();}}catch{if(requestId===activeModalRequest){const alert=document.createElement('p');alert.className='admin-alert admin-alert-error';alert.setAttribute('role','alert');alert.textContent='No se pudo actualizar la búsqueda. Intenta nuevamente.';form.prepend(alert);modalContent.removeAttribute('aria-busy');}}return;
     }
-    if (!form.matches('[data-cms-editor-form],[data-media-upload-form],[data-customer-form],[data-quote-workflow-form],[data-purchasing-form],[data-transfer-create],[data-transfer-event],[data-delivery-create],[data-delivery-event],[data-delivery-resource],form[action="/admin/returns/create"],form[action="/admin/returns/action"],[data-catalog-form],[data-pricing-form],[data-branch-form]')) return;
+    if (!form.matches('[data-cms-editor-form],[data-media-upload-form],[data-customer-form],[data-quote-workflow-form],[data-purchasing-form],[data-transfer-create],[data-transfer-event],[data-delivery-create],[data-delivery-event],[data-delivery-resource],form[action="/admin/returns/create"],form[action="/admin/returns/action"],[data-catalog-form],[data-pricing-form],[data-branch-form],[data-branch-schedule],[data-role-form]')) return;
     event.preventDefault();
     if (form.dataset.submitting === '1') return;
     form.dataset.submitting = '1';
@@ -243,7 +248,7 @@ export function admin() {
           }
           return;
         }
-        if (response.ok && destination.origin === window.location.origin && ['/admin/branches','/admin/prices','/admin/products','/admin/categories','/admin/brands','/admin/units','/admin/attributes','/admin/purchases','/admin/suppliers','/admin/cms','/admin/cms/terms','/admin/media','/admin/customers'].includes(destination.pathname)) {
+        if (response.ok && destination.origin === window.location.origin && ['/admin/branches','/admin/prices','/admin/products','/admin/categories','/admin/brands','/admin/units','/admin/attributes','/admin/purchases','/admin/suppliers','/admin/cms','/admin/cms/terms','/admin/media','/admin/customers','/admin/roles'].includes(destination.pathname)) {
           // The redirected GET already consumed the flash; reuse its rendered list.
           const html = await response.text();
           if (requestId !== activeModalRequest || !modal.open) return;
@@ -288,10 +293,45 @@ export function admin() {
   });
 
   function bindConfirmation(control) {
+    if (control.dataset.confirmBound === 'true') return;
+    control.dataset.confirmBound = 'true';
     control.addEventListener('click', event => {
-      if (!window.confirm(control.getAttribute('data-confirm') || '¿Confirmar esta acción?')) event.preventDefault();
+      const confirmation = document.querySelector('[data-admin-confirm-modal]');
+      if (!confirmation) return;
+      event.preventDefault();
+      const title = confirmation.querySelector('#admin-confirm-title');
+      const message = confirmation.querySelector('#admin-confirm-message');
+      const accept = confirmation.querySelector('[data-admin-confirm-accept]');
+      const prompt = control.getAttribute('data-confirm') || '¿Confirmas esta acción?';
+      const actionLabel = control.textContent.trim().replace(/^sí,\s*/i, '');
+      if (title) title.textContent = control.getAttribute('data-confirm-title') || actionLabel || 'Confirmar acción';
+      if (message) message.textContent = prompt;
+      if (accept) {
+        const destructive = control.classList.contains('admin-danger-button') || /eliminar|desactivar|revocar|cancelar/i.test(`${prompt} ${control.textContent}`);
+        accept.classList.toggle('admin-danger-button', destructive);
+        accept.classList.toggle('admin-primary-button', !destructive);
+        accept.textContent = control.getAttribute('data-confirm-label') || 'Sí, confirmar';
+      }
+      confirmation.pendingControl = control;
+      confirmation.showModal();
     });
   }
+  const confirmation = document.querySelector('[data-admin-confirm-modal]');
+  const cancelConfirmation = () => confirmation?.close('cancel');
+  confirmation?.querySelector('[data-admin-confirm-cancel]')?.addEventListener('click', cancelConfirmation);
+  confirmation?.addEventListener('click', event => {
+    if (event.target === confirmation) cancelConfirmation();
+  });
+  confirmation?.querySelector('[data-admin-confirm-accept]')?.addEventListener('click', () => {
+    const control = confirmation.pendingControl;
+    confirmation.close('confirm');
+    confirmation.pendingControl = null;
+    if (!control) return;
+    if (control instanceof HTMLButtonElement && control.form) control.form.requestSubmit(control);
+    else if (control instanceof HTMLInputElement && control.form) control.form.requestSubmit(control);
+    else if (control instanceof HTMLAnchorElement) window.location.assign(control.href);
+  });
+  confirmation?.addEventListener('close', () => { confirmation.pendingControl = null; });
   document.querySelectorAll('[data-confirm]').forEach(control => {
     bindConfirmation(control);
   });

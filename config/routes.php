@@ -17,6 +17,7 @@ $router->post('/admin/users/status', [App\Controllers\Admin\UsersController::cla
 $router->post('/admin/users/password', [App\Controllers\Admin\UsersController::class, 'password']);
 $router->post('/admin/users/assignments', [App\Controllers\Admin\UsersController::class, 'assignments']);
 $router->get('/admin/roles', [App\Controllers\Admin\RolesController::class, 'index']);
+$router->get('/admin/roles/create', [App\Controllers\Admin\RolesController::class, 'createForm']);
 $router->post('/admin/roles/create', [App\Controllers\Admin\RolesController::class, 'create']);
 $router->get('/admin/roles/edit', [App\Controllers\Admin\RolesController::class, 'editForm']);
 $router->post('/admin/roles/update', [App\Controllers\Admin\RolesController::class, 'update']);
@@ -26,6 +27,8 @@ $router->post('/admin/branches/create', [App\Controllers\Admin\BranchesControlle
 $router->get('/admin/branches/edit', [App\Controllers\Admin\BranchesController::class, 'editForm']);
 $router->post('/admin/branches/update', [App\Controllers\Admin\BranchesController::class, 'update']);
 $router->post('/admin/branches/status', [App\Controllers\Admin\BranchesController::class, 'status']);
+$router->post('/admin/branches/hours/create', [App\Controllers\Admin\BranchesController::class, 'addHours']);
+$router->post('/admin/branches/hours/delete', [App\Controllers\Admin\BranchesController::class, 'removeHours']);
 $router->get('/admin/branches/detail', [App\Controllers\Admin\BranchesController::class, 'detail']);
 $router->get('/admin/audit', [App\Controllers\Admin\AuditController::class, 'index']);
 $router->get('/admin/categories', [App\Controllers\Admin\CategoriesController::class, 'index']);
