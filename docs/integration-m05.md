@@ -39,3 +39,10 @@ productos, cantidades, movimientos, mínimos, lotes, series ni conteos.
 
 M05 no implementa recepciones M06, apartados M08, transferencias M09, entregas
 M10 ni movimientos automáticos originados por esos módulos.
+
+## Integración posterior con devoluciones
+
+El servicio oficial incorpora adaptadores documentales `return_event` para la
+entrada apta de cliente y la salida a proveedor. Conservan bloqueo, saldo,
+apartados, idempotencia y ledger M05; dañado o pendiente de inspección no llama
+al adaptador. Véase [integración de devoluciones](integration-returns.md).

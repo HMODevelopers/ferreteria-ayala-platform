@@ -1,6 +1,23 @@
 # Verificación de la plataforma
 
-Fecha de última ejecución local: 3 de noviembre de 2026. Entorno vigente: Windows, PHP CLI 8.2.35, MySQL 8.4.10 y Node 22 en Docker; Chrome Windows para HTTP. Los resultados Ubuntu anteriores se conservan como historial. M10: 1168 comprobaciones, 336 archivos PHP, 21 fuentes JS/MJS, build, SQL, HTTP/Chrome y activación PASS. Regresiones SQL/HTTP M08–M09 y navegador público PASS; base aislada vacía y respaldo restaurado.
+## Devoluciones operativas · 10 de noviembre de 2026
+
+- `php tests/run.php`: PASS, 1576 comprobaciones.
+- `npm run build`: PASS con Tailwind 4.3.3.
+- `npm run test:browser:returns`: PASS, 12 escenarios en Chrome headless a
+  360, 768, 1440 y 2560 px sin desbordamiento.
+- `npm run test:mysql:returns`: bloqueada antes de migrar por autenticación de
+  la identidad aislada configurada. `php tests/mysql-m05-integration.php`
+  reproduce el mismo fallo, por lo que no se sustituyó por `DB_*` ni se tocó
+  desarrollo.
+- Alcance detallado: [integración de devoluciones](integration-returns.md).
+
+Fecha de última ejecución local: 10 de noviembre de 2026. Entorno vigente:
+Linux, PHP CLI 8.5.4, Node 22.22.1, npm 9.2.0 y Chrome headless. El servidor
+MariaDB reportado es 10.11.15, pero la identidad aislada configurada fue
+rechazada antes de poder consultar su versión en esta ejecución. Los cierres
+anteriores de M10 y sus regresiones se conservan como historial, no se
+reinterpretan como validación SQL de devoluciones.
 
 ## Ejecutado
 

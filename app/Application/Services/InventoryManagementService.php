@@ -61,6 +61,22 @@ final class InventoryManagementService
         return $this->recordWithinTransactionInternal($input,$actor,null,false);
     }
 
+    public function recordCustomerReturnWithinTransaction(array $input, int $actor): array
+    {
+        if (($input['source_type'] ?? null) !== 'return_event') throw new \InvalidArgumentException('Falta el origen documental de la devolución.');
+        $input['type'] = 'adjustment_in';
+        $input['reject_tracked'] = true;
+        return $this->recordWithinTransactionInternal($input, $actor, null, false);
+    }
+
+    public function recordSupplierReturnWithinTransaction(array $input, int $actor): array
+    {
+        if (($input['source_type'] ?? null) !== 'return_event') throw new \InvalidArgumentException('Falta el origen documental de la devolución.');
+        $input['type'] = 'adjustment_out';
+        $input['reject_tracked'] = true;
+        return $this->recordWithinTransactionInternal($input, $actor, null, false);
+    }
+
     private function recordWithinTransactionInternal(array $input, int $actorId, ?callable $audit, bool $allowInitialization): array
     {
         $branchId = self::id($input['branch_id'] ?? 0, 'La sucursal');
@@ -73,6 +89,7 @@ final class InventoryManagementService
 
         return (function () use ($branchId, $variantId, $unitId, $type, $reason, $operationKey, $rawQuantity, $actorId, $audit, $allowInitialization, $input): array {
             $this->inventory->lockScope($branchId, $variantId);
+            if (($input['reject_tracked'] ?? false) && $this->inventory->isTracked($variantId)) throw new OperationConflict('La variante usa lotes o series; la devolución no puede perder esas identificaciones.');
             $meta = $this->inventory->variantInventoryMeta($variantId, $unitId) ?? throw new EntityNotFound('La variante o unidad seleccionada no existe.');
             if ((int) $meta['variant_active'] !== 1 || (int) $meta['product_active'] !== 1) throw new OperationConflict('La variante o su producto están inactivos.');
             if ((int) $meta['input_unit_active'] !== 1) throw new OperationConflict('La unidad seleccionada está inactiva.');

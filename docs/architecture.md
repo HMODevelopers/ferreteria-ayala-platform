@@ -1,5 +1,15 @@
 # Arquitectura
 
+## Devoluciones operativas
+
+`ReturnsController` coordina sesión, CSRF y presentación;
+`ReturnManagementService` posee elegibilidad, estados, transacción e
+idempotencia; `PdoReturnRepository` concentra consultas, bloqueos y
+persistencia; `ReturnRules` valida decimales y transiciones. Los movimientos
+físicos se componen con `InventoryManagementService` dentro de la misma
+transacción. El alcance por sucursal siempre intersecta el permiso de
+devolución con el permiso de consultar su entrega o compra de origen.
+
 ## Flujo de peticiones
 
 Apache dirige las peticiones al front controller `public/index.php`, salvo assets permitidos. `bootstrap/app.php` registra autoload equivalente PSR-4, configura zona horaria y crea el router. Request captura método y ruta; el router resuelve controlador/acción; HomeController selecciona DemoHomeData o el contenido CMS M11 según su habilitación, renderiza la vista y devuelve Response.

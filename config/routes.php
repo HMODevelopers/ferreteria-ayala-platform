@@ -139,6 +139,12 @@ $router->post('/admin/deliveries/action', [App\Controllers\Admin\DeliveriesContr
 $router->get('/admin/deliveries/resources', [App\Controllers\Admin\DeliveriesController::class, 'resources']);
 $router->post('/admin/deliveries/resources', [App\Controllers\Admin\DeliveriesController::class, 'saveResource']);
 
+$router->get('/admin/returns', [App\Controllers\Admin\ReturnsController::class, 'index']);
+$router->get('/admin/returns/create', [App\Controllers\Admin\ReturnsController::class, 'createForm']);
+$router->post('/admin/returns/create', [App\Controllers\Admin\ReturnsController::class, 'create']);
+$router->get('/admin/returns/detail', [App\Controllers\Admin\ReturnsController::class, 'detail']);
+$router->post('/admin/returns/action', [App\Controllers\Admin\ReturnsController::class, 'action']);
+
 $router->get('/admin/cms', [App\Controllers\Admin\CmsController::class, 'index']);
 $router->post('/admin/cms/save', [App\Controllers\Admin\CmsController::class, 'save']);
 $router->get('/admin/cms/legal', [App\Controllers\Admin\CmsController::class, 'legal']);

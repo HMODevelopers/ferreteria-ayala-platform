@@ -64,3 +64,9 @@ permanecen vacías y los conteos previos no cambiaron.
 ## Continuidad M11 · 4 de noviembre de 2026
 
 Los pendientes de medios y contenido relacionados con este módulo se atienden en [integración M11](integration-m11.md). Ese informe conserva las decisiones autorizadas, los límites de formatos, la recepción pública con consentimiento y los resultados reales; los estados anteriores de este documento permanecen como historia del incremento original.
+
+## Integración posterior con devoluciones
+
+Las devoluciones a proveedor se vinculan con `goods_receipt_items`, no con la
+factura por sí sola. El egreso no modifica cantidades o importes históricos de
+compra. Detalle en [integración de devoluciones](integration-returns.md).

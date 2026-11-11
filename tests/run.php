@@ -85,6 +85,7 @@ require __DIR__ . '/m11-cms.php';
 require __DIR__ . '/m12-jobs.php';
 require __DIR__ . '/m12-notifications.php';
 require __DIR__ . '/m13-reporting.php';
+require __DIR__ . '/returns.php';
 require __DIR__ . '/admin-navigation.php';
 require __DIR__ . '/publication-settings.php';
 require __DIR__ . '/published-home.php';

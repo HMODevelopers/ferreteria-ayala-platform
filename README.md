@@ -309,3 +309,11 @@ Cierre M10 confirmado: 61 migraciones, nueve tablas InnoDB/utf8mb4, 23 FKs restr
 Implementación de contenido estructurado, publicación/programación, medios raster privados, galerías M03, comprobantes M06, fotografías históricas M10, legales versionados, condiciones por sucursal y recepción pública real de solicitudes M08 con consentimiento/antispam. Siete migraciones aditivas, 21 tablas y trece permisos. El perfil PAGE_ADMIN no accede a datos comerciales ni usuarios. SMTP y M12 no se inician. Estado de pruebas, respaldo, activación y límites en [integración M11](docs/integration-m11.md).
 
 Cierre M11 del 4 de noviembre de 2026: migrado en desarrollo con 68 migraciones y 93 tablas, sin fixtures. Dominio 1235, SQL 71, Chrome 80 y las seis regresiones M08–M10 PASS; respaldo/restauración y conservación de datos verificados. La publicación pública se habilita desde el panel después de cargar contenido y aviso reales. Siguiente módulo M12, sin iniciarlo.
+
+## Devoluciones operativas
+
+Panel en `/admin/returns` para devoluciones de clientes sustentadas por
+cantidades recibidas de entregas y salidas a proveedor sustentadas por
+recepciones de compra. Registro/autorización no alteran inventario; la
+confirmación física usa M05 y respeta apartados. Alcance, permisos, migraciones,
+pruebas y activación: [integración de devoluciones](docs/integration-returns.md).

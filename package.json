@@ -33,7 +33,9 @@
     "test:mysql:m11": "php tests/mysql-m11-integration.php",
     "test:mysql:m11:http": "node tests/m11-http-integration.mjs",
     "test:mysql:m12:jobs": "php tests/mysql-m12-jobs-integration.php",
-    "test:mysql:m12:notifications": "php tests/mysql-m12-notifications-integration.php"
+    "test:mysql:m12:notifications": "php tests/mysql-m12-notifications-integration.php",
+    "test:mysql:returns": "php tests/mysql-returns-integration.php",
+    "test:browser:returns": "php tests/returns-design-fixtures.php && node tests/returns-design-browser.mjs"
     ,"test:browser:m12:notifications": "php tests/m12-notifications-fixtures.php && node tests/m12-notifications-browser.mjs",
     "test:browser:m13:reports": "php tests/m13-reports-fixture.php && node tests/m13-reports-browser.mjs"
   },

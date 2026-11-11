@@ -175,3 +175,10 @@ El .env privado también recibió exclusivamente la configuración de la identid
 ## Continuidad M11 · 4 de noviembre de 2026
 
 Los pendientes de medios y contenido relacionados con este módulo se atienden en [integración M11](integration-m11.md). Ese informe conserva las decisiones autorizadas, los límites de formatos, la recepción pública con consentimiento y los resultados reales; los estados anteriores de este documento permanecen como historia del incremento original.
+
+## Integración posterior con devoluciones
+
+M10 continúa siendo Entregas. La funcionalidad independiente de devoluciones
+usa exclusivamente `delivery_items.received_quantity` como evidencia física y
+no una cotización aceptada ni mercancía solamente despachada. Véase
+[integración de devoluciones](integration-returns.md).

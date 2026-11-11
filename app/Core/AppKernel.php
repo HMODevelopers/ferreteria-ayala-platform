@@ -64,6 +64,8 @@ final class AppKernel
     public static function deliveryManagement(): \App\Application\Services\DeliveryManagementService {return new \App\Application\Services\DeliveryManagementService(self::deliveries(),self::transfers(),self::inventory(),self::inventoryManagement(),self::deliveryReservations(),self::connection(),self::notifications());}
     public static function transfers(): \App\Infrastructure\Persistence\PdoTransferRepository {return new \App\Infrastructure\Persistence\PdoTransferRepository(self::connection());}
     public static function transferManagement(): \App\Application\Services\TransferManagementService {return new \App\Application\Services\TransferManagementService(self::transfers(),self::inventory(),self::inventoryManagement(),self::connection());}
+    public static function returns(): \App\Infrastructure\Persistence\PdoReturnRepository {return new \App\Infrastructure\Persistence\PdoReturnRepository(self::connection());}
+    public static function returnManagement(): \App\Application\Services\ReturnManagementService {return new \App\Application\Services\ReturnManagementService(self::returns(),self::inventoryManagement(),self::connection());}
     public static function customers(): PdoCustomerRepository { return new PdoCustomerRepository(self::connection()); }
     public static function customerManagement(): CustomerManagementService { return new CustomerManagementService(self::customers(), self::connection()); }
 

@@ -1,0 +1,56 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Infrastructure\Persistence;
+
+use App\Application\Read\Page;
+use App\Application\Repositories\ReturnRepository;
+use PDO;
+
+final class PdoReturnRepository extends PdoRepository implements ReturnRepository
+{
+    private function query(string $sql, array $args = []): \PDOStatement { $s=$this->pdo()->prepare($sql);$s->execute($args);return $s; }
+    private function rows(string $sql, array $args = []): array { return $this->query($sql,$args)->fetchAll(); }
+    private function scope(?array $allowed, string $alias, array &$args): string { if($allowed===null)return '';if($allowed===[])return ' AND 1=0';if(array_key_exists('customer',$allowed)){$parts=[];foreach(['customer','supplier']as$type){$ids=$allowed[$type]??[];if($ids===null){$parts[]=$alias.'.return_type=?';$args[]=$type;continue;}if($ids===[])continue;$parts[]='('.$alias.'.return_type=? AND '.$alias.'.branch_id IN('.implode(',',array_fill(0,count($ids),'?')).'))';$args[]=$type;foreach($ids as$id)$args[]=self::id($id);}return$parts?' AND ('.implode(' OR ',$parts).')':' AND 1=0';}foreach($allowed as$id)$args[]=self::id($id);return ' AND '.$alias.'.branch_id IN('.implode(',',array_fill(0,count($allowed),'?')).')'; }
+    private function page(array $rows,int $offset):Page{$more=count($rows)>25;if($more)array_pop($rows);return new Page($rows,25,$offset,$more);}
+    private function insert(string$table,array$data):int{$this->query('INSERT INTO '.$table.'('.implode(',',array_keys($data)).') VALUES('.implode(',',array_fill(0,count($data),'?')).')',array_values($data));return$this->insertedId();}
+    public function installed():bool{return(bool)$this->rows("SELECT id FROM schema_migrations WHERE id='20261110140100_register_return_permissions'");}
+
+    public function listing(string$q,string$status,string$type,?int$branch,?string$from,?string$until,?array$allowed,int$offset):Page
+    {
+        self::pageBounds(25,$offset);if(strlen($q)>120)throw new \InvalidArgumentException('La búsqueda es demasiado larga.');
+        $args=[];$where=$this->scope($allowed,'r',$args);if($q!==''){$term='%'.str_replace(['\\','%','_'],['\\\\','\\%','\\_'],$q).'%';$where.=' AND (r.folio LIKE ? OR d.folio LIKE ? OR CONCAT(si.series,\' \',si.folio) LIKE ? OR c.legal_name LIKE ? OR s.legal_name LIKE ?)';array_push($args,$term,$term,$term,$term,$term);}if($status!==''){$where.=' AND r.status=?';$args[]=$status;}if($type!==''){$where.=' AND r.return_type=?';$args[]=$type;}if($branch){$where.=' AND r.branch_id=?';$args[]=$branch;}if($from){$where.=' AND r.created_at>=?';$args[]=$from.' 00:00:00';}if($until){$where.=' AND r.created_at<?';$args[]=(new \DateTimeImmutable($until))->modify('+1 day')->format('Y-m-d').' 00:00:00';}
+        return $this->page($this->rows("SELECT r.*,b.name branch_name,u.display_name actor_name,COALESCE(c.legal_name,s.legal_name) counterparty_name,CASE WHEN r.return_type='customer' THEN d.folio ELSE CONCAT(si.series,' ',si.folio,' / recepción ',gr.id) END source_reference,(SELECT COUNT(*) FROM return_items ri WHERE ri.return_id=r.id) item_count FROM operational_returns r JOIN branches b ON b.id=r.branch_id JOIN users u ON u.id=r.created_by LEFT JOIN deliveries d ON d.id=r.delivery_id LEFT JOIN customers c ON c.id=r.customer_id LEFT JOIN goods_receipts gr ON gr.id=r.goods_receipt_id LEFT JOIN supplier_invoices si ON si.id=gr.invoice_id LEFT JOIN suppliers s ON s.id=r.supplier_id WHERE 1=1".$where.' ORDER BY r.id DESC LIMIT 26 OFFSET '.(int)$offset,$args),$offset);
+    }
+
+    public function sourceOptions(string$type,string$q,?array$allowed,int$offset):Page
+    {
+        self::pageBounds(25,$offset);if(strlen($q)>120)throw new \InvalidArgumentException('La búsqueda es demasiado larga.');$args=[];
+        if($type==='customer'){$where=$this->scope($allowed,'d',$args);if($q!==''){$where.=' AND (d.folio LIKE ? OR c.legal_name LIKE ?)';$t='%'.$q.'%';array_push($args,$t,$t);}return$this->page($this->rows("SELECT d.id,d.folio reference,c.legal_name counterparty,b.name branch_name,d.branch_id,d.created_at source_date FROM deliveries d JOIN customers c ON c.id=d.customer_id JOIN branches b ON b.id=d.branch_id WHERE d.status IN('in_transit','delivered','failed') AND EXISTS(SELECT 1 FROM delivery_items di WHERE di.delivery_id=d.id AND di.received_quantity>COALESCE((SELECT SUM(ri.quantity) FROM return_items ri JOIN operational_returns r ON r.id=ri.return_id WHERE ri.delivery_item_id=di.id AND r.status IN('registered','authorized','completed')),0))".$where.' ORDER BY d.id DESC LIMIT 26 OFFSET '.(int)$offset,$args),$offset);}
+        if($type!=='supplier')throw new \InvalidArgumentException('Tipo de devolución inválido.');$where=$this->scope($allowed,'gr',$args);if($q!==''){$where.=' AND (si.folio LIKE ? OR si.series LIKE ? OR s.legal_name LIKE ?)';$t='%'.$q.'%';array_push($args,$t,$t,$t);}return$this->page($this->rows("SELECT gr.id,CONCAT(si.series,' ',si.folio,' / recepción ',gr.id) reference,s.legal_name counterparty,b.name branch_name,gr.branch_id,gr.received_at source_date FROM goods_receipts gr JOIN supplier_invoices si ON si.id=gr.invoice_id JOIN suppliers s ON s.id=si.supplier_id JOIN branches b ON b.id=gr.branch_id WHERE gr.status='confirmed' AND EXISTS(SELECT 1 FROM goods_receipt_items gri WHERE gri.receipt_id=gr.id AND gri.input_quantity>COALESCE((SELECT SUM(ri.quantity) FROM return_items ri JOIN operational_returns r ON r.id=ri.return_id WHERE ri.goods_receipt_item_id=gri.id AND r.status IN('registered','authorized','completed')),0))".$where.' ORDER BY gr.id DESC LIMIT 26 OFFSET '.(int)$offset,$args),$offset);
+    }
+
+    public function source(string$type,int$id,?array$allowed,bool$lock=false):?array
+    {
+        $args=[$id];if($type==='customer'){$where=$this->scope($allowed,'d',$args);return$this->rows("SELECT d.id,d.folio reference,d.branch_id,d.customer_id,NULL supplier_id,c.legal_name counterparty,b.name branch_name,d.status source_status FROM deliveries d JOIN customers c ON c.id=d.customer_id JOIN branches b ON b.id=d.branch_id WHERE d.id=? AND d.status IN('in_transit','delivered','failed')".$where.($lock?' FOR UPDATE':''),$args)[0]??null;}
+        if($type!=='supplier')return null;$where=$this->scope($allowed,'gr',$args);return$this->rows("SELECT gr.id,CONCAT(si.series,' ',si.folio,' / recepción ',gr.id) reference,gr.branch_id,NULL customer_id,si.supplier_id,s.legal_name counterparty,b.name branch_name,gr.status source_status FROM goods_receipts gr JOIN supplier_invoices si ON si.id=gr.invoice_id JOIN suppliers s ON s.id=si.supplier_id JOIN branches b ON b.id=gr.branch_id WHERE gr.id=? AND gr.status='confirmed'".$where.($lock?' FOR UPDATE':''),$args)[0]??null;
+    }
+
+    public function sourceItems(string$type,int$id,bool$lock=false):array
+    {
+        if($type==='customer')return$this->rows("SELECT di.id source_item_id,qi.variant_id,qi.unit_id,qi.sku,qi.description,u.symbol,u.decimal_places,di.received_quantity original_quantity FROM delivery_items di JOIN quote_items qi ON qi.id=di.quote_item_id JOIN units u ON u.id=qi.unit_id WHERE di.delivery_id=? AND di.received_quantity>0 ORDER BY di.id".($lock?' FOR UPDATE':''),[$id]);
+        return$this->rows("SELECT gri.id source_item_id,ii.variant_id,ii.unit_id,pv.sku,ii.description,u.symbol,u.decimal_places,gri.input_quantity original_quantity FROM goods_receipt_items gri JOIN supplier_invoice_items ii ON ii.id=gri.invoice_item_id JOIN product_variants pv ON pv.id=ii.variant_id JOIN units u ON u.id=ii.unit_id WHERE gri.receipt_id=? ORDER BY gri.id".($lock?' FOR UPDATE':''),[$id]);
+    }
+    public function committed(string$type,int$sourceItem,?int$exclude=null):string{$column=$type==='customer'?'delivery_item_id':'goods_receipt_item_id';return(string)$this->query("SELECT COALESCE(SUM(ri.quantity),0) FROM return_items ri JOIN operational_returns r ON r.id=ri.return_id WHERE ri.$column=? AND r.status IN('registered','authorized','completed') AND r.id<>?",[$sourceItem,$exclude??0])->fetchColumn();}
+    public function find(int$id,?array$allowed=null,bool$lock=false):?array{$args=[$id];$where=$this->scope($allowed,'r',$args);return$this->rows("SELECT r.*,b.name branch_name,creator.display_name actor_name,authorizer.display_name authorized_name,physical.display_name physical_name,COALESCE(c.legal_name,s.legal_name) counterparty_name,CASE WHEN r.return_type='customer' THEN d.folio ELSE CONCAT(si.series,' ',si.folio,' / recepción ',gr.id) END source_reference FROM operational_returns r JOIN branches b ON b.id=r.branch_id JOIN users creator ON creator.id=r.created_by LEFT JOIN users authorizer ON authorizer.id=r.authorized_by LEFT JOIN users physical ON physical.id=r.physical_by LEFT JOIN deliveries d ON d.id=r.delivery_id LEFT JOIN customers c ON c.id=r.customer_id LEFT JOIN goods_receipts gr ON gr.id=r.goods_receipt_id LEFT JOIN supplier_invoices si ON si.id=gr.invoice_id LEFT JOIN suppliers s ON s.id=r.supplier_id WHERE r.id=?".$where.($lock?' FOR UPDATE':''),$args)[0]??null;}
+    public function items(int$id,bool$lock=false):array{return$this->rows('SELECT ri.*,pv.sku,pv.name variant_name,p.name product_name,u.symbol,u.decimal_places FROM return_items ri JOIN product_variants pv ON pv.id=ri.variant_id JOIN products p ON p.id=pv.product_id JOIN units u ON u.id=ri.unit_id WHERE ri.return_id=? ORDER BY ri.id'.($lock?' FOR UPDATE':''),[$id]);}
+    public function history(int$id):array{return$this->rows('SELECT e.*,u.display_name actor_name,ei.quantity,ei.return_item_id,ei.inventory_movement_id FROM return_events e JOIN users u ON u.id=e.actor_user_id LEFT JOIN return_event_items ei ON ei.event_id=e.id WHERE e.return_id=? ORDER BY e.id,ei.id',[$id]);}
+    public function operation(string$key):?array{return$this->rows('SELECT * FROM return_events WHERE operation_key=?',[$key])[0]??null;}
+    public function create(array$data):int{return$this->insert('operational_returns',$data);}
+    public function addItem(array$data):int{return$this->insert('return_items',$data);}
+    public function createEvent(array$data):int{return$this->insert('return_events',$data);}
+    public function addEventItem(int$event,int$item,string$quantity,?int$movement=null):int{return$this->insert('return_event_items',['event_id'=>$event,'return_item_id'=>$item,'quantity'=>$quantity,'inventory_movement_id'=>$movement]);}
+    public function attachMovement(int$item,int$eventItem,int$movement):void{$this->query('UPDATE return_items SET inventory_movement_id=? WHERE id=? AND inventory_movement_id IS NULL',[$movement,$item]);$this->query('UPDATE return_event_items SET inventory_movement_id=? WHERE id=? AND inventory_movement_id IS NULL',[$movement,$eventItem]);}
+    public function updateStatus(int$id,string$status,string$action,int$actor):void{$field=match($action){'authorize'=>'authorized','reject'=>'rejected','receive','dispatch'=>'physical','cancel'=>'cancelled'};$this->query("UPDATE operational_returns SET status=?,{$field}_by=?,{$field}_at=UTC_TIMESTAMP(6),lock_version=lock_version+1 WHERE id=?",[$status,$actor,$id]);}
+    public function branches():array{return$this->pdo()->query('SELECT id,code,name FROM branches WHERE is_active=1 ORDER BY name,id LIMIT 1000')->fetchAll(PDO::FETCH_ASSOC);}
+}

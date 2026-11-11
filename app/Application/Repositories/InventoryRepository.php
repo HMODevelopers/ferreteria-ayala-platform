@@ -16,6 +16,7 @@ interface InventoryRepository
     public function findBalance(int $branchId, int $variantId, bool $lock = false): ?array;
     public function findMovementByOperation(string $operationKey): ?array;
     public function lockScope(int $branchId, int $variantId): void;
+    public function isTracked(int $variantId): bool;
     public function ensureBalance(int $branchId, int $variantId): void;
     public function updateBalance(int $balanceId, string $physical, string $reserved, bool $initialize): void;
     public function createMovement(array $data): array;

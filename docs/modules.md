@@ -166,13 +166,22 @@ Incremento administrativo activado el 3 de noviembre de 2026: borradores, client
 
 Integrado y activado el 3 de noviembre de 2026: solicitudes, aprobación con apartado en origen, preparación, despachos y recepciones parciales, tránsito, incidencias, cobertura de cotizaciones y movimientos M05. Cuatro migraciones aditivas elevan el total a 57; diez permisos configurables por sucursal. SQL, concurrencia independiente, HTTP/Chrome y respaldo restaurado: PASS. No genera compras ni implementa M10. Alcance y límites de lotes/series: [integración M09](integration-m09.md).
 
-### M10 · Entregas (devoluciones pendientes)
+### M10 · Entregas
 
 Incluye recolección/domicilio, entregas parciales, rutas manuales, vehículos
-propios, repartidores sin acceso y evidencia. El código vigente no implementa
-devoluciones; ese flujo necesita un incremento independiente y reglas de
-disposición física aprobadas. No incluye GPS continuo ni mantenimiento de
-flotilla.
+propios, repartidores sin acceso y evidencia. Las devoluciones se implementan
+como funcionalidad independiente y se vinculan con cantidades confirmadas de
+M10; no cambian el alcance ni el nombre de este módulo. No incluye GPS continuo
+ni mantenimiento de flotilla.
+
+### Devoluciones operativas
+
+Implementadas en código el 10 de noviembre de 2026 para entregas confirmadas y
+recepciones de proveedor. Registro y autorización no mueven inventario; la
+confirmación física compone M05 con idempotencia, versión y bloqueo. Material
+dañado o pendiente de inspección no aumenta disponible. PHP, build y Chrome
+aprobaron; SQL aislado espera corregir la identidad configurada, por lo que
+desarrollo no fue migrado. Detalle: [integración de devoluciones](integration-returns.md).
 
 ### M11 · CMS público
 
@@ -216,7 +225,7 @@ requieren autorización separada.
 4. M04 y M05: precios e inventario.
 5. M06 y M07: entradas por factura y clientes internos.
 6. M08 y M09: cotizaciones, apartados y transferencias.
-7. M10: entregas y devoluciones.
+7. M10: entregas; devoluciones como incremento operativo independiente.
 8. M12 y M13: notificaciones, reportes e intercambio.
 9. M14: endurecimiento operativo, respaldos y despliegue.
 

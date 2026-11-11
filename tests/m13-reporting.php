@@ -16,7 +16,7 @@ foreach(['/admin/reports','/admin/reports/export','/admin/products/import','/adm
 foreach(['/admin/products/import/preview','/admin/products/import/confirm']as$route)check($router->dispatch(new App\Core\Request('POST',$route))->status===303,'M13 private POST route requires authentication: '.$route);
 $m13Permissions=array_values(array_filter(array_column(App\Application\Security\PermissionCatalog::ITEMS,0),static fn(string$code):bool=>in_array($code,['reports.view','reports.export','catalog.import'],true)));
 check(count($m13Permissions)===3&&count(array_unique($m13Permissions))===3,'M13 defines separate view, export and import permissions');
-check(count(glob(dirname(__DIR__).'/database/migrations/*.php')?:[])===72,'M13 adds one ordered additive migration');
+check(is_file(dirname(__DIR__).'/database/migrations/20261110130000_register_reporting_permissions.php')&&count(glob(dirname(__DIR__).'/database/migrations/*.php')?:[])>=72,'M13 ordered additive migration remains present');
 $reportView=preg_replace('/<svg\b.*?<\/svg>/s','',file_get_contents(dirname(__DIR__).'/app/Views/admin/reports/index.php'));
 $visibleReportSources=file_get_contents(dirname(__DIR__).'/app/Infrastructure/Persistence/PdoReportRepository.php').$reportView.file_get_contents(dirname(__DIR__).'/app/Views/admin/catalog/import.php');
 check(!preg_match('/\bM\d{2}\b/i',$visibleReportSources),'Reporting and import interfaces do not expose internal module codes');

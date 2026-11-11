@@ -1,5 +1,15 @@
 # Modelo de datos propuesto
 
+## Devoluciones operativas
+
+`operational_returns` referencia de forma exclusiva una entrega M10 o una
+recepción M06, además de contraparte, sucursal, estado, responsables, fechas y
+versión. `return_items` conserva la partida fuente exclusiva, variante, unidad,
+cantidad decimal, condición y movimiento M05 opcional. `return_events` y
+`return_event_items` forman el historial inmutable e idempotente. Todas las
+relaciones históricas usan `ON DELETE RESTRICT`; los `CHECK` impiden fuentes,
+contrapartes o condiciones incompatibles.
+
 Estado: **diseño funcional levantado** el 17 de octubre de 2026. La Home está
 aprobada y el alcance se detalla en [requisitos funcionales](requirements.md).
 M00 incorpora la conexión PDO diferida y el ejecutor de migraciones. M01.1

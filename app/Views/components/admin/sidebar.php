@@ -15,6 +15,7 @@
         <symbol id="admin-icon-requests" viewBox="0 0 24 24"><path d="M4 8.5 12 3l8 5.5V20H4z"/><path d="m4 9 8 6 8-6M4 20l6-6M20 20l-6-6"/></symbol>
         <symbol id="admin-icon-transfers" viewBox="0 0 24 24"><path d="M3 7h16l-4-4M21 17H5l4 4M19 7l-4 4M5 17l4-4"/></symbol>
         <symbol id="admin-icon-deliveries" viewBox="0 0 24 24"><path d="M3 6h11v11H3zM14 10h4l3 4v3h-7"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+        <symbol id="admin-icon-returns" viewBox="0 0 24 24"><path d="M8 7H4l4-4M4 7h11a5 5 0 0 1 0 10H7"/><path d="m7 13-4 4 4 4"/></symbol>
         <symbol id="admin-icon-cms" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 9v11M11 13h7M11 16h5M6 6.5h.01M9 6.5h.01"/></symbol>
         <symbol id="admin-icon-legal" viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 6h6L5 7ZM19 7l-3 6h6l-3-6ZM2 13a3 3 0 0 0 6 0M16 13a3 3 0 0 0 6 0M8 21h8"/></symbol>
         <symbol id="admin-icon-publication" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c4 5 4 13 0 18-4-5-4-13 0-18Z"/></symbol>
@@ -44,6 +45,7 @@
                     ['purchases','/admin/purchases','Compras y recepciones','purchases'],
                     ['transfers','/admin/transfers','Transferencias','transfers'],
                     ['deliveries','/admin/deliveries','Entregas','deliveries'],
+                    ['returns','/admin/returns','Devoluciones','returns'],
                 ]],
                 'catalog'=>['Catálogo y precios',[
                     ['catalog','/admin/products','Catálogo','catalog'],

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 function navigationFixtureAccess(string $profile):array
 {
-    $keys=['dashboard','users','roles','branches','audit','catalog','prices','taxes','inventory','purchases','customers','quotes','transfers','deliveries','cms','legal','cms_settings','terms','quote_requests'];
+    $keys=['dashboard','users','roles','branches','audit','catalog','prices','taxes','inventory','purchases','customers','quotes','transfers','deliveries','returns','cms','legal','cms_settings','terms','quote_requests'];
     return match($profile){'all'=>array_fill_keys($keys,true),'page'=>['cms'=>true,'legal'=>true],'logistics'=>['deliveries'=>true],default=>[]};
 }
 function navigationFixtureData(string $profile,string $active):array
