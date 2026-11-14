@@ -131,7 +131,7 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
 
 ## Funcionalidades
 
-- Hero Swiper con tres campañas, flechas, indicadores, gesto táctil y navegación manual (sin autoplay).
+- Hero Swiper con el número real de campañas publicadas, flechas, indicadores, gesto táctil y navegación manual (sin autoplay).
 - Menú móvil y lista de materiales con `dialog` nativo, Escape, cierre exterior, foco y bloqueo de scroll.
 - Buscador de catálogo local; acepta acentos, nombres, SKU y categoría. Filtros, conteo y estado vacío.
 - Agregar materiales, ajustar cantidades de 1 a 999, quitar y descargar un TXT.
@@ -158,10 +158,11 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
   pública y reglas generales, impuestos configurables, vigencias, historial,
   cálculo decimal y panel protegido. Sus ocho migraciones están aplicadas en
   desarrollo sin tasas, listas ni precios precargados.
-- M05 integrado: existencias físicas, apartadas y disponibles por sucursal y
-  variante; movimientos inmutables, conversiones exactas, ajustes idempotentes,
-  mínimos, conteos y trazabilidad opcional por lote o serie. El panel consulta
-  saldos e historial y registra operaciones autorizadas.
+- M05 básico integrado: existencias físicas, apartadas y disponibles por
+  sucursal y variante; movimientos inmutables, conversiones exactas, ajustes
+  idempotentes y mínimos. Las tablas de conteos/lotes/series y sus bloqueos
+  protectores no equivalen a un flujo operativo completo; véase AY-08 en el
+  control de cierre de auditoría.
 - M06 integrado: proveedores, facturas de compra en borrador/confirmadas,
   partidas vinculadas a variantes M03 y recepciones físicas parciales o
   completas. Cada recepción usa M05 de forma atómica, idempotente y trazable;
@@ -178,9 +179,13 @@ Las carpetas de modelos, servicios, middleware y base de datos se incorporarán 
 
 El logo es **tipográfico provisional**. Los productos usan SVG de referencia creados para el prototipo, sin marca ni especificaciones comerciales confirmadas. No hay precios ni stock real. Fotografías de stock no representan instalaciones de Ayala. Campañas, eventos y testimonios están marcados como demo. Las sucursales conocidas tienen direcciones, teléfonos, horarios y fotos pendientes de confirmar. No hay redes ni enlaces de contacto inventados.
 
-La lista pública solo vive en memoria en la pestaña y se pierde al recargar.
-Descargarla no equivale a solicitar una cotización. No recopila datos personales
-ni envía peticiones comerciales. La Home no consulta MySQL. El panel administrativo es real: M06 administra entradas, M07 clientes y M08 cotizaciones comerciales. No implementa pagos ni ventas financieras.
+La lista demostrativa solo vive en memoria en la pestaña y se pierde al
+recargar. Descargarla no equivale a solicitar una cotización. Cuando M11/M08 no
+están publicados, no recopila datos personales ni envía peticiones comerciales.
+Cuando M11 está habilitado, la Home consulta CMS/MySQL y la recepción pública
+solo se activa con privacidad, módulos, sucursal y catálogo válidos. El panel
+administrativo es real: M06 administra entradas, M07 clientes y M08 cotizaciones
+comerciales. No implementa pagos ni ventas financieras.
 
 El prototipo usa `noindex, nofollow`; el dominio, URL absoluta Open Graph, SEO definitivo y aviso de privacidad se completarán antes de publicar.
 

@@ -190,11 +190,12 @@ abstract class AdminController extends Controller
                 try { AppKernel::audit()->record($actorId, $auditAction, $resource, $resourceId, $branchId, 'failure', context: ['reason' => 'controlled_failure']); } catch (\Throwable) {}
             }
             AppKernel::session()->flash('error', $error->getMessage());
-        } catch (\Throwable) {
+        } catch (\Throwable $error) {
+            $reference = \App\Core\ErrorReference::report($error);
             if ($actorId !== null && $auditAction !== null) {
-                try { AppKernel::audit()->record($actorId, $auditAction, $resource, $resourceId, $branchId, 'failure', context: ['reason' => 'unexpected_failure']); } catch (\Throwable) {}
+                try { AppKernel::audit()->record($actorId, $auditAction, $resource, $resourceId, $branchId, 'failure', context: ['reason' => 'unexpected_failure', 'error_reference' => $reference]); } catch (\Throwable) {}
             }
-            AppKernel::session()->flash('error', 'La operación no pudo completarse. Intenta nuevamente.');
+            AppKernel::session()->flash('error', 'La operación no pudo completarse. Referencia: ' . $reference . '.');
         }
         return Response::redirect($redirect);
     }

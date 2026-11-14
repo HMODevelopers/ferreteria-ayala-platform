@@ -11,6 +11,7 @@ interface InventoryRepository
     public function movements(string $search, ?int $branchId, ?int $variantId, ?string $type, ?string $from, ?string $until, int $limit, int $offset): Page;
     public function branches(): array;
     public function variants(string $search = ''): array;
+    public function baseUnitId(int $variantId): ?int;
     public function unitsForVariant(int $variantId): array;
     public function variantInventoryMeta(int $variantId, int $inputUnitId): ?array;
     public function findBalance(int $branchId, int $variantId, bool $lock = false): ?array;

@@ -105,8 +105,7 @@ final class BranchesController extends AdminController
             if ($crosses && $opens < $closes) throw new \InvalidArgumentException('Desmarca “Termina al día siguiente” cuando apertura y cierre ocurran el mismo día.');
             $hours = AppKernel::branchReads()->regularHours($id);
             $orders = array_map(static fn(array $row): int => (int) $row['interval_order'], array_filter($hours, static fn(array $row): bool => (int) $row['iso_weekday'] === $weekday));
-            $intervalId = AppKernel::branchSchedule()->addRegular($id, BranchHoursInterval::create($weekday, $opens, $closes, $crosses, ($orders === [] ? 0 : max($orders)) + 1));
-            AppKernel::audit()->record($user->id, 'branches.hours.create', 'branch_hours', $intervalId, $id, 'success');
+            AppKernel::branchSchedule()->addRegular($id, BranchHoursInterval::create($weekday, $opens, $closes, $crosses, ($orders === [] ? 0 : max($orders)) + 1), fn(int $intervalId) => AppKernel::audit()->record($user->id, 'branches.hours.create', 'branch_hours', $intervalId, $id, 'success'));
         }, 'Horario agregado.', '/admin/branches/edit?id=' . $id, $user->id, 'branches.hours.create', 'branch', $id, $id);
     }
 
@@ -119,8 +118,7 @@ final class BranchesController extends AdminController
         if (($denied = $this->requirePermission($user, 'branches.schedule.view', $branchId)) !== null) return $denied;
         if (($csrf = $this->requireCsrf($request, $user)) !== null) return $csrf;
         return $this->run(function () use ($user, $branchId, $hoursId): void {
-            AppKernel::branchSchedule()->removeRegular($branchId, $hoursId);
-            AppKernel::audit()->record($user->id, 'branches.hours.delete', 'branch_hours', $hoursId, $branchId, 'success');
+            AppKernel::branchSchedule()->removeRegular($branchId, $hoursId, fn() => AppKernel::audit()->record($user->id, 'branches.hours.delete', 'branch_hours', $hoursId, $branchId, 'success'));
         }, 'Horario eliminado.', '/admin/branches/edit?id=' . $branchId, $user->id, 'branches.hours.delete', 'branch_hours', $hoursId, $branchId);
     }
 

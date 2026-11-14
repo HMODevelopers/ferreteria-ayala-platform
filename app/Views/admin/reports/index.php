@@ -19,8 +19,8 @@ $kpis=[
   'first_attention_minutes'=>['Primera atención','Promedio desde la recepción','minutes'],'oldest_pending_days'=>['Mayor antigüedad','Pendiente más antigua','days'],
  ],
  'inventory'=>[
-  'total'=>['Registros','Productos por sucursal','number'],'physical'=>['Existencia física','Unidades registradas','quantity'],
-  'reserved'=>['Existencia apartada','Comprometida en operaciones','quantity'],'available'=>['Disponible','Para nuevas operaciones','quantity'],
+  'total'=>['Registros','Variantes por sucursal','number'],'physical'=>['Con existencia','Saldos físicos mayores a cero','number'],
+  'reserved'=>['Con apartado','Saldos comprometidos','number'],'available'=>['Con disponible','Saldos disponibles para operar','number'],
   'low'=>['Existencia baja','Debajo del mínimo configurado','number'],
  ],
  'purchases'=>[

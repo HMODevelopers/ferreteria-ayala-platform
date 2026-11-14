@@ -11,7 +11,7 @@
 - No simular compra, guardado comercial ni envío de cotizaciones. Demo claramente identificada; no inventar stock, precios, promociones reales, teléfonos, direcciones o testimonios.
 - No modificar módulos ajenos sin necesidad. No iniciar MySQL, autenticación ni administrador hasta aprobación expresa de la fase pública.
 - Priorizar semántica, foco visible, teclado, reduced motion, imágenes optimizadas y seguridad. Nuevas entradas requieren validación; no renderizar entrada como HTML.
-- Compatibilidad cPanel/Apache y FTP obligatoria. Secretos por variables de entorno; `.env` nunca en Git, no se carga automáticamente.
+- Compatibilidad cPanel/Apache y FTP obligatoria. Secretos por variables de entorno; `.env` nunca en Git. Los bootstrap web/CLI lo cargan explícitamente mediante `EnvironmentFile` y respetan la precedencia de variables ya exportadas.
 - Ejecutar sintaxis PHP, pruebas relevantes, compilación y verificación de rutas. Tras cambios visuales, revisar responsive si hay navegador. Reportar pruebas pendientes con honestidad.
 - Conservar licencias de fuentes/Swiper y documentar procedencia de imágenes. No reemplazar por logotipos externos sin recursos autorizados.
 - Mantener uniformidad visual entre módulos y modales: alinear campos y anchos; los campos sin pareja en una fila deben ocupar todo el ancho disponible. En solicitudes de transferencia, origen y destino comparten fila; cotización relacionada y motivo ocupan una fila completa cada uno.

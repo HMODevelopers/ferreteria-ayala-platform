@@ -388,6 +388,8 @@ expectException(
 );
 $status = $scheduleApplication->statusAt(1, new DateTimeImmutable('2026-10-19 09:00', new DateTimeZone('America/Hermosillo')));
 check($status->scheduledOpen && $status->operationallyEnabled && $status->publiclyAvailable(), 'Schedule read contract keeps scheduled, operational, and public availability distinct');
+$auditObserved=false;$scheduleApplication->addRegular(1,BranchHoursInterval::create(2,'08:00','13:00'),function(int$id)use(&$auditObserved,$transactions):void{$auditObserved=$id>0&&$transactions->events[array_key_last($transactions->events)]==='begin';});check($auditObserved,'AY-21 records successful schedule audit inside the business transaction');
+$rollbacksBeforeAudit=$transactions->rollbacks;expectException(fn()=>$scheduleApplication->addRegular(1,BranchHoursInterval::create(3,'08:00','13:00'),static function():void{throw new RuntimeException('controlled audit failure');}),'AY-21 propagates a controlled audit failure before commit',RuntimeException::class);check($transactions->rollbacks===$rollbacksBeforeAudit+1,'AY-21 audit failure rolls back the schedule transaction');
 $memoryBranches->items[1] = $memoryBranches->items[1]->withActive(false);
 $inactiveStatus = $scheduleApplication->statusAt(1, new DateTimeImmutable('2026-10-19 09:00', new DateTimeZone('America/Hermosillo')));
 check($inactiveStatus->scheduledOpen && !$inactiveStatus->publiclyAvailable(), 'Operational deactivation does not erase scheduled-open state');

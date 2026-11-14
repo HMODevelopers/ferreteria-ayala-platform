@@ -141,8 +141,7 @@ final class InventoryManagementService
 
     private function baseUnitId(int $variantId): int
     {
-        foreach ($this->inventory->variants() as $variant) if ((int) $variant['id'] === $variantId) return (int) $variant['unit_id'];
-        throw new EntityNotFound('La variante no existe.');
+        return $this->inventory->baseUnitId($variantId) ?? throw new EntityNotFound('La variante no existe.');
     }
 
     private static function id(mixed $value, string $label): int

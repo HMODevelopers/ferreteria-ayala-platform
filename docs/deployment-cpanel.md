@@ -25,7 +25,7 @@ Los assets compilados están en `public/assets/`. Conservar fuentes, fotografía
 5. Permisos usuales: carpetas 755, archivos 644; `storage/logs` y
    `storage/sessions` requieren escritura por PHP. No usar 777. Ajustar
    propietario/grupo según el handler PHP del hosting.
-6. Configurar las variables del entorno de producción en Apache/cPanel. El proyecto usa `getenv()`; el cargador de `.env` es exclusivo de CLI local. `.env` debe permanecer fuera de Git y nunca debe quedar bajo el document root.
+6. Configurar las variables del entorno de producción en Apache/cPanel. `bootstrap/app.php` y `bootstrap/cli.php` cargan el `.env` privado mediante `EnvironmentFile`; una variable ya exportada por Apache/cPanel tiene precedencia y no se reemplaza. `.env` debe permanecer fuera de Git y nunca debe quedar bajo el document root.
 7. Activar certificado TLS y redirección HTTPS desde el panel del hosting. No usar el servidor PHP integrado en producción.
 8. Verificar `/` (200), ruta inexistente (404), assets y rutas privadas. `/.env`, `/config/app.php`, `/app/Data/DemoHomeData.php` y `/storage/logs/app.log` no deben devolver contenido privado. `/router.php` debe estar denegado o no encontrado.
 9. Revisar logs privados, los diálogos, las imágenes y CSP. Probar en teléfono real.
@@ -50,7 +50,7 @@ SESSION_SAVE_PATH=/home/USUARIO/ayala-platform/storage/sessions
 ```
 
 Las variables `DB_*` y el resto de `SESSION_*` están descritas en
-`.env.example`. La Home no usa la conexión, pero el CLI de migraciones sí.
+`.env.example`. La Home demostrativa puede funcionar sin conexión; cuando M11 está registrado y habilitado, la Home publicada consulta CMS y requiere base de datos.
 Las credenciales reales de MySQL se obtendrán en cPanel y no se copiarán a
 documentación, Git ni archivos públicos. `APP_INDEXING` debe seguir
 en `false` mientras el sitio sea un prototipo; su activación requerirá la
@@ -121,4 +121,6 @@ Guardar copia del despliegue anterior. Compilar en local y transferir los assets
 
 PHP 8.2+, pdo_mysql, fileinfo, mbstring y GD con codificación WebP/JPEG/PNG. Configurar upload_max_filesize=10M y post_max_size=12M, con memoria suficiente; el procesamiento rechaza imágenes que excederían la memoria. storage/media y storage/private deben ser privados, escribibles por PHP y estar fuera del document root public/. La clave HMAC de runtime no debe publicarse ni incorporarse a Git. En Windows local se aplicó a esos directorios la ACL restringida existente de storage/backups.
 
-No se requieren Node, colas ni procesos residentes en producción. La programación de contenido se calcula al consultar. Configurar variables de entorno con el mecanismo del hosting; el servidor público no carga .env automáticamente. No publicar datos demostrativos como reales. Habilitar M11/M08/sucursal desde configuración administrativa únicamente después de cargar contenido y aviso de privacidad aprobado. No se ha probado este despliegue en cPanel/Apache real dentro del encargo M11.
+No se requieren Node, colas ni procesos residentes en producción. La programación de contenido se calcula al consultar. Configurar preferentemente variables de entorno con el mecanismo del hosting; sus valores tienen precedencia sobre el `.env` privado que carga el bootstrap. No publicar datos demostrativos como reales. Habilitar M11/M08/sucursal desde configuración administrativa únicamente después de cargar contenido y aviso de privacidad aprobado. No se ha probado este despliegue en cPanel/Apache real dentro del encargo M11.
+
+Estado comprobado el 14 de noviembre de 2026: PHP CLI 8.5.4 con GD/PDO MySQL; 75 migraciones registradas en la base principal y 106 tablas. Esta comprobación local no sustituye validar PHP, extensiones, Apache, cron, permisos ni restauración en el hosting definitivo.

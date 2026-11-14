@@ -14,7 +14,7 @@ final class Page
         public readonly int $offset,
         public readonly bool $hasMore,
     ) {
-        if ($limit < 1 || $limit > 100 || $offset < 0) {
+        if ($limit < 1 || $limit > 10000 || $offset < 0) {
             throw new InvalidArgumentException('Page boundaries are invalid.');
         }
     }

@@ -4,7 +4,8 @@ export function sliders() {
   const root = document.querySelector('.hero-swiper');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const sync = swiper => {
-    document.querySelector('#slide-number').textContent = `${String(swiper.activeIndex + 1).padStart(2, '0')} / 03`;
+    const total = swiper.slides.length;
+    document.querySelector('#slide-number').textContent = `${String(swiper.activeIndex + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
     root.querySelectorAll('.hero-slide').forEach((slide, index) => {
       slide.inert = index !== swiper.activeIndex;
       slide.setAttribute('aria-hidden', String(index !== swiper.activeIndex));

@@ -53,16 +53,16 @@ final class BranchScheduleManagementService
         return $this->evaluator->statusAt($branch, $schedule, $instant);
     }
 
-    public function addRegular(int $branchId, BranchHoursInterval $interval): int
+    public function addRegular(int $branchId, BranchHoursInterval $interval, ?callable $audit = null): int
     {
         return $this->mutate($branchId, function (array $regular, array $special) use ($branchId, $interval): array {
             $candidate = [...array_column($regular, 'interval'), $interval];
             BranchSchedule::create($candidate, array_column($special, 'interval'));
             return [$this->schedules->insertRegular($branchId, $interval), null];
-        });
+        }, $audit);
     }
 
-    public function updateRegular(int $branchId, int $id, BranchHoursInterval $interval): void
+    public function updateRegular(int $branchId, int $id, BranchHoursInterval $interval, ?callable $audit = null): void
     {
         $this->mutate($branchId, function (array $regular, array $special) use ($branchId, $id, $interval): array {
             $found = false;
@@ -79,10 +79,10 @@ final class BranchScheduleManagementService
                 throw new EntityNotFound('Regular branch-hours interval was not found.');
             }
             return [null, null];
-        });
+        }, $audit);
     }
 
-    public function removeRegular(int $branchId, int $id): void
+    public function removeRegular(int $branchId, int $id, ?callable $audit = null): void
     {
         $this->mutate($branchId, function (array $regular, array $special) use ($branchId, $id): array {
             $candidate = array_values(array_filter($regular, static fn(RegularHoursRecord $record): bool => $record->id !== $id));
@@ -90,19 +90,19 @@ final class BranchScheduleManagementService
             BranchSchedule::create(array_column($candidate, 'interval'), array_column($special, 'interval'));
             if (!$this->schedules->deleteRegular($id, $branchId)) throw new EntityNotFound('Regular branch-hours interval was not found.');
             return [null, null];
-        });
+        }, $audit);
     }
 
-    public function addSpecial(int $branchId, BranchSpecialHours $interval): int
+    public function addSpecial(int $branchId, BranchSpecialHours $interval, ?callable $audit = null): int
     {
         return $this->mutate($branchId, function (array $regular, array $special) use ($branchId, $interval): array {
             $candidate = [...array_column($special, 'interval'), $interval];
             BranchSchedule::create(array_column($regular, 'interval'), $candidate);
             return [$this->schedules->insertSpecial($branchId, $interval), null];
-        });
+        }, $audit);
     }
 
-    public function updateSpecial(int $branchId, int $id, BranchSpecialHours $interval): void
+    public function updateSpecial(int $branchId, int $id, BranchSpecialHours $interval, ?callable $audit = null): void
     {
         $this->mutate($branchId, function (array $regular, array $special) use ($branchId, $id, $interval): array {
             $found = false;
@@ -117,10 +117,10 @@ final class BranchScheduleManagementService
             BranchSchedule::create(array_column($regular, 'interval'), $candidate);
             if (!$this->schedules->updateSpecial($id, $branchId, $interval)) throw new EntityNotFound('Special branch-hours interval was not found.');
             return [null, null];
-        });
+        }, $audit);
     }
 
-    public function removeSpecial(int $branchId, int $id): void
+    public function removeSpecial(int $branchId, int $id, ?callable $audit = null): void
     {
         $this->mutate($branchId, function (array $regular, array $special) use ($branchId, $id): array {
             $candidate = array_values(array_filter($special, static fn(SpecialHoursRecord $record): bool => $record->id !== $id));
@@ -128,18 +128,19 @@ final class BranchScheduleManagementService
             BranchSchedule::create(array_column($regular, 'interval'), array_column($candidate, 'interval'));
             if (!$this->schedules->deleteSpecial($id, $branchId)) throw new EntityNotFound('Special branch-hours interval was not found.');
             return [null, null];
-        });
+        }, $audit);
     }
 
-    private function mutate(int $branchId, callable $operation): mixed
+    private function mutate(int $branchId, callable $operation, ?callable $audit = null): mixed
     {
-        return $this->transactions->transaction(function () use ($branchId, $operation): mixed {
+        return $this->transactions->transaction(function () use ($branchId, $operation, $audit): mixed {
             if ($this->branches->lockById($branchId) === null) {
                 throw new EntityNotFound('Branch was not found.');
             }
             $regular = $this->schedules->regularHours($branchId);
             $special = $this->schedules->specialHoursForValidation($branchId);
             [$result] = $operation($regular, $special);
+            if ($audit !== null) $audit($result);
             return $result;
         });
     }
