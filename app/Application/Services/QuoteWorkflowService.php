@@ -4,7 +4,7 @@ namespace App\Application\Services;
 use App\Core\{AppKernel};
 use App\Core\Persistence\Connection;
 use App\Application\Exceptions\OperationConflict;
-use App\Infrastructure\Persistence\{PdoQuoteWorkflowRepository,PdoAccessRepository,PdoQuoteRepository,PdoInventoryRepository,PdoAuditRepository};
+use App\Infrastructure\Persistence\{PdoQuoteWorkflowRepository,PdoAccessRepository,PdoQuoteRepository,PdoInventoryRepository,PdoTransferRepository,PdoAuditRepository};
 use App\Domain\Quotes\{QuoteRules,QuoteWorkflowRules as Rules};
 use App\Domain\Pricing\Decimal;
 final class QuoteWorkflowService
@@ -57,8 +57,8 @@ final class QuoteWorkflowService
   $qr=new PdoQuoteRepository($this->connection);$q=$qr->quote((int)$w['quote_id'],[(int)$w['branch_id']],true)??throw new OperationConflict('El documento ya no está disponible.');
   $v=$qr->version((int)$q['id'],(int)$q['current_version'],true);$items=$qr->items((int)$v['id']);if(!$items)throw new OperationConflict('Agrega al menos un producto al documento.');
   if(in_array($q['status'],['accepted','cancelled','rejected','expired'],true))throw new OperationConflict('El documento está cerrado o vencido; revisa su estado comercial.');
-  QuoteRules::validity($v['valid_until']);$inventory=new PdoInventoryRepository($this->connection);
-  foreach($items as $item){if($item['unit_price']===null)throw new OperationConflict('Hay productos sin precio. Actualiza el borrador.');if($availability){$balance=$inventory->findBalance((int)$w['branch_id'],(int)$item['variant_id']);$available=$balance['available_quantity']??'0';if(Decimal::parse($item['quantity'],6)->compare(Decimal::parse($available,6))>0)throw new OperationConflict('No hay existencia suficiente de '.$item['description'].'. Contacta al cliente y ajusta el borrador antes de verificar.');}}
+  QuoteRules::validity($v['valid_until']);$inventory=new PdoInventoryRepository($this->connection);$coverageInstalled=$this->repo->one("SELECT id FROM schema_migrations WHERE id='20261113090000_add_quote_transfer_coverage'")!==null;$transfers=$coverageInstalled?new PdoTransferRepository($this->connection):null;
+  foreach($items as $item){if($item['unit_price']===null)throw new OperationConflict('Hay productos sin precio. Actualiza el borrador.');if($availability){$balance=$inventory->findBalance((int)$w['branch_id'],(int)$item['variant_id']);$available=Decimal::parse($balance['available_quantity']??'0',6);$covered=$transfers?Decimal::parse($transfers->coverage((int)$v['id'],(int)$item['variant_id']),6):Decimal::zero(6);if(Decimal::parse($item['quantity'],6)->compare($available->add($covered))>0)throw new OperationConflict('No hay existencia local ni cobertura aprobada suficiente de '.$item['description'].'. Contacta al cliente o gestiona una transferencia vinculada.');}}
   return [$q,$v,$items,Rules::fingerprint($q,$v,$items)];
  }
  public function act(string $kind,int $source,array $input,int $actor):int {

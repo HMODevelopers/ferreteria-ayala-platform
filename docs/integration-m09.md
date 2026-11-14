@@ -136,3 +136,7 @@ No hay M10, logística, compras, pagos, ventas, notificaciones ni SMTP. Desarrol
 - tests/m09-worker.php
 - tests/mysql-m09-http-integration.php
 - tests/mysql-m09-integration.php
+
+## Extensión AY-04 · 14 de noviembre de 2026
+
+M09 admite vincular la transferencia al borrador actual de M08. La migración aditiva `20261113090000_add_quote_transfer_coverage` conserva un snapshot y hash inmutables, cobertura y eventos por partida, y la cantidad de apartado en origen ya liberada. `requested` no cubre; `approved` aparta origen y puede cubrir la verificación. Editar o cerrar la cotización invalida sólo la cobertura afectada y libera exclusivamente lo aprobado no despachado. Salidas, tránsito y recepciones no se revierten. Las transferencias genéricas continúan sin snapshot y mantienen su comportamiento. La prueba SQL real de la extensión está preparada pero no fue ejecutada en este entorno.

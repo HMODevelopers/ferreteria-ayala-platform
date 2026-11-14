@@ -17,6 +17,8 @@ El operador registra los materiales y cantidades tal como los pidió el cliente.
 
 El seguimiento comercial y el estado financiero del documento son datos distintos. Modificar o revisar el documento invalida la verificación anterior. Preparar, verificar o registrar un envío no reserva ni mueve existencias; la aceptación conserva las reglas comerciales existentes.
 
+Cuando existe un faltante, el operador puede solicitar una transferencia vinculada al borrador. La solicitud por sí sola no cubre la partida. La verificación y emisión aceptan únicamente `disponible local + cobertura aprobada vigente`; esa cobertura permanece separada del inventario físico. El snapshot del documento permite comprobar que las partidas no cambiaron. Un cambio invalida la cobertura afectada y conserva todo movimiento físico ya realizado.
+
 ## Interfaz
 
 Una sola entrada del menú, filtros por origen, etapa, estado documental, sucursal y responsable. El contenido utiliza el ancho disponible y se adapta a pantallas pequeñas. Captura, relación de productos, edición financiera, contactos, verificación y operaciones se abren en el modal compartido. Los errores conservan los datos y las búsquedas de productos/clientes no descartan la captura.

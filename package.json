@@ -32,6 +32,7 @@
     "test:mysql:m10:http": "node tests/m10-http-integration.mjs",
     "test:mysql:m11": "php tests/mysql-m11-integration.php",
     "test:mysql:m11:http": "node tests/m11-http-integration.mjs",
+    "test:mysql:workflow": "php tests/mysql-quote-workflow-integration.php",
     "test:mysql:m12:jobs": "php tests/mysql-m12-jobs-integration.php",
     "test:mysql:m12:notifications": "php tests/mysql-m12-notifications-integration.php",
     "test:mysql:returns": "php tests/mysql-returns-integration.php",

@@ -147,3 +147,7 @@ Validación final: npm test PASS (1052), 291 archivos PHP válidos, 16 archivos 
 ## Continuidad M11 · 4 de noviembre de 2026
 
 Los pendientes de medios y contenido relacionados con este módulo se atienden en [integración M11](integration-m11.md). Ese informe conserva las decisiones autorizadas, los límites de formatos, la recepción pública con consentimiento y los resultados reales; los estados anteriores de este documento permanecen como historia del incremento original.
+
+## Extensión AY-04 · 14 de noviembre de 2026
+
+La emisión ahora exige que cada partida esté cubierta por disponible local y, cuando exista, cobertura M09 aprobada y vigente vinculada al snapshot del borrador actual. La cobertura no se suma al saldo local. Al aceptar, M08 aparta sólo la parte local; la parte pendiente continúa apartada en origen hasta que M09 la reciba. Editar partidas, revisar, cancelar, rechazar o vencer invalida la cobertura afectada sin borrar su historia ni revertir movimientos físicos. La ejecución SQL central de esta extensión permanece pendiente por falta de GD y de una identidad aislada M08/M09/M10 completa.

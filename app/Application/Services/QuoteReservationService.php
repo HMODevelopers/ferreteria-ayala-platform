@@ -26,6 +26,26 @@ final class QuoteReservationService
             $this->quotes->reserveItem(['reservation_id'=>$id,'quote_item_id'=>(int)$item['id'],'variant_id'=>$variant,'quantity'=>$qty->format(6),'physical_snapshot'=>$balance['physical_quantity'],'reserved_before'=>$balance['reserved_quantity'],'reserved_after'=>$after]);
         }
     }
+    public function assertIssuable(int $version,int $branch,array $items):void {
+        usort($items,static fn(array $a,array $b):int=>(int)$a['variant_id']<=>(int)$b['variant_id']);
+        foreach($items as $item){$variant=(int)$item['variant_id'];$this->inventory->lockScope($branch,$variant);$balance=$this->inventory->findBalance($branch,$variant,true);$available=$balance&&$balance['initialized_at']!==null?Decimal::parse($balance['available_quantity'],6):Decimal::zero(6);$coverage=$this->transfers?Decimal::parse($this->transfers->coverage($version,$variant),6):Decimal::zero(6);
+            if($available->add($coverage)->compare(Decimal::parse($item['quantity'],6))<0)throw new OperationConflict('Existencia local y cobertura aprobada insuficientes para emitir. Revisa las partidas faltantes.');
+        }
+    }
+    private function invalidateCoverage(array $item,int $actor,string $reason):void {
+        if(!$this->transfers||$item['status']!=='active')return;
+        $release=Decimal::parse($item['approved_quantity'],6)->subtract(Decimal::parse($item['dispatched_quantity'],6))->subtract(Decimal::parse($item['source_released_quantity'],6));
+        if($release->compare(Decimal::zero(6))<0)throw new OperationConflict('La cobertura vinculada tiene cantidades inconsistentes.');
+        if(!$release->isZero()){$branch=(int)$item['source_branch_id'];$variant=(int)$item['variant_id'];$this->inventory->lockScope($branch,$variant);$balance=$this->inventory->findBalance($branch,$variant,true)??throw new OperationConflict('No existe el saldo reservado en origen.');$reserved=Decimal::parse($balance['reserved_quantity'],6);if($reserved->compare($release)<0)throw new OperationConflict('El apartado en origen no coincide con la cobertura vinculada.');$this->inventory->updateBalance((int)$balance['id'],$balance['physical_quantity'],$reserved->subtract($release)->format(6),false);}
+        $this->transfers->invalidateCoverageItem((int)$item['id'],$release->format(6),$actor,$reason);$this->transfers->coverageEvent((int)$item['transfer_id'],(int)$item['id'],'invalidated',$release->format(6),$actor,$reason);
+    }
+    public function invalidateChangedCoverage(int $version,array $newItems,int $actor):void {
+        if(!$this->transfers)return;$current=[];foreach($newItems as $item)$current[(int)$item['variant_id']]=$item;
+        foreach($this->transfers->coverageItemsForVersion($version,true)as $coverage){$item=$current[(int)$coverage['variant_id']]??null;if($item&&(int)$item['unit_id']===(int)$coverage['unit_id']&&Decimal::parse($item['quantity'],6)->compare(Decimal::parse($coverage['quoted_quantity'],6))===0)continue;$this->invalidateCoverage($coverage,$actor,'Partida modificada después de vincular la cobertura.');}
+    }
+    public function closeCoverage(int $version,int $actor,string $reason):void {
+        if(!$this->transfers)return;foreach($this->transfers->coverageItemsForVersion($version,true)as $coverage)$this->invalidateCoverage($coverage,$actor,$reason);
+    }
     public function available(int $version,int $quoteItem,int $variant):string {
         if(!$this->deliveries)throw new \LogicException('M10 repository required.');
         $reservation=$this->quotes->reservation($version);if(!$reservation||$reservation['status']!=='active')return '0.000000';$total=Decimal::zero(6);

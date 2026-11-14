@@ -30,3 +30,14 @@ check(str_contains($selection,'sessionStorage')&&str_contains($selection,'quanti
 
 $home=(string)file_get_contents($root.'/app/Data/CmsHomeData.php');
 check(!str_contains($home,'LIMIT 6')&&substr_count($home,'LIMIT 100')>=2,'Phase 1 published catalog is no longer truncated to six categories and products');
+
+$reservationService=(string)file_get_contents($root.'/app/Application/Services/QuoteReservationService.php');
+$transferRepository=(string)file_get_contents($root.'/app/Infrastructure/Persistence/PdoTransferRepository.php');
+$coverageMigration=(string)file_get_contents($root.'/database/migrations/20261113090000_add_quote_transfer_coverage.php');
+$workflowSqlTest=(string)file_get_contents($root.'/tests/mysql-quote-workflow-integration.php');
+check(str_contains($transferService,"['status']==='draft'")&&str_contains($transferService,"['status']==='issued'")&&str_contains($transferService,'createQuoteSnapshot'),'AY-04 permits current draft coverage and records its immutable quote snapshot');
+check(str_contains($reservationService,'assertIssuable')&&str_contains($reservationService,'invalidateChangedCoverage'),'AY-04 issuance includes approved coverage and quote edits invalidate stale coverage');
+check(str_contains($transferRepository,"ci.status='active'")&&str_contains($transferRepository,"t.status IN('approved','prepared','in_transit')"),'AY-04 only counts active, approved transfer coverage');
+check(str_contains($transferService,"action==='cancel'")&&str_contains($transferService,'La transferencia vinculada fue cancelada.')&&str_contains($transferService,'invalidateCoverageItem'),'AY-04 transfer cancellation invalidates coverage while releasing source stock once');
+check(str_contains($coverageMigration,'transfer_quote_snapshots')&&str_contains($coverageMigration,'transfer_quote_coverage_items')&&str_contains($coverageMigration,'transfer_coverage_events'),'AY-04 migration defines snapshot, coverage and audit history tables');
+check(str_contains($workflowSqlTest,'Requested transfer is not coverage')&&str_contains($workflowSqlTest,'Coverage approval retry is idempotent'),'AY-04 isolated SQL suite covers requested-versus-approved coverage and approval idempotency');

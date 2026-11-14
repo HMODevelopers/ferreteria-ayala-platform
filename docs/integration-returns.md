@@ -58,7 +58,7 @@ Preparado, pero bloqueado antes del esquema por autenticación de la cuenta aisl
 npm run test:mysql:returns
 ```
 
-La suite SQL está diseñada para aplicar las 74 migraciones desde cero y verificar ambos flujos, parciales, sucesivas, exceso, material dañado, apartados, reenvío, rollback y dos procesos sobre la última unidad. No usa `DB_*` ni la base habitual.
+La suite SQL está diseñada para aplicar las 75 migraciones desde cero y verificar ambos flujos, parciales, sucesivas, exceso, material dañado, apartados, reenvío, rollback y dos procesos sobre la última unidad. No usa `DB_*` ni la base habitual. El incremento de 74 a 75 corresponde a la migración aditiva AY-04.
 
 Cuando la identidad aislada vuelva a autenticar, ejecutar la suite SQL y sólo después activar desarrollo:
 

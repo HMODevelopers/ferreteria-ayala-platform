@@ -119,7 +119,7 @@ M14 no se desarrolla en este incremento.
 
 Incremento independiente implementado para devoluciones de clientes basadas en
 recepciones M10 y devoluciones a proveedor basadas en recepciones M06. Incluye
-74 migraciones acumuladas, siete permisos, cantidades `DECIMAL`, estados,
+75 migraciones acumuladas, siete permisos, cantidades `DECIMAL`, estados,
 historial, auditoría, alcance conjunto sobre devolución y documento fuente,
 idempotencia y movimientos M05 únicamente al confirmar el hecho físico. La
 suite PHP (1576), build y Chrome en 360/768/1440/2560 px aprobaron. MariaDB

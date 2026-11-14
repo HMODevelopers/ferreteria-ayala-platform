@@ -20,22 +20,25 @@ final class TransferManagementService {
   $quoteContext=$version?$this->transfers->quoteVersion($version):null;
   return $this->transactions->transaction(function()use($source,$destination,$version,$reason,$rawItems,$actor,$key,$hash,$audit,$quoteContext):int {
    if($quoteContext)$this->transfers->lockQuote((int)$quoteContext['quote_id']);
-   if($version)$this->validateQuote($version,$destination);
+   $quote=$version?$this->validateQuote($version,$destination):null;
    $this->transfers->lockBranches([$source,$destination]);if($e=$this->duplicate($key,$hash))return (int)$e['transfer_id'];$this->modules?->assertAvailable('M09',$source);$this->modules?->assertAvailable('M09',$destination);
+   if($quote&&$quote['status']==='draft'&&!$this->transfers->coverageInstalled())throw new OperationConflict('Aplica primero la migración aditiva de cobertura AY-04 para vincular borradores.');$quoteItems=$quote?$this->transfers->quoteItems($version):[];$quoted=[];foreach($quoteItems as $item)$quoted[(int)$item['variant_id']]=$item;
    $items=[];foreach($rawItems as $raw){$v=Rules::id($raw['variant_id']??0);if(isset($items[$v]))throw new \InvalidArgumentException('La variante está repetida.');$unit=Rules::id($raw['unit_id']??0);$meta=$this->stock->variantInventoryMeta($v,$unit)??throw new EntityNotFound('La variante o unidad no existe.');
     if(!(int)$meta['variant_active']||!(int)$meta['product_active']||!(int)$meta['input_unit_active'])throw new OperationConflict('La variante, producto o unidad están inactivos.');
     $factor=$unit===(int)$meta['base_unit_id']?'1':(string)($meta['factor']??'');if($factor==='')throw new \InvalidArgumentException('No existe conversión autorizada.');
     $rawQuantity=(string)$raw['quantity'];Rules::quantity($rawQuantity,(int)$meta['input_precision']);$rawQuantity=str_contains($rawQuantity,'.')?rtrim(rtrim($rawQuantity,'0'),'.'):$rawQuantity;
     $qty=InventoryRules::baseQuantity($rawQuantity,(int)$meta['input_precision'],$factor,(int)$meta['base_precision']);$this->transfers->assertUntracked($v);
+    if($quote&&(!isset($quoted[$v])||(int)$quoted[$v]['unit_id']!==(int)$meta['base_unit_id']))throw new OperationConflict('La variante y unidad deben pertenecer a la cotización vinculada.');
     $items[$v]=[(int)$meta['base_unit_id'],$qty];
    }ksort($items);
    $id=$this->transfers->create(['folio'=>'TRA-'.strtoupper(bin2hex(random_bytes(12))),'source_branch_id'=>$source,'destination_branch_id'=>$destination,'quote_version_id'=>$version,'reason'=>$reason,'created_by'=>$actor]);
    $event=$this->event($id,'create','requested','requested',$key,$hash,$actor,$destination,$reason);
-   foreach($items as $variant=>[$unit,$qty]){$itemId=$this->transfers->addItem([$id,$variant,$unit,$qty]);$this->transfers->eventItem($event,$itemId,$qty,null);}
+   $snapshotId=null;if($quote&&$this->transfers->coverageInstalled()){$snapshotHash=QuoteManagementService::hash($quote,$quoteItems);$snapshotId=$this->transfers->createQuoteSnapshot($id,$version,$snapshotHash,json_encode(['version'=>$quote,'items'=>$quoteItems],JSON_THROW_ON_ERROR),$actor);}
+   foreach($items as $variant=>[$unit,$qty]){$itemId=$this->transfers->addItem([$id,$variant,$unit,$qty]);$this->transfers->eventItem($event,$itemId,$qty,null);if($snapshotId!==null){$coverageId=$this->transfers->addCoverageItem($snapshotId,$itemId,$variant,$unit,(string)$quoted[$variant]['quantity']);$this->transfers->coverageEvent($id,$coverageId,'linked',$qty,$actor,'Cobertura vinculada al snapshot de la cotización.');}}
    if($audit)$audit($id,$destination,'create');return $id;
   });
  }
- private function validateQuote(int $version,int $destination):array {$q=$this->transfers->quoteVersion($version,true)??throw new EntityNotFound('La versión de cotización no existe.');if((int)$q['branch_id']!==$destination||!in_array($q['quote_status'],['sent','accepted'],true)||$q['status']!=='issued'||(int)$q['version_number']!==(int)$q['current_version'])throw new OperationConflict('Selecciona la versión emitida actual de una cotización emitida o aceptada del destino.');return $q;}
+ private function validateQuote(int $version,int $destination):array {$q=$this->transfers->quoteVersion($version,true)??throw new EntityNotFound('La versión de cotización no existe.');$draft=$q['status']==='draft'&&in_array($q['quote_status'],['preparing','pending_approval'],true);$issued=$q['status']==='issued'&&in_array($q['quote_status'],['sent','accepted'],true);if((int)$q['branch_id']!==$destination||(!$draft&&!$issued)||(int)$q['version_number']!==(int)$q['current_version'])throw new OperationConflict('Selecciona el borrador actual o la versión emitida actual de una cotización del destino.');return $q;}
  private function event(int $id,string $action,string $from,string $to,string $key,string $hash,int $actor,int $branch,string $notes):int {
   $event=$this->transfers->event([$id,$action,$from,$to,$key,$hash,$actor,$branch,$notes]);
   // The audit repository shares the outer transaction through its connection.
@@ -60,7 +63,8 @@ final class TransferManagementService {
    $items=$this->transfers->items($id,true);$byId=[];foreach($items as $item)$byId[(int)$item['id']]=$item;foreach($normalized as $itemId=>$raw)if(!isset($byId[$itemId]))throw new \InvalidArgumentException('La partida no pertenece a esta transferencia.');
    if($action==='cancel'&&array_filter($items,fn($i)=>!Decimal::parse($i['dispatched_quantity'],6)->isZero()))throw new OperationConflict('Una salida física no se cancela. Registra la incidencia.');
    if($action==='cancel'&&$quote&&$quote['quote_status']==='accepted'&&$t['status']!=='requested')throw new OperationConflict('Cancela primero la cotización para liberar la cobertura comprometida.');
-   if($action==='approve'&&$quote)$this->validateQuote((int)$quote['id'],(int)$t['destination_branch_id']);
+   $coverage=[];if($quote){foreach($this->transfers->coverageItemsForTransfer($id,true)as $item)$coverage[(int)$item['transfer_item_id']]=$item;}
+   if($action==='approve'&&$quote){$quote=$this->validateQuote((int)$quote['id'],(int)$t['destination_branch_id']);if($this->transfers->coverageInstalled()){$snapshot=$this->transfers->coverageSnapshot($id,true)??throw new OperationConflict('La transferencia vinculada no tiene un snapshot verificable.');$captured=json_decode($snapshot['snapshot_json'],true,512,JSON_THROW_ON_ERROR);if(!isset($captured['version'],$captured['items'])||!is_array($captured['version'])||!is_array($captured['items'])||!hash_equals($snapshot['content_hash'],QuoteManagementService::hash($captured['version'],$captured['items'])))throw new OperationConflict('El snapshot de la cobertura no supera la verificación de integridad.');}}
    $to=match($action){'approve'=>'approved','prepare'=>'prepared','dispatch'=>'in_transit','cancel'=>'cancelled',default=>$t['status']};
    $event=$this->event($id,$action,$t['status'],$to,$key,$hash,$actor,$branch,$notes);$changed=0;
    foreach($items as $item){$itemId=(int)$item['id'];$variant=(int)$item['variant_id'];$qty=null;$movement=null;$fields=[];
@@ -69,11 +73,13 @@ final class TransferManagementService {
      $qty=Rules::quantity($raw,(int)$item['decimal_places']);$d=Decimal::parse($qty,6);$this->transfers->assertUntracked($variant);
      if($action==='edit')$fields=['requested_quantity'=>$qty];
      if($action==='approve'){
+      if($quote&&$this->transfers->coverageInstalled()&&(!isset($coverage[$itemId])||$coverage[$itemId]['status']!=='active'))throw new OperationConflict('La cobertura de esta partida fue invalidada por un cambio o cierre de la cotización.');
       if($quote&&$d->compare(Decimal::parse($this->transfers->quoteNeed((int)$quote['id'],$variant),6))>0)throw new OperationConflict('La cantidad excede el faltante de la cotización sin cobertura.');
       if($d->compare(Decimal::parse($item['requested_quantity'],6))>0)throw new OperationConflict('No se puede aprobar más de lo solicitado.');
       $this->inventory->transferReservationWithinTransaction((int)$t['source_branch_id'],$variant,$qty);$fields=['approved_quantity'=>$qty];
      }
      if($action==='dispatch'){
+      if($quote&&$this->transfers->coverageInstalled()&&(!isset($coverage[$itemId])||$coverage[$itemId]['status']!=='active'))throw new OperationConflict('La cobertura invalidada no puede iniciar un movimiento físico nuevo.');
       if($d->compare(Decimal::parse($item['pending_dispatch'],6))>0)throw new OperationConflict('La salida supera lo autorizado pendiente.');
       $this->inventory->transferReservationWithinTransaction((int)$t['source_branch_id'],$variant,$qty,true);
       $movement=$this->inventory->recordTransferWithinTransaction(['branch_id'=>(int)$t['source_branch_id'],'variant_id'=>$variant,'unit_id'=>(int)$item['unit_id'],'quantity'=>rtrim(rtrim($qty,'0'),'.'),'reason'=>'Salida física '.$t['folio'],'operation_key'=>'m09-'.substr(hash('sha256',$key.':'.$itemId),0,59),'source_type'=>'transfer_event','source_id'=>$event.':'.$itemId],$actor,false);
@@ -86,7 +92,11 @@ final class TransferManagementService {
       if($quote&&$quote['quote_status']==='accepted'){$this->inventory->transferReservationWithinTransaction((int)$t['destination_branch_id'],$variant,$qty);$fields['destination_reserved']=Decimal::parse($item['destination_reserved'],6)->add($d)->format(6);}
      }
      $this->transfers->quantities($itemId,$fields);$this->transfers->eventItem($event,$itemId,$qty,$movement?(int)$movement['id']:null);$changed++;
-    }elseif($action==='cancel'&&$t['status']!=='requested'&&!Decimal::parse($item['approved_quantity'],6)->isZero())$this->inventory->transferReservationWithinTransaction((int)$t['source_branch_id'],$variant,$item['approved_quantity'],true);
+    }elseif($action==='cancel'){
+     $release=Decimal::zero(6);
+     if($t['status']!=='requested'){$release=Decimal::parse($item['approved_quantity'],6)->subtract(Decimal::parse($item['source_released_quantity'],6));if(!$release->isZero())$this->inventory->transferReservationWithinTransaction((int)$t['source_branch_id'],$variant,$release->format(6),true);}
+     if($quote&&$this->transfers->coverageInstalled()&&isset($coverage[$itemId])&&$coverage[$itemId]['status']==='active'){$this->transfers->invalidateCoverageItem((int)$coverage[$itemId]['id'],$release->format(6),$actor,'La transferencia vinculada fue cancelada.');$this->transfers->coverageEvent($id,(int)$coverage[$itemId]['id'],'invalidated',$release->format(6),$actor,'La transferencia vinculada fue cancelada.');}
+    }
    }
    if(in_array($action,['edit','approve','dispatch','receive'],true)&&!$changed)throw new \InvalidArgumentException('Captura al menos una cantidad positiva.');
    if($action==='receive'){$now=$this->transfers->items($id,true);$complete=!array_filter($now,fn($i)=>$i['approved_quantity']!==$i['received_quantity']);$to=$complete?'received':'in_transit';}

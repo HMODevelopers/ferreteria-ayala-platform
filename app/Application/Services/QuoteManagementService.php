@@ -11,7 +11,7 @@ final class QuoteManagementService
 {
     public function __construct(private readonly QuoteRepository $quotes,private readonly CustomerRepository $customers,private readonly PricingRepository $pricing,private readonly PricingManagementService $prices,private readonly QuoteReservationService $reservations,private readonly TransactionManager $transactions,private readonly ?ModuleOperationGuard $modules=null){}
     public static function hash(array $version,array $items):string {
-        foreach(['id','quote_id','version_number','created_at','status','issued_at','issued_by']as $k)unset($version[$k]);
+        foreach(['id','quote_id','version_number','created_at','status','issued_at','issued_by','quote_status','branch_id','current_version']as $k)unset($version[$k]);
         foreach($items as &$item)foreach(['id','quote_version_id']as $k)unset($item[$k]);unset($item);
         ksort($version);return hash('sha256',json_encode([$version,$items],JSON_THROW_ON_ERROR));
     }
@@ -31,12 +31,13 @@ final class QuoteManagementService
         $key=InventoryRules::operationKey((string)($input['operation_key']??''));
         $requestHash=hash('sha256',json_encode([$id,$input,$rawItems,$actor],JSON_THROW_ON_ERROR));
         return $this->transactions->transaction(function()use($input,$rawItems,$allowed,$actor,$id,$branch,$customerId,$key,$requestHash,$audit):int {
+            // Existing quote operations follow the shared M08/M09 lock order: quote, then branch/inventory.
+            $q=$id===null?null:$this->requireQuote($id,$allowed);
             // The branch lock also serializes create idempotency and all M04 scope writers.
             $context=$this->quotes->context($branch,$actor);
             $op=$this->quotes->operation($key);
             if($op!==null){$existing=$this->requireQuote((int)$op['quote_id'],$allowed);if(!hash_equals($op['request_hash'],$requestHash))throw new OperationConflict('La operación repetida contiene datos diferentes.');return (int)$existing['id'];}
             $this->modules?->assertAvailable('M08',$branch);
-            $q=$id===null?null:$this->requireQuote($id,$allowed);
             if($q!==null){if((int)$q['lock_version']!==Rules::id($input['lock_version']??0))throw new OperationConflict('La cotización cambió en otra sesión. Recarga antes de guardar.');if((int)$q['branch_id']!==$branch||(int)$q['customer_id']!==$customerId)throw new OperationConflict('La sucursal y el cliente de un documento no se sustituyen.');}
             $customer=$this->customers->customer($customerId,[$branch],true)??throw new EntityNotFound('Selecciona un cliente de la sucursal emisora.');
             if((int)$customer['is_active']!==1)throw new OperationConflict('El cliente está inactivo.');
@@ -66,6 +67,7 @@ final class QuoteManagementService
             if($q!==null){$previousVersion=$this->quotes->version($id,(int)$q['current_version'],true);if($previousVersion)$data['seller_snapshot']=$previousVersion['seller_snapshot'];}
             if($id===null){$id=$this->quotes->create(['folio'=>'COT-'.strtoupper(bin2hex(random_bytes(12))),'operation_key'=>$key,'request_hash'=>$requestHash,'branch_id'=>$branch,'customer_id'=>$customerId,'assigned_user_id'=>$actor,'created_by'=>$actor]);$this->quotes->snapshotContact($id,$data['customer_snapshot']);$number=1;$versionId=$this->quotes->createVersion($id,1,$data);$this->quotes->assign($id,$actor);$q=['id'=>$id,'branch_id'=>$branch,'current_version'=>1];$from='received';$expected=1;}
             else{$number=(int)$q['current_version'];$version=$this->quotes->version($id,$number,true)??throw new \LogicException();if($version['status']!=='draft')throw new OperationConflict('Una versión emitida no admite edición. Crea una nueva versión.');if(!in_array($q['status'],['preparing','pending_approval'],true))throw new OperationConflict('El estado no permite editar.');$versionId=(int)$version['id'];$from=$q['status'];$expected=(int)$q['lock_version'];}
+            if($q!==null)$this->reservations->invalidateChangedCoverage($versionId,$items,$actor);
             $this->quotes->saveVersion($versionId,$data,$items);$this->quotes->update($id,$expected,$state,$number,$q['assigned_user_id']??$actor);
             $this->event($q,$from,$state,'save',$key,$requestHash,$actor,'',$audit);return $id;
         });
@@ -79,6 +81,7 @@ final class QuoteManagementService
             if($action==='assign') {if($assigned!==null)throw new OperationConflict('La cotización ya fue tomada por un vendedor.');$assigned=$actor;$state='assigned';$this->quotes->assign($id,$actor);}
             elseif($action==='revise'){
                 if($version['status']!=='issued'||!in_array($q['status'],['sent','rejected','expired'],true))throw new OperationConflict('El estado no permite generar otra versión.');if($number>=100)throw new OperationConflict('Se alcanzó el límite de versiones.');
+                $this->reservations->closeCoverage((int)$version['id'],$actor,'La cotización inició una nueva versión.');
                 $data=$version;foreach(['id','quote_id','version_number','status','issued_at','issued_by','created_at']as $k)unset($data[$k]);$new=$this->quotes->createVersion($id,++$number,$data);foreach($items as &$item)unset($item['id'],$item['quote_version_id']);unset($item);$this->quotes->saveVersion($new,$data,$items);$state='preparing';if($assigned!==$actor)$this->quotes->assign($id,$actor);$assigned=$actor;
             }
             elseif($action==='approve'){
@@ -96,12 +99,14 @@ final class QuoteManagementService
                     if(!Decimal::parse($item['discount_rate'],4)->isZero()){if(!$policy)throw new OperationConflict('La política de descuento ya no está activa.');if(Decimal::parse($item['discount_rate'],4)->compare(Decimal::parse($policy['seller_limit_rate'],4))>0)$approval=true;}
                 }
                 if($approval&&!$this->quotes->approved((int)$version['id'],self::hash($version,$items)))throw new OperationConflict('El descuento requiere autorización gerencial de esta versión.');
+                $this->reservations->assertIssuable((int)$version['id'],(int)$q['branch_id'],$items);
                 $this->quotes->issue((int)$version['id'],$actor);$state='sent';
             }
             else{
                 Rules::transition($q['status'],$action,$version['valid_until'],$reason);$state=$action;
                 if($action==='accepted')$this->reservations->accept((int)$version['id'],(int)$q['branch_id'],$actor,$items);
                 if($action==='cancelled'&&$q['status']==='accepted')$this->reservations->cancel((int)$version['id'],(int)$q['branch_id'],$actor);
+                if(in_array($action,['cancelled','rejected','expired'],true))$this->reservations->closeCoverage((int)$version['id'],$actor,'La cotización fue '.match($action){'cancelled'=>'cancelada','rejected'=>'rechazada','expired'=>'marcada como vencida'}.'.');
             }
             $this->quotes->update($id,$expected,$state,$number,$assigned);$q['current_version']=$number;
             $this->event($q,$q['status'],$state,$action,$key,$hash,$actor,$reason,$audit);

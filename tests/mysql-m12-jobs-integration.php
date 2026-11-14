@@ -107,7 +107,7 @@ try {
 
     $stage = 'migrations';
     $applied = $migrator->migrate(); $owned = true;
-    m12check(count($applied) === $expectedMigrations && end($applied) === '20261110090000_create_internal_notifications', 'Official migrator did not apply the complete ordered schema.');
+    m12check(count($applied) === $expectedMigrations && end($applied) === '20261113090000_add_quote_transfer_coverage', 'Official migrator did not apply the complete ordered schema.');
     m12check($migrator->migrate() === [], 'Repeated migration execution was not idempotent.');
     $columns = $pdo->query("SELECT COLUMN_NAME,COLUMN_TYPE,IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='operation_jobs' ORDER BY ORDINAL_POSITION")->fetchAll();
     m12check(in_array('lock_token', array_column($columns, 'COLUMN_NAME'), true) && count($columns) === 19, 'operation_jobs columns do not match the durable lease schema.');

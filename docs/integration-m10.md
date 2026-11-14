@@ -182,3 +182,7 @@ M10 continúa siendo Entregas. La funcionalidad independiente de devoluciones
 usa exclusivamente `delivery_items.received_quantity` como evidencia física y
 no una cotización aceptada ni mercancía solamente despachada. Véase
 [integración de devoluciones](integration-returns.md).
+
+## Extensión AY-04 · 14 de noviembre de 2026
+
+M10 continúa consumiendo únicamente apartados físicamente disponibles. La cobertura M09 aprobada o en tránsito no habilita una entrega. Una recepción vinculada posterior a la aceptación crea entrada física y apartado de destino en la misma transacción; sólo entonces `QuoteReservationService::available()` puede asignarla a una entrega. La cancelación conserva consumos ya entregados y libera sólo cantidades recibidas no consumidas. La suite central incorpora recepción y entrega parciales, pero su ejecución SQL queda pendiente por el entorno.
