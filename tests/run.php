@@ -93,4 +93,5 @@ require __DIR__ . '/cms-design.php';
 require __DIR__ . '/media-library.php';
 require __DIR__ . '/customers-design.php';
 require __DIR__ . '/quote-workflow.php';
+require __DIR__ . '/phase1-central-flow.php';
 echo "PASS: {$checks} checks (public app, M00, M01.1-M01.4, M02, M03 catalog, M04 pricing, M05 inventory, M06 purchasing M07 customers M08 quotes M09 transfers M10 deliveries M11 CMS, operation jobs core and M12 internal notifications).\n";

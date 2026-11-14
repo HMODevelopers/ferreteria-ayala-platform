@@ -9,7 +9,7 @@ use App\Domain\Pricing\{CommercialCalculator,Decimal,PricingRules};
 use App\Domain\Quotes\QuoteRules as Rules;
 final class QuoteManagementService
 {
-    public function __construct(private readonly QuoteRepository $quotes,private readonly CustomerRepository $customers,private readonly PricingRepository $pricing,private readonly PricingManagementService $prices,private readonly QuoteReservationService $reservations,private readonly TransactionManager $transactions){}
+    public function __construct(private readonly QuoteRepository $quotes,private readonly CustomerRepository $customers,private readonly PricingRepository $pricing,private readonly PricingManagementService $prices,private readonly QuoteReservationService $reservations,private readonly TransactionManager $transactions,private readonly ?ModuleOperationGuard $modules=null){}
     public static function hash(array $version,array $items):string {
         foreach(['id','quote_id','version_number','created_at','status','issued_at','issued_by']as $k)unset($version[$k]);
         foreach($items as &$item)foreach(['id','quote_version_id']as $k)unset($item[$k]);unset($item);
@@ -35,6 +35,7 @@ final class QuoteManagementService
             $context=$this->quotes->context($branch,$actor);
             $op=$this->quotes->operation($key);
             if($op!==null){$existing=$this->requireQuote((int)$op['quote_id'],$allowed);if(!hash_equals($op['request_hash'],$requestHash))throw new OperationConflict('La operación repetida contiene datos diferentes.');return (int)$existing['id'];}
+            $this->modules?->assertAvailable('M08',$branch);
             $q=$id===null?null:$this->requireQuote($id,$allowed);
             if($q!==null){if((int)$q['lock_version']!==Rules::id($input['lock_version']??0))throw new OperationConflict('La cotización cambió en otra sesión. Recarga antes de guardar.');if((int)$q['branch_id']!==$branch||(int)$q['customer_id']!==$customerId)throw new OperationConflict('La sucursal y el cliente de un documento no se sustituyen.');}
             $customer=$this->customers->customer($customerId,[$branch],true)??throw new EntityNotFound('Selecciona un cliente de la sucursal emisora.');
@@ -72,7 +73,7 @@ final class QuoteManagementService
     public function action(int $id,int $expected,string $action,?array $allowed,int $actor,string $key,string $reason='',?callable $audit=null):void {
         $actor=Rules::id($actor);$key=InventoryRules::operationKey($key);$reason=Rules::text($reason,500);$hash=hash('sha256',json_encode([$id,$expected,$action,$actor,$reason],JSON_THROW_ON_ERROR));
         $this->transactions->transaction(function()use($id,$expected,$action,$allowed,$actor,$key,$reason,$hash,$audit):void {
-            $q=$this->requireQuote($id,$allowed);if($this->duplicate($key,$hash,$id))return;
+            $q=$this->requireQuote($id,$allowed);if($this->duplicate($key,$hash,$id))return;$this->modules?->assertAvailable('M08',(int)$q['branch_id']);
             if((int)$q['lock_version']!==$expected)throw new OperationConflict('La cotización cambió en otra sesión. Recarga antes de continuar.');
             $version=$this->quotes->version($id,(int)$q['current_version'],true)??throw new \LogicException();$items=$this->quotes->items((int)$version['id']);$state=$q['status'];$number=(int)$q['current_version'];$assigned=$q['assigned_user_id']===null?null:(int)$q['assigned_user_id'];
             if($action==='assign') {if($assigned!==null)throw new OperationConflict('La cotización ya fue tomada por un vendedor.');$assigned=$actor;$state='assigned';$this->quotes->assign($id,$actor);}

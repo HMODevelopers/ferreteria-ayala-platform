@@ -44,7 +44,8 @@ final class CmsController extends Controller
         if(!self::enabled())return $this->missing();$legal=AppKernel::cms()->legal('privacy');$branch=$r->integer('branch_id')?:null;$q=CmsRules::text($r->query('q'),120);$branches=array_values(array_filter(AppKernel::cms()->branches(),static fn($b)=>AppKernel::publicRequests()->enabled((int)$b['id'])));
         if($branch!==null&&!array_filter($branches,static fn($b)=>(int)$b['id']===$branch))$branch=null;
         $variants=[];if($branch!==null){$term='%'.str_replace(['\\','%','_'],['\\\\','\\%','\\_'],$q).'%';$variants=AppKernel::cms()->query('SELECT v.id,v.sku,v.name,p.name product_name,u.symbol,u.decimal_places,ib.physical_quantity-ib.reserved_quantity available_quantity FROM product_variants v JOIN products p ON p.id=v.product_id JOIN units u ON u.id=v.unit_id LEFT JOIN inventory_balances ib ON ib.variant_id=v.id AND ib.branch_id=? AND ib.initialized_at IS NOT NULL WHERE v.is_active=1 AND p.is_active=1 AND u.is_active=1 AND (p.name LIKE ? OR v.sku LIKE ? OR v.name LIKE ?) ORDER BY p.name,v.sku,v.id LIMIT 25',[$branch,$term,$term,$term])->fetchAll();}
-        $key=$values['operation_key']??bin2hex(random_bytes(24));$csrf=AppKernel::session()->csrfToken();$_SESSION['public_quote_forms']??=[];
+        $_SESSION['public_quote_forms']??=[];$candidate=(string)($values['operation_key']??$r->query('operation_key'));
+        $key=preg_match('/^[a-f0-9]{48}$/D',$candidate)&&isset($_SESSION['public_quote_forms'][$candidate])?$candidate:bin2hex(random_bytes(24));$csrf=AppKernel::session()->csrfToken();
         if(!isset($_SESSION['public_quote_forms'][$key]))$_SESSION['public_quote_forms'][$key]=time();if(count($_SESSION['public_quote_forms'])>20)array_shift($_SESSION['public_quote_forms']);
         return $this->render('public/cms/request',['title'=>'Solicitar cotización','noIndex'=>true,'canonicalPath'=>'/solicitar-cotizacion','branches'=>$branches,'branchId'=>$branch,'q'=>$q,'variants'=>$variants,'legal'=>$legal,'csrf'=>$csrf,'operationKey'=>$key,'values'=>$values,'error'=>$error,'folio'=>$folio],$error?422:200);
     }
@@ -56,7 +57,7 @@ final class CmsController extends Controller
             $created=$_SESSION['public_quote_forms'][$key]??0;if(!is_int($created)||time()-$created<2||time()-$created>7200)throw new \InvalidArgumentException('Actualiza el formulario y revisa tus datos antes de enviarlo.');
             $items=array_filter($r->keyedValues('quantity'),static fn($v)=>trim($v)!=='');
             $fingerprint=\App\Infrastructure\Media\RequestFingerprint::forIp($r->ip(),AppKernel::cmsPrivateDirectory());
-            $result=AppKernel::publicRequests()->receive($in,$items,$fingerprint);return $this->requestForm($r,[],null,$result['folio']);
+            $result=AppKernel::publicRequests()->receive($in,$items,$fingerprint);return $this->requestForm($r,['operation_key'=>$key],null,$result['folio']);
         }catch(\InvalidArgumentException|\App\Application\Exceptions\ApplicationException $e){$error=$e->getMessage();}catch(\Throwable){$error='No pudimos registrar la solicitud. Conserva tus datos e intenta nuevamente.';}
         $in['quantities']=$r->keyedValues('quantity');return $this->requestForm($r,$in,$error);
     }

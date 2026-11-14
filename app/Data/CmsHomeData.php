@@ -11,10 +11,10 @@ final class CmsHomeData
         $content=[];
         foreach(['banners','promotions','events','reviews','site_settings','navigation_items'] as $type)$content[$type]=$repository->publicContent($type,$branchId);
         $home=null;foreach($content['site_settings'] as $setting)if($setting['slug']==='home'){$home=$setting;break;}
-        $categories=$repository->query('SELECT id,code,name,description FROM categories WHERE is_active=1 ORDER BY name,id LIMIT 6')->fetchAll();
+        $categories=$repository->query('SELECT id,code,name,description FROM categories WHERE is_active=1 ORDER BY name,id LIMIT 100')->fetchAll();
         $brands=$repository->query('SELECT name FROM brands WHERE is_active=1 ORDER BY name,id LIMIT 8')->fetchAll();
         $productParams=[];$productFilter='';if($search!==''){$term='%'.$search.'%';$productFilter=' AND (p.name LIKE ? OR v.name LIKE ? OR v.sku LIKE ?)';$productParams=[$term,$term,$term];}
-        $products=$repository->query("SELECT v.id,v.sku,v.name variant_name,p.name,c.code category_code,c.name category_name,b.name brand_name,u.name unit_name,m.token media_token,m.alt_text media_alt FROM product_variants v JOIN products p ON p.id=v.product_id AND p.is_active=1 JOIN categories c ON c.id=p.category_id AND c.is_active=1 LEFT JOIN brands b ON b.id=p.brand_id AND b.is_active=1 JOIN units u ON u.id=v.unit_id AND u.is_active=1 LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 LEFT JOIN media m ON m.id=pi.media_id WHERE v.is_active=1".$productFilter.' ORDER BY p.name,v.name,v.id LIMIT 6',$productParams)->fetchAll();
+        $products=$repository->query("SELECT v.id,v.sku,v.name variant_name,p.name,c.code category_code,c.name category_name,b.name brand_name,u.name unit_name,m.token media_token,m.alt_text media_alt FROM product_variants v JOIN products p ON p.id=v.product_id AND p.is_active=1 JOIN categories c ON c.id=p.category_id AND c.is_active=1 LEFT JOIN brands b ON b.id=p.brand_id AND b.is_active=1 JOIN units u ON u.id=v.unit_id AND u.is_active=1 LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 LEFT JOIN media m ON m.id=pi.media_id WHERE v.is_active=1".$productFilter.' ORDER BY p.name,v.name,v.id LIMIT 100',$productParams)->fetchAll();
         $branches=$repository->branches();
         $illustrations=['cement.svg','drill.svg','pipe.svg','cable.svg','steel.svg','paint.svg'];
         $categoryMap=[];

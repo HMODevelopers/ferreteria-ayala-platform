@@ -1,6 +1,43 @@
-<section class="cms-section"><h1>Solicitar cotización</h1><p>Selecciona una sucursal y materiales del catálogo. Puedes solicitar más de la existencia disponible; Ventas confirmará si puede completar el pedido.</p><p>Esta solicitud no aparta existencias ni constituye una cotización final. No se realizan compras ni pagos aquí.</p>
-<?php if($folio):?><div class="cms-success" role="status"><h2>Solicitud registrada</h2><p>Folio: <strong><?= e($folio) ?></strong></p><p>Ventas revisará tu solicitud. No se ha enviado ningún correo automático.</p></div><?php else:?>
-<?php if($error):?><p class="cms-error" role="alert"><?= e($error) ?></p><?php endif?>
-<?php if(!$legal||!$branches):?><p class="cms-notice">La recepción de solicitudes todavía no está disponible. Es necesario publicar el aviso de privacidad y habilitar una sucursal.</p><?php else:?>
-<form method="get" class="cms-select"><label for="request-branch">Sucursal</label><select id="request-branch" name="branch_id" required><option value="">Selecciona una sucursal</option><?php foreach($branches as $b):?><option value="<?= e($b['id']) ?>" <?= $branchId===(int)$b['id']?'selected':'' ?>><?= e($b['name']) ?></option><?php endforeach?></select><label for="request-search">Buscar material o SKU</label><input id="request-search" name="q" maxlength="120" value="<?= e($q) ?>"><button class="admin-secondary-button">Consultar catálogo</button></form>
-<?php if($branchId):?><form method="post" action="/solicitar-cotizacion?branch_id=<?= e($branchId) ?>&amp;q=<?= e(rawurlencode($q)) ?>" class="cms-request-form"><input type="hidden" name="_token" value="<?= e($csrf) ?>"><input type="hidden" name="operation_key" value="<?= e($operationKey) ?>"><input type="hidden" name="branch_id" value="<?= e($branchId) ?>"><input type="hidden" name="legal_version_id" value="<?= e($legal['id']) ?>"><h2>Materiales solicitados</h2><p>Captura cantidades solamente en los materiales que necesitas. Cambiar la búsqueda recarga el formulario; envía juntos los materiales de esta consulta.</p><div class="cms-grid"><?php foreach($variants as $v):?><label class="cms-card cms-product"><strong><?= e($v['product_name']) ?> · <?= e($v['name']) ?></strong><span>SKU <?= e($v['sku']) ?></span><span>Disponible: <?= $v['available_quantity']===null?'Sin información publicada':e($v['available_quantity']).' '.e($v['symbol']) ?></span><span>Cantidad (<?= e($v['symbol']) ?>)</span><input name="quantity[<?= e($v['id']) ?>]" inputmode="decimal" maxlength="32" value="<?= e($values['quantities'][$v['id']]??'') ?>" aria-label="Cantidad para <?= e($v['sku']) ?>"></label><?php endforeach?></div><?php if(!$variants):?><p>No hay materiales activos que coincidan con la búsqueda.</p><?php endif?><h2>Datos de contacto</h2><div class="admin-form-grid"><?php foreach(['full_name'=>['Nombre completo',160,'text',true],'company'=>['Empresa (opcional)',160,'text',false],'phone'=>['Teléfono',40,'tel',true],'email'=>['Correo electrónico',190,'email',true]] as $key=>[$label,$max,$type,$required]):?><label class="admin-field"><span><?= e($label) ?></span><input name="<?= e($key) ?>" type="<?= e($type) ?>" maxlength="<?= e($max) ?>" value="<?= e($values[$key]??'') ?>" <?= $required?'required':'' ?>></label><?php endforeach?><label class="admin-field"><span>Preferencia de contacto</span><select name="contact_preference"><?php foreach(['phone'=>'Teléfono','email'=>'Correo','whatsapp'=>'WhatsApp'] as $key=>$label):?><option value="<?= e($key) ?>" <?= ($values['contact_preference']??'')===$key?'selected':'' ?>><?= e($label) ?></option><?php endforeach?></select></label></div><label class="admin-field"><span>Comentario (opcional)</span><textarea name="comment" maxlength="1000" rows="4"><?= e($values['comment']??'') ?></textarea></label><div class="cms-honeypot" aria-hidden="true"><label>No completar<input name="website" tabindex="-1" autocomplete="off"></label></div><label class="cms-consent"><input name="consent" type="checkbox" value="1" required> He leído y acepto el <a href="/legal?document=privacy&amp;version=<?= e($legal['id']) ?>" target="_blank" rel="noopener">aviso de privacidad, versión <?= e($legal['version_number']) ?></a>.</label><button class="admin-primary-button" <?= !$variants?'disabled':'' ?>>Enviar solicitud</button></form><?php endif?><?php endif?><?php endif?></section>
+<section class="cms-section">
+  <h1>Solicitar cotización</h1>
+  <p>Selecciona una sucursal y materiales del catálogo. Puedes solicitar más de la existencia disponible; Ventas confirmará si puede completar el pedido.</p>
+  <p>Esta solicitud no aparta existencias ni constituye una cotización final. No se realizan compras ni pagos aquí.</p>
+  <?php if($folio):?>
+    <div class="cms-success" role="status" data-public-request-complete="<?= e($operationKey) ?>">
+      <h2>Solicitud registrada</h2><p>Folio: <strong><?= e($folio) ?></strong></p>
+      <p>Ventas revisará tu solicitud. No se ha enviado ningún correo automático.</p>
+    </div>
+  <?php else:?>
+    <?php if($error):?><p class="cms-error" role="alert"><?= e($error) ?></p><?php endif?>
+    <?php if(!$legal||!$branches):?>
+      <p class="cms-notice">La recepción de solicitudes todavía no está disponible. Es necesario publicar el aviso de privacidad y habilitar una sucursal.</p>
+    <?php else:?>
+      <form method="get" class="cms-select">
+        <input type="hidden" name="operation_key" value="<?= e($operationKey) ?>">
+        <label for="request-branch">Sucursal</label>
+        <select id="request-branch" name="branch_id" required><option value="">Selecciona una sucursal</option><?php foreach($branches as $b):?><option value="<?= e($b['id']) ?>" <?= $branchId===(int)$b['id']?'selected':'' ?>><?= e($b['name']) ?></option><?php endforeach?></select>
+        <label for="request-search">Buscar material o SKU</label>
+        <input id="request-search" name="q" maxlength="120" value="<?= e($q) ?>">
+        <button class="admin-secondary-button">Consultar catálogo</button>
+      </form>
+      <?php if($branchId):?>
+        <form method="post" action="/solicitar-cotizacion?branch_id=<?= e($branchId) ?>&amp;q=<?= e(rawurlencode($q)) ?>" class="cms-request-form">
+          <input type="hidden" name="_token" value="<?= e($csrf) ?>">
+          <input type="hidden" name="operation_key" value="<?= e($operationKey) ?>">
+          <input type="hidden" name="branch_id" value="<?= e($branchId) ?>">
+          <input type="hidden" name="legal_version_id" value="<?= e($legal['id']) ?>">
+          <h2>Materiales solicitados</h2>
+          <p>Captura las cantidades que necesitas. Puedes cambiar la búsqueda; la selección de esta sesión se conservará para enviar una sola solicitud.</p>
+          <div class="cms-grid"><?php foreach($variants as $v):?><label class="cms-card cms-product"><strong><?= e($v['product_name']) ?> · <?= e($v['name']) ?></strong><span>SKU <?= e($v['sku']) ?></span><span>Disponible: <?= $v['available_quantity']===null?'Sin información publicada':e($v['available_quantity']).' '.e($v['symbol']) ?></span><span>Cantidad (<?= e($v['symbol']) ?>)</span><input name="quantity[<?= e($v['id']) ?>]" inputmode="decimal" maxlength="32" value="<?= e($values['quantities'][$v['id']]??'') ?>" aria-label="Cantidad para <?= e($v['sku']) ?>"></label><?php endforeach?></div>
+          <?php if(!$variants):?><p>No hay materiales activos que coincidan con la búsqueda.</p><?php endif?>
+          <h2>Datos de contacto</h2>
+          <div class="admin-form-grid"><?php foreach(['full_name'=>['Nombre completo',160,'text',true],'company'=>['Empresa (opcional)',160,'text',false],'phone'=>['Teléfono',40,'tel',true],'email'=>['Correo electrónico',190,'email',true]] as $key=>[$label,$max,$type,$required]):?><label class="admin-field"><span><?= e($label) ?></span><input name="<?= e($key) ?>" type="<?= e($type) ?>" maxlength="<?= e($max) ?>" value="<?= e($values[$key]??'') ?>" <?= $required?'required':'' ?>></label><?php endforeach?><label class="admin-field"><span>Preferencia de contacto</span><select name="contact_preference"><?php foreach(['phone'=>'Teléfono','email'=>'Correo','whatsapp'=>'WhatsApp'] as $key=>$label):?><option value="<?= e($key) ?>" <?= ($values['contact_preference']??'')===$key?'selected':'' ?>><?= e($label) ?></option><?php endforeach?></select></label></div>
+          <label class="admin-field"><span>Comentario (opcional)</span><textarea name="comment" maxlength="1000" rows="4"><?= e($values['comment']??'') ?></textarea></label>
+          <div class="cms-honeypot" aria-hidden="true"><label>No completar<input name="website" tabindex="-1" autocomplete="off"></label></div>
+          <label class="cms-consent"><input name="consent" type="checkbox" value="1" required> He leído y acepto el <a href="/legal?document=privacy&amp;version=<?= e($legal['id']) ?>" target="_blank" rel="noopener">aviso de privacidad, versión <?= e($legal['version_number']) ?></a>.</label>
+          <button class="admin-primary-button">Enviar solicitud</button>
+        </form>
+      <?php endif?>
+    <?php endif?>
+  <?php endif?>
+</section>

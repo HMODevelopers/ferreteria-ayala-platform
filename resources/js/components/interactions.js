@@ -26,8 +26,9 @@ export function interactions() {
       if (match) count++;
     });
     document.querySelectorAll('[data-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === category)));
-    document.querySelector('#empty-results').hidden = count > 0;
-    status.textContent = `${count} ${count === 1 ? 'producto' : 'productos'} de referencia${search.value.trim() ? ` para “${search.value.trim()}”` : ''}`;
+    const empty = document.querySelector('#empty-results');
+    if (empty) empty.hidden = count > 0;
+    if (status) status.textContent = `${count} ${count === 1 ? 'producto' : 'productos'} ${dialog ? 'de referencia' : 'publicados'}${search.value.trim() ? ` para “${search.value.trim()}”` : ''}`;
   };
   document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => { category = button.dataset.filter; filter(); }));
   document.querySelectorAll('[data-category-link]').forEach(link => link.addEventListener('click', () => {
@@ -39,6 +40,9 @@ export function interactions() {
     document.querySelector('#productos').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   });
   document.querySelector('#reset-search').addEventListener('click', () => { category = 'all'; search.value = ''; filter(); document.querySelector('[data-filter="all"]').focus(); });
+  const query = new URLSearchParams(location.search).get('q');
+  if (query) { search.value = query.slice(0, 100); filter(); }
+  if (!dialog || !items || !download) return;
   const create = (tag, className, text) => {
     const element = document.createElement(tag); element.className = className;
     if (text !== undefined) element.textContent = text;
@@ -90,6 +94,4 @@ export function interactions() {
     const anchor = create('a', ''); anchor.href = url; anchor.download = 'ayala-lista-demo.txt'; anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000); toast('Lista descargada. No se ha enviado ninguna solicitud.');
   });
-  const query = new URLSearchParams(location.search).get('q');
-  if (query) { search.value = query.slice(0, 100); filter(); }
 }

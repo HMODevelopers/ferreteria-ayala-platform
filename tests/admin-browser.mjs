@@ -13,7 +13,12 @@ const watch = page => {
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
 };
 const submit = async form => {
-  await Promise.all([form.page().waitForNavigation(), form.locator('button[type="submit"]').click()]);
+  const page = form.page();
+  const navigation = page.waitForNavigation();
+  await form.locator('button[type="submit"]').click();
+  const confirmation = page.locator('[data-admin-confirm-modal]');
+  if (await confirmation.isVisible()) await confirmation.locator('[data-admin-confirm-accept]').click();
+  await navigation;
 };
 const login = async (page, email, password) => {
   await page.goto(`${base}/admin/login`);
@@ -21,6 +26,13 @@ const login = async (page, email, password) => {
   await page.locator('input[name="password"]').fill(password);
   await submit(page.locator('form[action="/admin/login"]'));
   assert.equal(page.url(), `${base}/admin`);
+};
+const logout = async page => {
+  const token = await page.locator('form[action="/admin/logout"] input[name="_token"]').inputValue();
+  const response = await page.request.post(`${base}/admin/logout`, { form: { _token: token }, maxRedirects: 0 });
+  assert.equal(response.status(), 303);
+  assert.equal(response.headers().location, '/admin/login');
+  await page.goto(`${base}/admin/login`);
 };
 
 try {
@@ -74,7 +86,7 @@ try {
   assert.match(await admin.locator('body').textContent(), /No hay horarios registrados/);
   assert.match(await admin.locator('body').textContent(), /No hay servicios asociados/);
 
-  await admin.goto(`${base}/admin/roles`);
+  await admin.goto(`${base}/admin/roles/create`);
   const roleForm = admin.locator('form[action="/admin/roles/create"]');
   await roleForm.locator('input[name="code"]').fill('M02_E2E_ROLE');
   await roleForm.locator('input[name="name"]').fill('Rol sintético M02');
@@ -82,9 +94,9 @@ try {
     await roleForm.locator('label').filter({ hasText: code }).locator('input[type="checkbox"]').check();
   }
   await submit(roleForm);
-  let roleCard = admin.locator('li').filter({ hasText: 'M02_E2E_ROLE' });
+  let roleCard = admin.locator('.role-card').filter({ hasText: 'M02_E2E_ROLE' });
   assert.equal(await roleCard.count(), 1);
-  const editRoleHref = await roleCard.locator('a', { hasText: 'Editar' }).getAttribute('href');
+  const editRoleHref = await roleCard.locator('a', { hasText: 'Configurar permisos' }).getAttribute('href');
   assert.ok(editRoleHref);
   await admin.goto(`${base}${editRoleHref}`);
   const editRoleForm = admin.locator('form[action="/admin/roles/update"]');
@@ -137,7 +149,7 @@ try {
   await user.goto(`${base}/admin`);
   assert.equal(user.url(), `${base}/admin/login`);
   await login(user, process.env.M02_HTTP_USER_EMAIL, process.env.M02_HTTP_USER_PASSWORD_CHANGED);
-  await submit(user.locator('form[action="/admin/logout"]'));
+  await logout(user);
   assert.equal(user.url(), `${base}/admin/login`);
   await userContext.close();
 
@@ -150,7 +162,7 @@ try {
   await admin.goto(`${base}/admin/audit`);
   const auditText = await admin.locator('body').textContent();
   for (const action of ['users.create', 'users.password', 'roles.create', 'branches.create', 'auth.login']) assert.match(auditText, new RegExp(action.replace('.', '\\.')));
-  await submit(admin.locator('form[action="/admin/logout"]'));
+  await logout(admin);
   assert.equal(admin.url(), `${base}/admin/login`);
   await adminContext.close();
 

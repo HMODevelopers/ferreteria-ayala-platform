@@ -9,7 +9,7 @@ use App\Domain\Inventory\InventoryRules;
 use App\Domain\Quotes\QuoteRules;
 use App\Domain\Pricing\Decimal;
 final class DeliveryManagementService {
- public function __construct(private readonly DeliveryRepository $deliveries,private readonly TransferRepository $transfers,private readonly InventoryRepository $stock,private readonly InventoryManagementService $inventory,private readonly QuoteReservationService $reservations,private readonly TransactionManager $transactions,private readonly ?NotificationRepository $notifications=null){}
+ public function __construct(private readonly DeliveryRepository $deliveries,private readonly TransferRepository $transfers,private readonly InventoryRepository $stock,private readonly InventoryManagementService $inventory,private readonly QuoteReservationService $reservations,private readonly TransactionManager $transactions,private readonly ?NotificationRepository $notifications=null,private readonly ?ModuleOperationGuard $modules=null){}
  private function authorized(int $branch,?array $allowed):void{if($allowed!==null&&!in_array($branch,$allowed,true))throw new OperationConflict('La sucursal está fuera de tu alcance.');}
  private function duplicate(string $key,string $hash,?int $id=null):?array{$e=$this->deliveries->operation($key);if($e&&(!hash_equals($hash,$e['request_hash'])||($id!==null&&(int)$e['delivery_id']!==$id)))throw new OperationConflict('La clave ya fue usada con otros datos.');return $e;}
  private function eligible(array $q):void{if($q['quote_status']!=='accepted'||$q['status']!=='issued'||(int)$q['version_number']!==(int)$q['current_version'])throw new OperationConflict('Selecciona la versión emitida actual de una cotización aceptada.');}
@@ -19,7 +19,7 @@ final class DeliveryManagementService {
   return $this->transactions->transaction(function()use($version,$details,$key,$quantities,$hash,$allowed,$actor,$audit,$peek):int{
    $this->transfers->lockQuote((int)$peek['quote_id']);
    $q=$this->deliveries->quote($version,$allowed,true)??throw new EntityNotFound('Documento no disponible.');$branch=(int)$q['branch_id'];$this->authorized($branch,$allowed);
-   if($e=$this->duplicate($key,$hash))return (int)$e['delivery_id'];$this->eligible($q);$this->transfers->lockBranches([$branch]);$items=$this->deliveries->quoteItems($version);$by=[];foreach($items as $i)$by[(int)$i['id']]=$i;
+   if($e=$this->duplicate($key,$hash))return (int)$e['delivery_id'];$this->modules?->assertAvailable('M10',$branch);$this->eligible($q);$this->transfers->lockBranches([$branch]);$items=$this->deliveries->quoteItems($version);$by=[];foreach($items as $i)$by[(int)$i['id']]=$i;
    $valid=[];foreach($quantities as $item=>$raw){if(!isset($by[$item]))throw new \InvalidArgumentException('La partida no pertenece al documento.');if($this->zero($raw))continue;$i=$by[$item];$qty=Rules::quantity($raw,(int)$i['decimal_places']);$this->pending($i,$qty);$this->transfers->assertUntracked((int)$i['variant_id']);$valid[$item]=$qty;}
    if(!$valid)throw new \InvalidArgumentException('Captura al menos una partida positiva.');
    $id=$this->deliveries->create(['folio'=>'ENT-'.strtoupper(bin2hex(random_bytes(12))),'quote_version_id'=>$version,'branch_id'=>$branch,'customer_id'=>(int)$q['customer_id'],'created_by'=>$actor]+$details);
@@ -36,7 +36,7 @@ final class DeliveryManagementService {
   return $this->transactions->transaction(function()use($id,$expected,$action,$quantities,$key,$notes,$receiver,$assignment,$allowed,$actor,$hash,$audit,$peek):int{
    $this->transfers->lockQuote((int)$peek['quote_id']);$q=$this->deliveries->quote((int)$peek['quote_version_id'],null,true)??throw new EntityNotFound('Documento no disponible.');
    $d=$this->deliveries->find($id,null,true)??throw new EntityNotFound('Entrega no disponible.');$branch=(int)$d['branch_id'];$this->authorized($branch,$allowed);
-   if($e=$this->duplicate($key,$hash,$id))return (int)$e['id'];if((int)$d['lock_version']!==$expected)throw new OperationConflict('La entrega cambió en otra sesión. Recarga para continuar.');$to=Rules::transition($d['status'],$action);
+   if($e=$this->duplicate($key,$hash,$id))return (int)$e['id'];$this->modules?->assertAvailable('M10',$branch);if((int)$d['lock_version']!==$expected)throw new OperationConflict('La entrega cambió en otra sesión. Recarga para continuar.');$to=Rules::transition($d['status'],$action);
    if(in_array($action,['edit','prepare','assign','dispatch'],true))$this->eligible($q);
    $this->transfers->lockBranches([$branch],in_array($action,['cancel','incident','confirm','retry'],true));$items=$this->deliveries->items($id,true);$by=[];foreach($items as $i)$by[(int)$i['id']]=$i;foreach($quantities as $item=>$raw)if(!isset($by[$item]))throw new \InvalidArgumentException('Partida ajena a la entrega.');
    if($action==='cancel'&&array_filter($items,fn($i)=>!Decimal::parse($i['dispatched_quantity'],6)->isZero()))throw new OperationConflict('La mercancía ya salió. Registra una incidencia; no se reintegra inventario automáticamente.');
@@ -80,7 +80,7 @@ final class DeliveryManagementService {
  public function saveResource(string $kind,array $input,?array $allowed,int $actor,?callable $audit=null):int {
   $branch=Rules::id($input['branch_id']??0);$this->authorized($branch,$allowed);$actor=Rules::id($actor);$name=QuoteRules::text((string)($input['name']??''),120);if($name==='')throw new \InvalidArgumentException('Captura el nombre.');$id=empty($input['id'])?null:Rules::id($input['id']);$key=InventoryRules::operationKey((string)($input['operation_key']??''));$hash=hash('sha256',json_encode([$kind,$input,$actor],JSON_THROW_ON_ERROR));
   return $this->transactions->transaction(function()use($kind,$input,$allowed,$actor,$branch,$name,$id,$key,$hash,$audit):int{
-   $this->transfers->lockBranches([$branch]);if($e=$this->duplicate($key,$hash))return (int)$e['notes'];
+   $this->transfers->lockBranches([$branch]);if($e=$this->duplicate($key,$hash))return (int)$e['notes'];$this->modules?->assertAvailable('M10',$branch);
    if(!in_array($kind,['vehicles','drivers','delivery_runs'],true))throw new \InvalidArgumentException('Recurso inválido.');
    if($id){$old=$this->deliveries->resource($kind,$id,true)??throw new EntityNotFound('Recurso no disponible.');if((int)$old['branch_id']!==$branch)throw new OperationConflict('No se cambia la sucursal del recurso.');}
    $data=['branch_id'=>$branch,'name'=>$name];

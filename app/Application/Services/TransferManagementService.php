@@ -8,7 +8,7 @@ use App\Domain\Transfers\TransferRules as Rules;
 use App\Domain\Inventory\InventoryRules;
 use App\Domain\Pricing\Decimal;
 final class TransferManagementService {
- public function __construct(private readonly TransferRepository $transfers,private readonly InventoryRepository $stock,private readonly InventoryManagementService $inventory,private readonly TransactionManager $transactions){}
+ public function __construct(private readonly TransferRepository $transfers,private readonly InventoryRepository $stock,private readonly InventoryManagementService $inventory,private readonly TransactionManager $transactions,private readonly ?ModuleOperationGuard $modules=null){}
  private function authorized(int $branch,?array $allowed):void {if($allowed!==null&&!in_array($branch,$allowed,true))throw new OperationConflict('La sucursal está fuera de tu alcance para esta operación.');}
  private function duplicate(string $key,string $hash,?int $id=null):?array {$e=$this->transfers->operation($key);if($e&&(!hash_equals($e['request_hash'],$hash)||($id!==null&&(int)$e['transfer_id']!==$id)))throw new OperationConflict('La clave de operación ya fue usada con otros datos.');return $e;}
  public function create(array $input,array $rawItems,?array $allowed,int $actor,?callable $audit=null):int {
@@ -21,7 +21,7 @@ final class TransferManagementService {
   return $this->transactions->transaction(function()use($source,$destination,$version,$reason,$rawItems,$actor,$key,$hash,$audit,$quoteContext):int {
    if($quoteContext)$this->transfers->lockQuote((int)$quoteContext['quote_id']);
    if($version)$this->validateQuote($version,$destination);
-   $this->transfers->lockBranches([$source,$destination]);if($e=$this->duplicate($key,$hash))return (int)$e['transfer_id'];
+   $this->transfers->lockBranches([$source,$destination]);if($e=$this->duplicate($key,$hash))return (int)$e['transfer_id'];$this->modules?->assertAvailable('M09',$source);$this->modules?->assertAvailable('M09',$destination);
    $items=[];foreach($rawItems as $raw){$v=Rules::id($raw['variant_id']??0);if(isset($items[$v]))throw new \InvalidArgumentException('La variante está repetida.');$unit=Rules::id($raw['unit_id']??0);$meta=$this->stock->variantInventoryMeta($v,$unit)??throw new EntityNotFound('La variante o unidad no existe.');
     if(!(int)$meta['variant_active']||!(int)$meta['product_active']||!(int)$meta['input_unit_active'])throw new OperationConflict('La variante, producto o unidad están inactivos.');
     $factor=$unit===(int)$meta['base_unit_id']?'1':(string)($meta['factor']??'');if($factor==='')throw new \InvalidArgumentException('No existe conversión autorizada.');
@@ -54,7 +54,7 @@ final class TransferManagementService {
    $t=$this->transfers->find($id,null,true)??throw new EntityNotFound('La transferencia no existe.');
    $branch=(int)$t[in_array($action,['receive','edit','cancel'],true)?'destination_branch_id':'source_branch_id'];$this->authorized($branch,$allowed);
    $this->transfers->lockBranches([(int)$t['source_branch_id'],(int)$t['destination_branch_id']],true);
-   if($e=$this->duplicate($key,$hash,$id))return (int)$e['id'];
+   if($e=$this->duplicate($key,$hash,$id))return (int)$e['id'];$this->modules?->assertAvailable('M09',(int)$t['source_branch_id']);$this->modules?->assertAvailable('M09',(int)$t['destination_branch_id']);
    if((int)$t['lock_version']!==$expected)throw new OperationConflict('La transferencia cambió en otra sesión. Recarga antes de continuar.');Rules::transition($t['status'],$action);
    if($action!=='cancel')$this->transfers->lockBranches([(int)$t['source_branch_id'],(int)$t['destination_branch_id']]);
    $items=$this->transfers->items($id,true);$byId=[];foreach($items as $item)$byId[(int)$item['id']]=$item;foreach($normalized as $itemId=>$raw)if(!isset($byId[$itemId]))throw new \InvalidArgumentException('La partida no pertenece a esta transferencia.');

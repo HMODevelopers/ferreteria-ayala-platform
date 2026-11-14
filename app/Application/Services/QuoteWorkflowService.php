@@ -12,6 +12,10 @@ final class QuoteWorkflowService
  private PdoQuoteWorkflowRepository $repo;private PdoAccessRepository $access;
  public function __construct(private readonly Connection $connection,private readonly ?QuoteManagementService $quotes=null){$this->repo=new PdoQuoteWorkflowRepository($connection);$this->access=new PdoAccessRepository($connection);}
  private function permission(int $actor,string $permission,int $branch):void{if(!$this->access->hasPermission($actor,$permission,$branch))throw new OperationConflict('No tienes permiso para esta cotización o sucursal.');}
+ private function module(int $branch):void {
+  $state=$this->repo->one("SELECT m.is_globally_enabled,m.requires_branch_enablement,b.is_active,COALESCE(bm.is_enabled,0) branch_enabled FROM modules m JOIN branches b ON b.id=? LEFT JOIN branch_modules bm ON bm.branch_id=b.id AND bm.module_id=m.id WHERE m.code='M08' FOR UPDATE",[$branch]);
+  if($state!==null&&(!(int)$state['is_globally_enabled']||!(int)$state['is_active']||((int)$state['requires_branch_enablement']&&!(int)$state['branch_enabled'])))throw new OperationConflict('El módulo de cotizaciones está deshabilitado para esta sucursal.');
+ }
  public function load(string $kind,int $id,int $actor):array {
   $s=$this->repo->source($kind,$id)??throw new OperationConflict('Cotización no disponible.');
   $permission=$kind==='request'||($kind==='case'&&$s['quote_id']===null&&$s['request_id']!==null)?'quote_requests.view':'quotes.view';$this->permission($actor,$permission,(int)$s['branch_id']);
@@ -28,6 +32,7 @@ final class QuoteWorkflowService
   return $this->connection->transaction(function()use($d,$actor,$key,$hash):int{
    $branch=$this->repo->one('SELECT id FROM branches WHERE id=? AND is_active=1 FOR UPDATE',[$d['branch_id']]);if(!$branch)throw new OperationConflict('La sucursal está inactiva o no existe.');$this->permission($actor,'quotes.create',$d['branch_id']);
    if($old=$this->repo->one('SELECT id,request_hash FROM quote_workflows WHERE operation_key=?',[$key])){if(!hash_equals($old['request_hash'],$hash))throw new OperationConflict('La clave ya identifica otra captura.');return (int)$old['id'];}
+   $this->module($d['branch_id']);
    $folio='COT-R'.strtoupper(bin2hex(random_bytes(10)));
    $this->repo->query('INSERT INTO quote_workflows(folio,operation_key,request_hash,branch_id,origin,full_name,email,phone,requested_items,notes,assigned_user_id,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',[$folio,$key,$hash,$d['branch_id'],$d['origin'],$d['full_name'],$d['email'],$d['phone'],json_encode($d['items'],JSON_THROW_ON_ERROR),$d['notes'],$actor,$actor]);$id=$this->repo->id();
    $this->event($id,$actor,'received','received','Solicitud capturada desde '.Rules::ORIGINS[$d['origin']].'.',hash('sha256','create-'.$key),$hash);return $id;
@@ -61,7 +66,9 @@ final class QuoteWorkflowService
   return $this->connection->transaction(function()use($s,$kind,$source,$input,$actor,$action,$key,$expected,$note,$hash):int {
    $this->repo->one('SELECT id FROM branches WHERE id=? FOR UPDATE',[$s['branch_id']]);
    if($old=$this->repo->one('SELECT workflow_id,request_hash FROM quote_workflow_events WHERE operation_key=?',[$key])){if(!hash_equals($old['request_hash'],$hash))throw new OperationConflict('La operación ya se utilizó con otros datos.');$this->load('case',(int)$old['workflow_id'],$actor);return (int)$old['workflow_id'];}
+   $this->module((int)$s['branch_id']);
    $w=$this->materialize($kind,$source,$actor,$expected);
+   if($action==='take')$this->permission($actor,'quotes.assign',(int)$w['branch_id']);
    if($w['assigned_user_id']!==null&&(int)$w['assigned_user_id']!==$actor&&($action!=='take'||!$this->access->hasPermission($actor,'quotes.assign',(int)$w['branch_id'])||strlen($note)<5))throw new OperationConflict('La cotización está asignada a otra persona. Para tomar su atención necesitas permiso de asignación y un motivo.');
    $stage=$w['stage'];$channel='';$recipient='';$version=null;$verified=$w['verified_hash'];$prepared=null;
    if($action==='take'){
@@ -88,6 +95,7 @@ final class QuoteWorkflowService
  public function documentIssued(int $quote,int $actor):void {
   if(!$this->connection->pdo()->inTransaction())throw new \LogicException('Issuance tracking must share the financial transaction.');
   if(!$this->repo->installed())return;$w=$this->repo->one('SELECT * FROM quote_workflows WHERE quote_id=? FOR UPDATE',[$quote]);if(!$w)return;
+  $this->module((int)$w['branch_id']);
   $this->permission($actor,'quotes.issue',(int)$w['branch_id']);
   if(!in_array($w['stage'],['verified','ready'],true)||!$w['verified_hash'])throw new OperationConflict('Confirma la verificación de existencias y los acuerdos con el cliente antes de emitir.');
   [$q,$v,$items,$hash]=$this->financial($w,true);if($v['status']!=='issued'||!hash_equals($w['verified_hash'],$hash))throw new OperationConflict('El documento cambió; verifica de nuevo antes de emitir.');
@@ -97,7 +105,7 @@ final class QuoteWorkflowService
  public function prepare(string $kind,int $source,array $input,array $variants,array $quantities,array $excluded,int $actor):int {
   $s=$this->load($kind,$source,$actor);$branch=(int)$s['branch_id'];$this->permission($actor,'quotes.create',$branch);
   $w=$s;if(!$this->canWrite($w,$actor))throw new OperationConflict('No tienes permiso para preparar esta cotización.');
-  if($w['quote_id']!==null)return (int)$w['quote_id'];if($w['assigned_user_id']!==null&&(int)$w['assigned_user_id']!==$actor)throw new OperationConflict('La cotización está asignada a otra persona.');
+  if($w['quote_id']!==null)return (int)$w['quote_id'];$this->module($branch);if($w['assigned_user_id']!==null&&(int)$w['assigned_user_id']!==$actor)throw new OperationConflict('La cotización está asignada a otra persona.');
   $requested=json_decode($w['requested_items'],true,512,JSON_THROW_ON_ERROR);$items=[];$changed=false;
   if(count($variants)!==count($requested)||count($quantities)!==count($requested))throw new \InvalidArgumentException('Revisa todas las partidas solicitadas.');
   foreach($requested as $i=>$original){if(in_array((string)$i,$excluded,true)){$changed=true;continue;}$variant=QuoteRules::id($variants[$i]??0);$quantity=QuoteRules::quantity((string)($quantities[$i]??''),6);if(($original['variant_id']!==null&&(int)$original['variant_id']!==$variant)||Decimal::parse($quantity,6)->compare(Decimal::parse($original['quantity'],6))!==0)$changed=true;if(isset($items[$variant]))$items[$variant]['quantity']=Decimal::parse($items[$variant]['quantity'],6)->add(Decimal::parse($quantity,6))->format(6);else $items[$variant]=['variant_id'=>(string)$variant,'quantity'=>$quantity,'discount_rate'=>'0'];}
@@ -107,6 +115,7 @@ final class QuoteWorkflowService
   if($w['stage']==='waiting_customer'&&(!$changed||($input['customer_confirmed']??'')!=='1'))throw new OperationConflict('Registra la respuesta del cliente antes de preparar el documento.');
   $input['branch_id']=(string)$branch;$input['operation_key']=$this->token((string)($input['operation_key']??''));$input['lock_version']='';
   return ($this->quotes??throw new \LogicException('Quote service is required for preparation.'))->save($input,array_values($items),[$branch],$actor,null,function(int $quote,int $b,string $a)use($w,$kind,$source,$actor,$items,$agreement,$channel,$recipient):void{
+   $this->module($b);
    $current=$this->materialize($kind,$source,$actor,(int)$w['lock_version']);if($current['quote_id']!==null||($current['assigned_user_id']!==null&&(int)$current['assigned_user_id']!==$actor))throw new OperationConflict('El seguimiento cambió durante la preparación.');$w=$current;
    $this->repo->query('UPDATE quotes SET folio=? WHERE id=? AND current_version=1',[$w['folio'],$quote]);
    $this->repo->query("UPDATE quote_workflows SET quote_id=?,stage='verifying',prepared_items=?,verified_hash=NULL,assigned_user_id=?,lock_version=lock_version+1,updated_at=UTC_TIMESTAMP(6) WHERE id=?",[$quote,json_encode(array_values($items),JSON_THROW_ON_ERROR),$actor,$w['id']]);
