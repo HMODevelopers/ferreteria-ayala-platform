@@ -341,6 +341,20 @@ IntegrationTestSafety::assertM01IsolationPrivileges(
     ['USAGE'],
     false,
 );
+IntegrationTestSafety::assertM10IsolationPrivileges(
+    ['ALTER', 'UPDATE', 'TRIGGER', 'SELECT', 'DROP', 'EXECUTE', 'CREATE', 'INSERT', 'EVENT', 'DELETE'],
+    ['USAGE'],
+    false,
+);
+expectException(
+    static fn() => IntegrationTestSafety::assertM10IsolationPrivileges(
+        ['UPDATE', 'TRIGGER', 'SELECT', 'DROP', 'EXECUTE', 'CREATE', 'INSERT', 'EVENT', 'DELETE'],
+        ['USAGE'],
+        false,
+    ),
+    'M10 integration requires isolated ALTER for additive coverage migration',
+    PersistenceException::class,
+);
 expectException(
     static fn() => IntegrationTestSafety::assertM01IsolationPrivileges(
         ['TRIGGER', 'SELECT', 'DROP', 'EXECUTE', 'CREATE', 'INSERT', 'EVENT', 'DELETE'],

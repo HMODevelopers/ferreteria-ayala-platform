@@ -152,6 +152,19 @@ final class IntegrationTestSafety
         catch (PersistenceException) { throw new PersistenceException('The M03 test account does not have the exact limited privileges required for isolated integration.'); }
     }
 
+    /** M10 applies the additive AY-04 migration, which alters transfer_items. */
+    public static function assertM10IsolationPrivileges(array $schemaPrivileges, array $globalPrivileges, bool $hasGrantOption): void
+    {
+        $required = ['ALTER', 'CREATE', 'DELETE', 'DROP', 'EVENT', 'EXECUTE', 'INSERT', 'SELECT', 'TRIGGER', 'UPDATE'];
+        $schemaPrivileges = array_values(array_unique($schemaPrivileges));
+        $globalPrivileges = array_values(array_unique($globalPrivileges));
+        sort($schemaPrivileges, SORT_STRING);
+        sort($globalPrivileges, SORT_STRING);
+        if ($schemaPrivileges !== $required || array_diff($globalPrivileges, ['USAGE']) !== [] || $hasGrantOption) {
+            throw new PersistenceException('The M10 test account does not have the exact limited privileges required for isolated integration including ALTER.');
+        }
+    }
+
     /**
      * Read-only recovery inspection can use either dedicated integration
      * identity, while destructive recovery still requires M01 explicitly.

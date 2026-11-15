@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Application\Reporting;
 final class ReportFilters
 {
-    public const TYPES=['quotes','inventory','purchases','transfers','deliveries'];
+    public const TYPES=['quotes','inventory','movements','shortages','purchases','transfers','deliveries','partial_deliveries','imports','audit'];
     public static function from(array $input):array
     {
         $type=in_array($input['report']??'',self::TYPES,true)?$input['report']:'quotes';
@@ -12,9 +12,9 @@ final class ReportFilters
         $to=self::date((string)($input['to']??''))??$today->format('Y-m-d');
         if($from>$to)throw new \InvalidArgumentException('La fecha inicial no puede ser posterior a la final.');
         if((new \DateTimeImmutable($from))->diff(new \DateTimeImmutable($to))->days>730)throw new \InvalidArgumentException('El periodo máximo es de 731 días.');
-        $branch=isset($input['branch_id'])&&preg_match('/^[1-9]\d*$/D',(string)$input['branch_id'])?(int)$input['branch_id']:null;
+        $branch=isset($input['branch_id'])&&preg_match('/^[1-9]\d*$/D',(string)$input['branch_id'])?(int)$input['branch_id']:null;if($type==='imports')$branch=null;
         $q=trim((string)($input['q']??''));if(strlen($q)>120)throw new \InvalidArgumentException('La búsqueda es demasiado larga.');
-        $status=trim((string)($input['status']??''));$states=['quotes'=>array_keys(\App\Domain\Quotes\QuoteRules::LABELS),'inventory'=>['low'],'purchases'=>['draft','pending','partial','received','cancelled'],'transfers'=>['requested','approved','prepared','in_transit','received','cancelled'],'deliveries'=>['pending','preparing','assigned','in_transit','delivered','failed','cancelled']];if($status!==''&&!in_array($status,$states[$type],true))throw new \InvalidArgumentException('El estado no es válido para este reporte.');
+        $status=trim((string)($input['status']??''));$states=['quotes'=>array_keys(\App\Domain\Quotes\QuoteRules::LABELS),'inventory'=>['low'],'movements'=>['initial','adjustment_in','adjustment_out','count_gain','count_loss','shrinkage','correction_in','correction_out'],'shortages'=>['low','exhausted'],'purchases'=>['draft','pending','partial','received','cancelled'],'transfers'=>['requested','approved','prepared','in_transit','received','cancelled'],'deliveries'=>['pending','preparing','assigned','in_transit','delivered','failed','cancelled'],'partial_deliveries'=>['pending','partial','completed'],'imports'=>['preview','confirmed'],'audit'=>['success','failure','denied']];if($status!==''&&!in_array($status,$states[$type],true))throw new \InvalidArgumentException('El estado no es válido para este reporte.');
         $origin=trim((string)($input['origin']??''));if($origin!==''&&!array_key_exists($origin,\App\Domain\Quotes\QuoteWorkflowRules::ORIGINS))throw new \InvalidArgumentException('El canal no es válido.');
         return compact('type','from','to','branch','q','status','origin');
     }

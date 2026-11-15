@@ -25,3 +25,11 @@ $reportView=preg_replace('/<svg\b.*?<\/svg>/s','',file_get_contents(dirname(__DI
 $visibleReportSources=file_get_contents(dirname(__DIR__).'/app/Infrastructure/Persistence/PdoReportRepository.php').$reportView.file_get_contents(dirname(__DIR__).'/app/Views/admin/catalog/import.php');
 check(!preg_match('/\bM\d{2}\b/i',$visibleReportSources),'Reporting and import interfaces do not expose internal module codes');
 check(str_contains($visibleReportSources,'SUM(ib.physical_quantity>0)')&&!str_contains($visibleReportSources,'SUM(ib.physical_quantity),'),'AY-18 inventory KPIs count compatible balance records instead of adding unlike units');
+$reportRepository=file_get_contents(dirname(__DIR__).'/app/Infrastructure/Persistence/PdoReportRepository.php');
+foreach(['movements','shortages','partial_deliveries','imports','audit']as$type)check(in_array($type,ReportFilters::TYPES,true),'AY-17 registers required report type '.$type);
+foreach(['inventory_movements','stock_thresholds','delivery_items','catalog_import_runs','audit_logs']as$table)check(str_contains($reportRepository,$table),'AY-17 report source is backed by '.$table);
+check(str_contains($reportRepository,'public_quote_requests p')&&str_contains($reportRepository,'NOT EXISTS(SELECT 1 FROM quote_workflows'),'AY-16 includes requests without documents and prevents converted-request double counting');
+check(str_contains($reportRepository,'r.first_attention_at>=r.received_at')&&str_contains($reportRepository,'TIMESTAMPDIFF(MINUTE,r.received_at,r.first_attention_at)'),'AY-16 measures non-negative first attention from original receipt');
+$importService=file_get_contents(dirname(__DIR__).'/app/Application/Services/CatalogImportService.php');
+check(str_contains($importService,'SELECT status,created_products FROM catalog_import_runs')&&str_contains($importService,"status='confirmed'")&&str_contains($importService,'$audit($result)'),'AY-10 keeps durable idempotent result and audit inside the commercial transaction');
+check(is_file(dirname(__DIR__).'/database/migrations/20261114090000_create_catalog_import_runs.php'),'AY-10 has additive durable import history migration');
