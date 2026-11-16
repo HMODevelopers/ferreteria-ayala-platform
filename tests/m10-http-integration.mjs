@@ -2,7 +2,12 @@ import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { runM10Browser } from './m10-admin-browser.mjs';
 const name = 'ayala-m10-http-' + process.pid;
-const proc = spawn('docker', ['run','--rm','-i','--name',name,'--network','mysql_default','-p','127.0.0.1:8088:8088','-v',process.cwd()+':/var/www/html','-w','/var/www/html','ferreteria-ayala-php','php','tests/mysql-m10-http-integration.php'], {windowsHide:true,stdio:['pipe','pipe','pipe']});
+const useDocker = process.env.M10_HTTP_USE_DOCKER === '1';
+const command = useDocker ? 'docker' : process.execPath.replace(/node(?:\.exe)?$/i, 'php');
+const args = useDocker
+  ? ['run','--rm','-i','--name',name,'--network','mysql_default','-p','127.0.0.1:8088:8088','-v',process.cwd()+':/var/www/html','-w','/var/www/html','ferreteria-ayala-php','php','tests/mysql-m10-http-integration.php']
+  : ['tests/mysql-m10-http-integration.php'];
+const proc = spawn(command, args, {windowsHide:true,stdio:['pipe','pipe','pipe']});
 let browserTask; let failure; let errors='';
 proc.stderr.on('data', chunk => { errors += chunk; });
 const lines=createInterface({input:proc.stdout});

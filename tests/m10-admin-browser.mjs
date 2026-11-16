@@ -2,7 +2,7 @@ import { chromium } from '@playwright/test';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 export async function runM10Browser(cfg) {
- const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});const context=await browser.newContext({reducedMotion:'reduce'});const page=await context.newPage();const errors=[];const failedRequests=[];page.on('requestfailed',r=>failedRequests.push({url:r.url(),error:r.failure()?.errorText}));page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+ const browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH,headless:true}:{channel:'chrome',headless:true});const context=await browser.newContext({reducedMotion:'reduce'});const page=await context.newPage();const errors=[];const failedRequests=[];page.on('requestfailed',r=>failedRequests.push({url:r.url(),error:r.failure()?.errorText}));page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  const visit=async path=>{const r=await page.goto(cfg.base+path);await page.waitForLoadState('networkidle');assert.ok(r.status()<500,'HTTP server error '+path);};
  const click=async name=>{await page.getByRole('button',{name,exact:true}).click();await page.waitForLoadState('networkidle');};
  const clean=async()=>{assert.ok(await page.locator('#admin-content').count(),'Expected a rendered administrative response');assert.deepEqual(await page.locator('.admin-alert-error').allTextContents(),[]);};

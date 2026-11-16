@@ -16,6 +16,7 @@ interface DeliveryRepository {
  public function update(int $id,string $status):void;
  public function quantity(int $item,string $field,string $value):void;
  public function allocated(int $quoteItem,?int $exclude=null):string;
+ public function pendingAllocation(int $quoteItem,?int $exclude=null):string;
  public function event(array $data):int;
  public function finishEvent(int $id,string $status):void;
  public function eventItem(int $event,int $item,string $qty,?int $movement=null):int;

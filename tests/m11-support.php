@@ -18,7 +18,7 @@ final class M11Fixture
  public M10Fixture $base;public App\Core\Persistence\Connection $cn;public PDO $pdo;public Migrator $migrator;public array $objects;public string $mediaDir;public array $files=[];
  public function start():void{
   $GLOBALS['m11_start_hashes']=m11sourceHashes();
-  $this->base=new M10Fixture();$this->base->start();$this->cn=$this->base->cn;$this->pdo=$this->base->pdo;
+  $this->base=new M10Fixture('20261103100300_register_delivery_permissions',61);$this->base->start();$this->cn=$this->base->cn;$this->pdo=$this->base->pdo;
   $this->migrator=new Migrator(new MigrationDiscovery(dirname(__DIR__).'/database/migrations','20261103110600_create_page_admin_role'),$this->base->store,$this->pdo,'ayala_m11_migrations',10);
   m11check(count($this->migrator->migrate())===7,'Seven additive M11 migrations applied after exact 61-history baseline');
   $this->objects=m10inventory($this->pdo,$this->base->v['database']);m11check(count($this->objects)===93,'93 expected tables and no hidden objects');

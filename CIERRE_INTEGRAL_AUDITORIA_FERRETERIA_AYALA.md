@@ -4,61 +4,61 @@ Actualizado: 15 de noviembre de 2026. El detalle y estado de los 26 hallazgos es
 
 ## A. Resumen ejecutivo
 
-Esta intervención corrigió los cuatro defectos de programación abiertos AY-10, AY-16, AY-17 y AY-23, aplicó la migración aditiva 76 y elevó la regresión local de 1609 a 1627 controles PASS. M00, M02 y M05 aprobaron en MariaDB aislado; M05 validó concurrencia, rollback, conversiones y el caso de más de 500 variantes. La pantalla de reportes aprobó controles responsive en 360, 768, 1440 y 2560 px.
+La auditoría técnica quedó cerrada en el alcance implementado. Se resolvió la incompatibilidad de historial 61→68→75→76, se recuperaron de forma controlada los estados preservados y se ejecutaron las integraciones SQL/HTTP centrales con la identidad M10 dedicada. La base comercial no recibió pruebas: conserva 76 migraciones y 107 tablas; la base aislada terminó con cero objetos.
 
-La ejecución también corrigió una deficiencia de la propia infraestructura: M10 solo migraba hasta M10/migración 61, por lo que no podía demostrar AY-04. Ahora exige las 75 migraciones hasta la cobertura de transferencias. La identidad aislada disponible carece del privilegio `ALTER` que requiere la migración 75; por ello el flujo central todavía no puede declararse verificado. Los preflights fallidos se limpiaron únicamente después de comprobar identidad, historial y propiedad, y el esquema aislado terminó vacío.
+Además de verificar AY-10, AY-16, AY-17 y AY-23 con fixtures SQL reales, la ejecución encontró y corrigió un defecto adicional de AY-04/M10: una entrega podía asignarse contra cobertura aprobada pero aún en tránsito. Ahora la asignación pendiente se limita al apartado físico realmente recibido, incluso entre varias entregas concurrentes.
 
 ## B. Defectos corregidos en esta intervención
 
-- AY-10: historial durable de importaciones, confirmación idempotente por token y auditoría dentro de la misma transacción que crea productos. Un fallo posterior del JSON privado ya no puede convertir un commit comercial en un mensaje falso de “sin cambios”.
+- Historial de migraciones: M10 base vuelve a estar delimitado en 61 para M11, M11 agrega 7 hasta 68, el flujo central agrega 7 hasta AY-04/75 y la migración 76 sólo participa en su suite de cierre.
+- AY-04/M10: las entregas ya no pueden reservar mercancía vinculada todavía en tránsito; se agregó contabilidad de asignación pendiente por partida.
+- AY-10: historial durable de importaciones, confirmación idempotente por token y auditoría dentro de la misma transacción que crea productos.
 - AY-16: el reporte parte de la recepción original y reúne solicitudes, seguimientos y documentos sin doble conteo. La primera atención solo se calcula con eventos posteriores o iguales a la recepción.
 - AY-17: se agregaron cotizaciones por vendedor, Kardex/movimientos, mínimos y agotados, entregas parciales, importaciones/errores y auditoría. Pantalla, XLSX y PDF usan las mismas filas y columnas; importaciones y auditoría conservan permisos adicionales.
 - AY-23: los costos de cada factura se normalizan a la unidad base usando su conversión válida y solo se compara contra documentos realmente anteriores por fecha e identificador. No se actualizan precios de venta.
-- Infraestructura M10: migración máxima actualizada de 61 a 75, limpieza ampliada y contrato explícito de privilegio aislado `ALTER`.
+- Infraestructura HTTP: lanzadores M10 y workflow funcionan localmente por defecto y conservan Docker como opción explícita; Chrome se detecta por canal o `CHROME_PATH`.
 
 ## C. Hallazgos cerrados y verificados
 
-- AY-15: cerrado con M05 MariaDB real; el mínimo se configuró para la variante 501, con rollback y limpieza final.
-- AY-24: permanece cerrado; el contador usa el número real de banners.
+- AY-04, AY-05, AY-06, AY-07: cerrados y verificados en el flujo SQL/HTTP central.
+- AY-10, AY-16, AY-17, AY-18, AY-21 y AY-23: cerrados con fixtures MariaDB reales y limpieza aislada.
+- AY-15 y AY-24: conservan su cierre verificado previo.
+- AY-19: corrección y política de límites verificadas; queda deseable una descarga HTTP con volumen real superior al límite.
+- AY-22: corrección verificada por regresión; el recorrido HTTP inducido y la retención del log en hosting siguen pendientes.
 
-AY-10, AY-16, AY-17 y AY-23 están corregidos, pero conservan validación SQL controlada pendiente. AY-04/05/06/07, AY-18/19/21/22/25 mantienen sus correcciones previas y la evidencia o validación externa pendiente indicada en la matriz.
+## C.1 Clasificación final de pendientes
+
+- **A. Defectos técnicos resueltos y verificados:** AY-04, AY-05, AY-06, AY-07, AY-10, AY-15, AY-16, AY-17, AY-18, AY-21, AY-23 y AY-24. AY-02/03 conservan corrección probada, pero su validación funcional depende de los datos de AY-01.
+- **B. Funcionalidades o validaciones técnicamente pendientes:** AY-08, AY-09, AY-11, AY-19 (volumen HTTP real), AY-20, AY-22 (excepción HTTP inducida) y AY-26. No se presentan como cerradas.
+- **C. Información, aprobación o infraestructura externa:** AY-01, AY-12, AY-13 y AY-25, además de las decisiones empresariales que condicionan AY-08/09/11/20/26.
 
 ## D. Pruebas ejecutadas
 
 - `php tests/run.php`: PASS, 1627 controles.
-- `npm run build`: PASS con Tailwind 4 local.
-- `git diff --check`: PASS.
-- Sintaxis PHP de todos los archivos PHP cambiados y de la nueva migración: PASS.
-- M00 MariaDB: migración técnica, lock, duplicado, rollback y limpieza PASS.
-- M02 MariaDB: esquema, administrador inicial, login, sesiones, permisos, alcance, revocación y auditoría PASS.
-- M05 MariaDB: 41 migraciones, DECIMAL, conversiones, inventario inicial, ajustes, idempotencia, insuficiencia, concurrencia independiente, timeout/rollback y mínimos >500 PASS.
-- Consultas AY-16/17/23: preparadas y ejecutadas en modo lectura contra MariaDB principal sin errores; el reporte de importaciones también aprobó después de la migración 76.
-- Reportes en navegador: 5 controles PASS en 360, 768, 1440 y 2560 px.
-- AY-19: 9999/10000 aceptados y 10001/10002 rechazados por la política común antes de elegir PDF o XLSX.
-- M10: no aprobado. El preflight actualizado detectó correctamente que falta `ALTER`; no se atribuye como PASS.
+- `php tests/mysql-quote-workflow-integration.php`: PASS, 41 controles SQL AY-04/workflow.
+- `php tests/mysql-m10-integration.php`: PASS, 90 controles registrados; reservas M08, transferencias M09, entregas M10, concurrencia, idempotencia y rollback.
+- `node tests/m10-http-integration.mjs`: PASS, 12 controles backend registrados más navegador autenticado, CSRF, alcance, permisos y cuatro anchos.
+- `node tests/quote-workflow-http-integration.mjs`: PASS, 65 controles SQL/navegador, incluidos PDF, endpoints negativos y editor sin acceso comercial.
+- `php tests/mysql-audit-closure-integration.php`: PASS, 17 controles SQL AY-10/16/17/18/21/23 con migración 76.
+- `npm run build`, sintaxis PHP completa y `git diff --check`: PASS.
+- PDF y XLSX: firmas válidas y mismas filas/columnas obtenidas desde el fixture de entregas parciales.
+- Total mínimo explícitamente contado en esta ejecución: 1811 controles aprobados; no incluye como unidades adicionales la compilación ni cada archivo de sintaxis.
 
 ## E. Base de datos y migraciones
 
-- Principal: 76 migraciones, 107 tablas.
-- Nueva migración: `20261114090000_create_catalog_import_runs`.
-- La migración 76 fue aplicada a la principal y crea únicamente historial durable de importaciones; no cargó datos ni fixtures.
-- La cuenta comercial es `ayala_app@%` sobre MariaDB 10.11 y solo tiene privilegios sobre `ferreteria_ayala`; no puede crear bases ni usuarios. No se intentó evadir esa limitación.
-- Las ejecuciones aisladas M00/M02/M05 terminaron limpias. Los dos estados preservados por intentos M10 fueron identificados y limpiados con verificaciones explícitas; el esquema `_test` quedó vacío.
+- Principal: `ferreteria_ayala`, identidad `ayala_app@%`, 76 migraciones y 107 tablas, comprobada sólo en lectura.
+- Aislada: `ferreteria_ayala_m10_limpia_test`, identidad `ayala_m10_test@%`, MariaDB 10.11.15, cero objetos al terminar.
+- Los estados preservados se limpiaron sólo tras verificar `DATABASE()`, `CURRENT_USER()`, historial, lote, nombres de migración, inventario de objetos y datos semilla/fixture conocidos.
+- No se alteró el historial para ocultar inconsistencias y no se ejecutó ningún rollback sobre `ferreteria_ayala`.
 
 ## F. Intervención mínima requerida del propietario
 
-Un administrador de MariaDB debe crear un esquema M10 nuevo y vacío cuyo nombre termine en `_test`, y una cuenta no administrativa exclusiva, distinta de `ayala_app`. Los privilegios de esquema exactos son:
-
-`ALTER, CREATE, DELETE, DROP, EVENT, EXECUTE, INSERT, SELECT, TRIGGER, UPDATE`
-
-La cuenta solo debe tener `USAGE` global, sin `GRANT OPTION`. Después deben configurarse `TEST_DB_HOST_M10`, `TEST_DB_PORT_M10`, `TEST_DB_DATABASE_M10`, `TEST_DB_USERNAME_M10`, `TEST_DB_PASSWORD_M10`, `TEST_DB_CHARSET_M10` y `M10_TEST_AUTHORIZATION`. La autorización debe coincidir exactamente con el nombre del esquema. Esta identidad permitirá ejecutar migración 75, fixtures, concurrencia y rollback sin tocar la base comercial.
-
-También se requiere un destino aislado autorizado para la prueba de restauración. M03 y M07 conservan credenciales antiguas que no conectan, aunque sus trabajos independientes no bloquean el M05 ya aprobado.
+La identidad M10 ya está operativa y debe conservarse únicamente para pruebas. Para cerrar la evidencia externa todavía se requiere un destino aislado autorizado de restauración y acceso/evidencia del entorno cPanel/Apache real. Las suites históricas M08/M09 no tienen variables propias configuradas; sus operaciones quedaron cubiertas dentro de M10, pero no se declara PASS de esos ejecutables antiguos por separado.
 
 ## G. Pendientes de contenido o decisión expresa
 
 - Privacidad oficial, catálogo publicable, módulos y sucursales receptoras para AY-01.
-- Formato XLSX real y reglas comerciales ambiguas de actualización para completar AY-09; el historial durable ya existe.
+- Formato XLSX oficial y reglas de actualización para completar técnicamente AY-09; el historial durable actual ya está verificado.
 - Políticas de lotes, caducidades y series para completar AY-08.
 - Matriz aprobada de eventos/destinatarios internos para AY-11.
 - Evidencia del hosting, retención y destino de restauración para AY-13.
@@ -68,23 +68,23 @@ También se requiere un destino aislado autorizado para la prueba de restauraci�
 
 ## H. Riesgos técnicos abiertos
 
-- AY-04/06/07 y el flujo central de cotizaciones/transferencias/entregas no tienen todavía PASS con migración 75 por falta de la identidad M10 con `ALTER`.
-- AY-10 necesita fallos controlados antes y después de commit en una base aislada con migración 76.
-- AY-16/17/23 necesitan fixtures SQL con solicitudes convertidas, unidades mixtas, facturas fuera de orden y exportaciones autenticadas con datos.
+- AY-08, AY-09, AY-11, AY-20 y AY-26 todavía contienen trabajo técnico no implementado y decisiones/datos empresariales pendientes.
+- AY-19 no tuvo una descarga HTTP con 10,001 filas SQL reales; la política y ambos formatos sí aprobaron.
+- AY-22 no tuvo excepción HTTP inducida en esta ronda y la rotación/retención del log depende del hosting.
 - Restauración independiente y comportamiento real de cPanel/Apache continúan sin evidencia externa.
 
 ## I. Estado de preparación
 
-El sistema administrativo está estable para continuar validaciones técnicas y para una revisión funcional del cliente que no dependa de los flujos pendientes. No se acredita aún como cierre técnico definitivo ni como listo para validación final completa porque falta la integración M10 con migración 75 y las pruebas SQL controladas de los cuatro defectos recién corregidos.
+El sistema administrativo está preparado para validación con el cliente dentro del alcance implementado. Los faltantes restantes están identificados como funcionalidades no implementadas que requieren definición empresarial, o como infraestructura/contenido externo; no bloquean la comprobación técnica de los defectos corregidos.
 
 No se inició el rediseño de la Home. El trabajo público posterior queda separado de estos pendientes y deberá usar contenido oficial, privacidad, catálogo y sucursales reales.
 
 ## Dictámenes
 
-**A. CIERRE TÉCNICO DE LA AUDITORÍA: PARCIAL.**
+**A. CIERRE TÉCNICO DE AUDITORÍA: PARCIAL.**
 
-Justificación: no quedan los cuatro defectos abiertos sin corrección de código, AY-15 tiene evidencia SQL real y la regresión/build/responsive están en PASS; sin embargo, M10 y los fixtures SQL de AY-10/16/17/23 aún no pueden declararse aprobados.
+Justificación: los defectos corregidos tienen regresión, SQL real, concurrencia/rollback cuando aplica, HTTP autenticado y limpieza aislada. Sin embargo, AY-08/09/11/20/26 todavía contienen trabajo técnico y AY-19/22 conservan validaciones específicas pendientes; por eso no se declara un cierre técnico total.
 
-**B. SISTEMA ADMINISTRATIVO LISTO PARA VALIDACIÓN FINAL CON EL CLIENTE: PARCIAL.**
+**B. PREPARADO PARA VALIDACIÓN CON EL CLIENTE: SÍ.**
 
-Justificación: la base administrativa es coherente y probada en gran parte, pero la validación final debe esperar la identidad M10, el flujo SQL central y las conciliaciones de reportes/costos. Los faltantes de contenido oficial se mantienen separados de los defectos técnicos.
+Justificación: los flujos administrativos implementados y corregidos están listos para validación funcional. La validación deberá reconocer por separado los contenidos, decisiones e infraestructura que el cliente aún debe proporcionar; SMTP y el rediseño de la Home siguen fuera de esta etapa.
