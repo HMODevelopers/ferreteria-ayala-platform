@@ -29,7 +29,7 @@ $selection=(string)file_get_contents($root.'/resources/js/components/public-quot
 check(str_contains($selection,'sessionStorage')&&str_contains($selection,'quantity[${id}]'),'Phase 1 client selection restores and submits quantities from different searches');
 
 $home=(string)file_get_contents($root.'/app/Data/CmsHomeData.php');
-check(!str_contains($home,'LIMIT 6')&&substr_count($home,'LIMIT 100')>=2,'Phase 1 published catalog is no longer truncated to six categories and products');
+check(!str_contains($home,'LIMIT 6')&&str_contains($home,'$limit=25')&&str_contains($home,'$catalogHasMore')&&str_contains($home,'COUNT(DISTINCT v.id)'),'Phase 1 published catalog uses counted server pagination instead of a fixed showcase truncation');
 
 $reservationService=(string)file_get_contents($root.'/app/Application/Services/QuoteReservationService.php');
 $transferRepository=(string)file_get_contents($root.'/app/Infrastructure/Persistence/PdoTransferRepository.php');

@@ -1,6 +1,6 @@
 # Cierre integral de auditoría — Ferretería Ayala
 
-Actualizado: 15 de noviembre de 2026. El detalle y estado de los 26 hallazgos está en `CONTROL_CIERRE_AUDITORIA_FERRETERIA_AYALA.md`.
+Actualizado: 16 de noviembre de 2026. El detalle y estado de los 26 hallazgos está en `CONTROL_CIERRE_AUDITORIA_FERRETERIA_AYALA.md`.
 
 ## A. Resumen ejecutivo
 
@@ -16,20 +16,24 @@ Además de verificar AY-10, AY-16, AY-17 y AY-23 con fixtures SQL reales, la eje
 - AY-16: el reporte parte de la recepción original y reúne solicitudes, seguimientos y documentos sin doble conteo. La primera atención solo se calcula con eventos posteriores o iguales a la recepción.
 - AY-17: se agregaron cotizaciones por vendedor, Kardex/movimientos, mínimos y agotados, entregas parciales, importaciones/errores y auditoría. Pantalla, XLSX y PDF usan las mismas filas y columnas; importaciones y auditoría conservan permisos adicionales.
 - AY-23: los costos de cada factura se normalizan a la unidad base usando su conversión válida y solo se compara contra documentos realmente anteriores por fecha e identificador. No se actualizan precios de venta.
-- Infraestructura HTTP: lanzadores M10 y workflow funcionan localmente por defecto y conservan Docker como opción explícita; Chrome se detecta por canal o `CHROME_PATH`.
+- Infraestructura HTTP: lanzadores M08, M09, M10, M11 y workflow funcionan localmente por defecto y conservan Docker como opción explícita; Chrome se detecta por canal o `CHROME_PATH`.
+- AY-02/03: la Home publicada y el catálogo de recepción paginan y filtran datos sintéticos reales, muestran precio efectivo de la sucursal y conservan cantidades entre búsquedas, páginas, recarga y navegación de historial.
+- AY-19: el endpoint autenticado se validó con 9,999–10,002 filas reales en PDF/XLSX, sin truncamiento silencioso.
+- AY-22: se indujeron errores HTTP público y autenticado; referencia, respuesta y log privado quedaron correlacionados y sanitizados. Los inductores temporales fueron retirados.
 
 ## C. Hallazgos cerrados y verificados
 
 - AY-04, AY-05, AY-06, AY-07: cerrados y verificados en el flujo SQL/HTTP central.
 - AY-10, AY-16, AY-17, AY-18, AY-21 y AY-23: cerrados con fixtures MariaDB reales y limpieza aislada.
 - AY-15 y AY-24: conservan su cierre verificado previo.
-- AY-19: corrección y política de límites verificadas; queda deseable una descarga HTTP con volumen real superior al límite.
-- AY-22: corrección verificada por regresión; el recorrido HTTP inducido y la retención del log en hosting siguen pendientes.
+- AY-02 y AY-03: cerrados con 93 aserciones HTTP/Chrome y conciliación SQL aislada.
+- AY-19: cerrado con descargas HTTP reales en ambos formatos y rechazo por encima del límite.
+- AY-22: cerrado localmente con excepciones inducidas; sólo la retención/rotación del hosting queda como evidencia externa.
 
 ## C.1 Clasificación final de pendientes
 
-- **A. Defectos técnicos resueltos y verificados:** AY-04, AY-05, AY-06, AY-07, AY-10, AY-15, AY-16, AY-17, AY-18, AY-21, AY-23 y AY-24. AY-02/03 conservan corrección probada, pero su validación funcional depende de los datos de AY-01.
-- **B. Funcionalidades o validaciones técnicamente pendientes:** AY-08, AY-09, AY-11, AY-19 (volumen HTTP real), AY-20, AY-22 (excepción HTTP inducida) y AY-26. No se presentan como cerradas.
+- **A. Defectos técnicos resueltos y verificados:** AY-02, AY-03, AY-04, AY-05, AY-06, AY-07, AY-10, AY-15, AY-16, AY-17, AY-18, AY-19, AY-21, AY-22, AY-23 y AY-24.
+- **B. Funcionalidades técnicamente pendientes:** AY-08, AY-09, AY-11, AY-20 y AY-26. No se presentan como cerradas.
 - **C. Información, aprobación o infraestructura externa:** AY-01, AY-12, AY-13 y AY-25, además de las decisiones empresariales que condicionan AY-08/09/11/20/26.
 
 ## D. Pruebas ejecutadas
@@ -39,10 +43,14 @@ Además de verificar AY-10, AY-16, AY-17 y AY-23 con fixtures SQL reales, la eje
 - `php tests/mysql-m10-integration.php`: PASS, 90 controles registrados; reservas M08, transferencias M09, entregas M10, concurrencia, idempotencia y rollback.
 - `node tests/m10-http-integration.mjs`: PASS, 12 controles backend registrados más navegador autenticado, CSRF, alcance, permisos y cuatro anchos.
 - `node tests/quote-workflow-http-integration.mjs`: PASS, 65 controles SQL/navegador, incluidos PDF, endpoints negativos y editor sin acceso comercial.
+- `node tests/m08-http-integration.mjs` y `node tests/m09-http-integration.mjs`: PASS, Chrome autenticado, CSRF, permisos, cuatro anchos y limpieza.
+- `node tests/m11-http-integration.mjs`: PASS, 93 aserciones; AY-02/03 con 33 variantes activas, Home y selector paginados, filtros, precios por sucursal, persistencia y recepción administrativa.
+- `node tests/ay19-http-integration.mjs`: PASS, 40,002 fixtures y límites 9,999/10,000/10,001/10,002 en PDF/XLSX.
+- AY-22 HTTP temporal: PASS público y autenticado; correlación y sanitización verificadas, sin dejar rutas inductoras.
 - `php tests/mysql-audit-closure-integration.php`: PASS, 17 controles SQL AY-10/16/17/18/21/23 con migración 76.
 - `npm run build`, sintaxis PHP completa y `git diff --check`: PASS.
 - PDF y XLSX: firmas válidas y mismas filas/columnas obtenidas desde el fixture de entregas parciales.
-- Total mínimo explícitamente contado en esta ejecución: 1811 controles aprobados; no incluye como unidades adicionales la compilación ni cada archivo de sintaxis.
+- Total mínimo con conteo emitido por las suites: 1,933 controles/aserciones (1627 regresión + 90 M10 + 41 AY-04 SQL + 65 AY-04 HTTP + 93 M11 HTTP + 17 cierre SQL), además de M08/M09 SQL/HTTP, AY-19, AY-22, build y sintaxis cuyos ejecutores no emiten total granular.
 
 ## E. Base de datos y migraciones
 
@@ -53,7 +61,7 @@ Además de verificar AY-10, AY-16, AY-17 y AY-23 con fixtures SQL reales, la eje
 
 ## F. Intervención mínima requerida del propietario
 
-La identidad M10 ya está operativa y debe conservarse únicamente para pruebas. Para cerrar la evidencia externa todavía se requiere un destino aislado autorizado de restauración y acceso/evidencia del entorno cPanel/Apache real. Las suites históricas M08/M09 no tienen variables propias configuradas; sus operaciones quedaron cubiertas dentro de M10, pero no se declara PASS de esos ejecutables antiguos por separado.
+Las identidades M08, M09 y M10 están operativas y deben conservarse únicamente para pruebas. Para cerrar la evidencia externa todavía se requiere un destino aislado autorizado de restauración y acceso/evidencia del entorno cPanel/Apache real.
 
 ## G. Pendientes de contenido o decisión expresa
 
@@ -69,8 +77,7 @@ La identidad M10 ya está operativa y debe conservarse únicamente para pruebas.
 ## H. Riesgos técnicos abiertos
 
 - AY-08, AY-09, AY-11, AY-20 y AY-26 todavía contienen trabajo técnico no implementado y decisiones/datos empresariales pendientes.
-- AY-19 no tuvo una descarga HTTP con 10,001 filas SQL reales; la política y ambos formatos sí aprobaron.
-- AY-22 no tuvo excepción HTTP inducida en esta ronda y la rotación/retención del log depende del hosting.
+- La rotación/retención del log AY-22 depende del hosting y no puede acreditarse localmente.
 - Restauración independiente y comportamiento real de cPanel/Apache continúan sin evidencia externa.
 
 ## I. Estado de preparación
@@ -83,7 +90,7 @@ No se inició el rediseño de la Home. El trabajo público posterior queda separ
 
 **A. CIERRE TÉCNICO DE AUDITORÍA: PARCIAL.**
 
-Justificación: los defectos corregidos tienen regresión, SQL real, concurrencia/rollback cuando aplica, HTTP autenticado y limpieza aislada. Sin embargo, AY-08/09/11/20/26 todavía contienen trabajo técnico y AY-19/22 conservan validaciones específicas pendientes; por eso no se declara un cierre técnico total.
+Justificación: los defectos corregidos tienen regresión, SQL real, concurrencia/rollback cuando aplica, HTTP autenticado y limpieza aislada. AY-08/09/11/20/26 siguen fuera del cierre por decisiones o funcionalidad no implementada; AY-19/22 ya no conservan bloqueos técnicos locales.
 
 **B. PREPARADO PARA VALIDACIÓN CON EL CLIENTE: SÍ.**
 

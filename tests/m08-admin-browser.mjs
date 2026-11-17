@@ -2,11 +2,11 @@ import { chromium } from '@playwright/test';
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 export async function runM08Browser(cfg) {
- const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+ const browser=await chromium.launch(process.env.CHROME_PATH?{executablePath:process.env.CHROME_PATH,headless:true}:{channel:'chrome',headless:true});
  const context=await browser.newContext({reducedMotion:'reduce'});const page=await context.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('dialog',dialog=>dialog.accept());
  const url=path=>cfg.base+path;
  const visit=async path=>{await page.goto(url(path));await page.waitForLoadState('networkidle');};
- const click=async label=>{await page.getByRole('button',{name:label,exact:true}).click();await page.waitForLoadState('networkidle');};
+ const click=async label=>{await page.getByRole('button',{name:label,exact:true}).click();const confirm=page.getByRole('button',{name:'Sí, confirmar',exact:true});if(await confirm.isVisible().catch(()=>false))await confirm.click();await page.waitForLoadState('networkidle');};
  const clean=async()=>{const alerts=await page.locator('.admin-alert-error').allTextContents();assert.equal(alerts.length,0,alerts.join(' '));};
  try {
   await mkdir('tests/artifacts',{recursive:true});

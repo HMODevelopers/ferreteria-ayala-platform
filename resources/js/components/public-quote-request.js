@@ -24,6 +24,16 @@ export function publicQuoteRequest() {
 
   const quantities = [...requestForm.querySelectorAll('input[name^="quantity["]')];
   const save = () => sessionStorage.setItem(storageKey, JSON.stringify(selected));
+  const hydrate = () => {
+    try {
+      const stored = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
+      if (stored && typeof stored === 'object' && !Array.isArray(stored)) selected = stored;
+    } catch (_) { selected = {}; sessionStorage.removeItem(storageKey); }
+    quantities.forEach(input => {
+      const id = input.name.match(/^quantity\[(\d+)\]$/)?.[1];
+      if (id) input.value = typeof selected[id] === 'string' ? selected[id] : '';
+    });
+  };
   quantities.forEach(input => {
     const match = input.name.match(/^quantity\[(\d+)\]$/);
     if (!match) return;
@@ -35,6 +45,7 @@ export function publicQuoteRequest() {
       save();
     });
   });
+  window.addEventListener('pageshow', hydrate);
 
   searchForm.addEventListener('submit', save);
   requestForm.addEventListener('submit', () => {

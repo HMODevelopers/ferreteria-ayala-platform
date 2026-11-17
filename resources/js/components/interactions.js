@@ -8,6 +8,7 @@ export function interactions() {
   const dialog = document.querySelector('#quote-dialog');
   const items = document.querySelector('#quote-items');
   const download = document.querySelector('#quote-download');
+  if (!dialog) return;
   let category = 'all';
   let toastTimer;
   const toast = message => {
