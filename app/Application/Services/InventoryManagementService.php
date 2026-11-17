@@ -168,9 +168,12 @@ final class InventoryManagementService
             foreach ($serials as $serialNumber) {
                 $serial = $this->inventory->findSerial($serialNumber, true);
                 if ($increase) {
-                    if ($serial === null) $serial = $this->inventory->saveSerial((int) $movement['branch_id'], (int) $movement['variant_id'], $lot === null ? null : (int) $lot['id'], $serialNumber);
-                    elseif ((int) $serial['branch_id'] !== (int) $movement['branch_id'] || (int) $serial['variant_id'] !== (int) $movement['variant_id'] || !in_array($serial['status'], ['issued','review'], true)) throw new OperationConflict('La serie '.$serialNumber.' ya está registrada y no admite esta entrada.');
-                    $this->inventory->updateSerialStatus((int) $serial['id'], 'available');
+                    if ($serial === null) {
+                        $serial = $this->inventory->saveSerial((int) $movement['branch_id'], (int) $movement['variant_id'], $lot === null ? null : (int) $lot['id'], $serialNumber);
+                    } else {
+                        if ((int) $serial['branch_id'] !== (int) $movement['branch_id'] || (int) $serial['variant_id'] !== (int) $movement['variant_id'] || !in_array($serial['status'], ['issued','review'], true)) throw new OperationConflict('La serie '.$serialNumber.' ya está registrada y no admite esta entrada.');
+                        $this->inventory->updateSerialStatus((int) $serial['id'], 'available');
+                    }
                 } else {
                     if ($serial === null || (int) $serial['branch_id'] !== (int) $movement['branch_id'] || (int) $serial['variant_id'] !== (int) $movement['variant_id'] || $serial['status'] !== 'available') throw new OperationConflict('La serie '.$serialNumber.' no está disponible en esta sucursal.');
                     if ($lot !== null && (int) ($serial['lot_id'] ?? 0) !== (int) $lot['id']) throw new OperationConflict('La serie '.$serialNumber.' no pertenece al lote indicado.');
