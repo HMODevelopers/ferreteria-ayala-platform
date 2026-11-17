@@ -60,6 +60,8 @@ final class PdoBranchAdminReadRepository extends PdoRepository
         $statement->execute(['branch' => self::id($branchId)]);
         return $statement->fetchAll();
     }
+    public function specialHours(int$branchId):array{$s=$this->pdo()->prepare("SELECT id,DATE_FORMAT(local_date,'%Y-%m-%d') local_date,is_closed,TIME_FORMAT(opens_at,'%H:%i') opens_at,TIME_FORMAT(closes_at,'%H:%i') closes_at,crosses_midnight,interval_order,note FROM branch_special_hours WHERE branch_id=? ORDER BY local_date DESC,interval_order,id LIMIT 500");$s->execute([self::id($branchId)]);return$s->fetchAll();}
+    public function serviceOptions(int$branchId):array{$s=$this->pdo()->prepare('SELECT s.id,s.code,s.name,s.is_active,bs.is_enabled,COALESCE(bs.display_order,0) display_order,CASE WHEN bs.service_id IS NULL THEN 0 ELSE 1 END associated FROM services s LEFT JOIN branch_services bs ON bs.service_id=s.id AND bs.branch_id=? ORDER BY s.name,s.id');$s->execute([self::id($branchId)]);return$s->fetchAll();}
 
     private static function hydrate(array $row): Branch
     {

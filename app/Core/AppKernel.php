@@ -9,6 +9,7 @@ use App\Application\Security\AuthenticationService;
 use App\Application\Services\AccessManagementService;
 use App\Application\Services\BranchManagementService;
 use App\Application\Services\BranchScheduleManagementService;
+use App\Application\Services\BranchServiceManagementService;
 use App\Application\Services\CatalogManagementService;
 use App\Application\Services\PricingManagementService;
 use App\Application\Services\InventoryManagementService;
@@ -22,6 +23,7 @@ use App\Infrastructure\Persistence\PdoAuditRepository;
 use App\Infrastructure\Persistence\PdoBranchAdminReadRepository;
 use App\Infrastructure\Persistence\PdoBranchRepository;
 use App\Infrastructure\Persistence\PdoBranchScheduleRepository;
+use App\Infrastructure\Persistence\{PdoBranchServiceRepository,PdoServiceRepository};
 use App\Infrastructure\Persistence\PdoCatalogRepository;
 use App\Infrastructure\Persistence\PdoPricingRepository;
 use App\Infrastructure\Persistence\PdoInventoryRepository;
@@ -49,24 +51,27 @@ final class AppKernel
     public static function branchReads(): PdoBranchAdminReadRepository { return new PdoBranchAdminReadRepository(self::connection()); }
     public static function branchManagement(): BranchManagementService { return new BranchManagementService(self::branches(), self::connection()); }
     public static function branchSchedule(): BranchScheduleManagementService { return new BranchScheduleManagementService(new PdoBranchScheduleRepository(self::connection()), self::branches(), self::connection()); }
+    public static function services(): PdoServiceRepository { return new PdoServiceRepository(self::connection()); }
+    public static function branchServices(): PdoBranchServiceRepository { return new PdoBranchServiceRepository(self::connection()); }
+    public static function branchServiceManagement(): BranchServiceManagementService { return new BranchServiceManagementService(self::services(), self::branchServices(), self::branches(), self::connection()); }
     public static function catalog(): PdoCatalogRepository { return new PdoCatalogRepository(self::connection()); }
     public static function catalogManagement(): CatalogManagementService { return new CatalogManagementService(self::catalog(), self::connection()); }
     public static function pricing(): PdoPricingRepository { return new PdoPricingRepository(self::connection()); }
     public static function pricingManagement(): PricingManagementService { return new PricingManagementService(self::pricing(), self::connection()); }
     public static function inventory(): PdoInventoryRepository { return new PdoInventoryRepository(self::connection()); }
-    public static function inventoryManagement(): InventoryManagementService { return new InventoryManagementService(self::inventory(), self::connection()); }
+    public static function inventoryManagement(): InventoryManagementService { return new InventoryManagementService(self::inventory(), self::connection(), self::notifications()->installed()?self::notifications():null); }
     public static function purchasing(): PdoPurchasingRepository { return new PdoPurchasingRepository(self::connection()); }
-    public static function purchasingManagement(): PurchasingManagementService { return new PurchasingManagementService(self::purchasing(), self::inventoryManagement(), self::connection()); }
+    public static function purchasingManagement(): PurchasingManagementService { return new PurchasingManagementService(self::purchasing(), self::inventoryManagement(), self::connection(), self::notifications()->installed()?self::notifications():null); }
     public static function quotes(): \App\Infrastructure\Persistence\PdoQuoteRepository { return new \App\Infrastructure\Persistence\PdoQuoteRepository(self::connection()); }
     public static function quoteManagement(): \App\Application\Services\QuoteManagementService {
-        return new \App\Application\Services\QuoteManagementService(self::quotes(),self::customers(),self::pricing(),self::pricingManagement(),new \App\Application\Services\QuoteReservationService(self::inventory(),self::quotes(),self::transfers()->installed()?self::transfers():null,self::deliveries()->installed()?self::deliveries():null),self::connection(),new \App\Application\Services\ModuleOperationGuard(self::connection()));
+        return new \App\Application\Services\QuoteManagementService(self::quotes(),self::customers(),self::pricing(),self::pricingManagement(),new \App\Application\Services\QuoteReservationService(self::inventory(),self::quotes(),self::transfers()->installed()?self::transfers():null,self::deliveries()->installed()?self::deliveries():null),self::connection(),new \App\Application\Services\ModuleOperationGuard(self::connection()),self::notifications()->installed()?self::notifications():null);
     }
     public static function deliveries(): \App\Infrastructure\Persistence\PdoDeliveryRepository {return new \App\Infrastructure\Persistence\PdoDeliveryRepository(self::connection());}
     public static function deliveryReservations(): \App\Application\Services\QuoteReservationService {return new \App\Application\Services\QuoteReservationService(self::inventory(),self::quotes(),self::transfers(),self::deliveries());}
     public static function notifications(): \App\Infrastructure\Persistence\PdoNotificationRepository {return new \App\Infrastructure\Persistence\PdoNotificationRepository(self::connection());}
     public static function deliveryManagement(): \App\Application\Services\DeliveryManagementService {return new \App\Application\Services\DeliveryManagementService(self::deliveries(),self::transfers(),self::inventory(),self::inventoryManagement(),self::deliveryReservations(),self::connection(),self::notifications(),new \App\Application\Services\ModuleOperationGuard(self::connection()));}
     public static function transfers(): \App\Infrastructure\Persistence\PdoTransferRepository {return new \App\Infrastructure\Persistence\PdoTransferRepository(self::connection());}
-    public static function transferManagement(): \App\Application\Services\TransferManagementService {return new \App\Application\Services\TransferManagementService(self::transfers(),self::inventory(),self::inventoryManagement(),self::connection(),new \App\Application\Services\ModuleOperationGuard(self::connection()));}
+    public static function transferManagement(): \App\Application\Services\TransferManagementService {return new \App\Application\Services\TransferManagementService(self::transfers(),self::inventory(),self::inventoryManagement(),self::connection(),new \App\Application\Services\ModuleOperationGuard(self::connection()),self::notifications()->installed()?self::notifications():null);}
     public static function returns(): \App\Infrastructure\Persistence\PdoReturnRepository {return new \App\Infrastructure\Persistence\PdoReturnRepository(self::connection());}
     public static function returnManagement(): \App\Application\Services\ReturnManagementService {return new \App\Application\Services\ReturnManagementService(self::returns(),self::inventoryManagement(),self::connection());}
     public static function customers(): PdoCustomerRepository { return new PdoCustomerRepository(self::connection()); }
@@ -80,7 +85,7 @@ final class AppKernel
     public static function mediaManagement(): \App\Application\Services\MediaManagementService {return new \App\Application\Services\MediaManagementService(self::cms(),self::connection(),self::imageStorage());}
     public static function quoteWorkflows(): \App\Infrastructure\Persistence\PdoQuoteWorkflowRepository {return new \App\Infrastructure\Persistence\PdoQuoteWorkflowRepository(self::connection());}
     public static function quoteWorkflow(): \App\Application\Services\QuoteWorkflowService {return new \App\Application\Services\QuoteWorkflowService(self::connection(),self::quoteManagement());}
-    public static function publicRequests(): \App\Application\Services\PublicQuoteRequestService {return new \App\Application\Services\PublicQuoteRequestService(self::cms(),self::connection());}
+    public static function publicRequests(): \App\Application\Services\PublicQuoteRequestService {return new \App\Application\Services\PublicQuoteRequestService(self::cms(),self::connection(),self::notifications()->installed()?self::notifications():null);}
     public static function reports(): \App\Infrastructure\Persistence\PdoReportRepository {return new \App\Infrastructure\Persistence\PdoReportRepository(self::connection());}
     public static function catalogImport(): \App\Application\Services\CatalogImportService {return new \App\Application\Services\CatalogImportService(self::connection(),dirname(__DIR__,2).'/storage/private/imports');}
 }

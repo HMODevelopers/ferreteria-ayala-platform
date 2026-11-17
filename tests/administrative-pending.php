@@ -1,0 +1,12 @@
+<?php
+declare(strict_types=1);
+use App\Infrastructure\Documents\{Code128,XlsxReader,XlsxWriter};
+$path=tempnam(sys_get_temp_dir(),'ayala-xlsx-');
+file_put_contents($path,(new XlsxWriter())->render(App\Application\Services\CatalogImportService::HEADERS,[['P-1','Producto','Descripción','CAT','MAR','SKU-1','Pieza','PZA']],'Importación'));
+$rows=(new XlsxReader())->rows($path);unlink($path);
+check($rows[0]===App\Application\Services\CatalogImportService::HEADERS&&$rows[1][5]==='SKU-1','AY-09 reads the official XLSX worksheet without executing formulas');
+$svg=(new Code128())->svg('7501234567890');check(str_starts_with($svg,'<svg')&&str_contains($svg,'<rect')&&str_contains($svg,'7501234567890'),'AY-26 generates a hardware-neutral printable Code 128 image');
+$routes=file_get_contents(dirname(__DIR__).'/config/routes.php');foreach(['/admin/inventory/counts','/admin/inventory/tracking','/admin/branches/special/create','/admin/branches/services','/admin/products/barcodes','/admin/products/labels']as$route){check(str_contains($routes,"'".$route."'"),'Administrative pending route registered: '.$route);$method=str_contains($route,'create')||str_contains($route,'services')?'POST':'GET';check($router->dispatch(new App\Core\Request($method,$route))->status===303,'Administrative pending route requires authentication: '.$route);}
+$inventory=file_get_contents(dirname(__DIR__).'/app/Application/Services/InventoryManagementService.php');foreach(['createCount','addCountLine','completeCount','applyTracking','inventory.low']as$contract)check(str_contains($inventory,$contract),'AY-08/11 inventory contract is implemented: '.$contract);
+$notifications=implode("\n",array_map('file_get_contents',[dirname(__DIR__).'/app/Application/Services/PublicQuoteRequestService.php',dirname(__DIR__).'/app/Application/Services/QuoteManagementService.php',dirname(__DIR__).'/app/Application/Services/TransferManagementService.php',dirname(__DIR__).'/app/Application/Services/PurchasingManagementService.php',dirname(__DIR__).'/app/Application/Services/DeliveryManagementService.php']));foreach(['quote_request.received','quote.assigned','quote.approval_pending','transfer.attention','purchase.cost_changed','delivery.incident']as$type)check(str_contains($notifications,$type),'AY-11 producer implemented: '.$type);
+check(is_file(dirname(__DIR__).'/database/migrations/20261116090000_complete_inventory_tracking.php')&&is_file(dirname(__DIR__).'/database/migrations/20261116100000_complete_catalog_imports.php'),'AY-08/09 additive migrations are present');

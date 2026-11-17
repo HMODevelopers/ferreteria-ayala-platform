@@ -65,6 +65,7 @@ final class PdoNotificationRepository extends PdoRepository implements Notificat
         $delivery->execute($args);
         return $eventId;
     }
+    public function createForUser(array$event,int$userId):int{$userId=self::id($userId);$eventId=$this->createForAuthorizedRecipients($event,[(string)($event['required_permission']??'')]);$delete=$this->pdo()->prepare('DELETE FROM notification_deliveries WHERE notification_event_id=? AND user_id<>?');$delete->execute([$eventId,$userId]);$s=$this->pdo()->prepare('INSERT IGNORE INTO notification_deliveries(notification_event_id,user_id) SELECT ?,u.id FROM users u WHERE u.id=? AND u.is_active=1');$s->execute([$eventId,$userId]);return$eventId;}
 
     private function rows(int $userId, string $extra = '', array $args = [], string $tail = ''): array
     {

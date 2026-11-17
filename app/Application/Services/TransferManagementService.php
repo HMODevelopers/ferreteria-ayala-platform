@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 namespace App\Application\Services;
-use App\Application\Repositories\{TransferRepository,InventoryRepository};
+use App\Application\Repositories\{TransferRepository,InventoryRepository,NotificationRepository};
 use App\Application\Exceptions\{EntityNotFound,OperationConflict};
 use App\Core\Persistence\TransactionManager;
 use App\Domain\Transfers\TransferRules as Rules;
 use App\Domain\Inventory\InventoryRules;
 use App\Domain\Pricing\Decimal;
 final class TransferManagementService {
- public function __construct(private readonly TransferRepository $transfers,private readonly InventoryRepository $stock,private readonly InventoryManagementService $inventory,private readonly TransactionManager $transactions,private readonly ?ModuleOperationGuard $modules=null){}
+ public function __construct(private readonly TransferRepository $transfers,private readonly InventoryRepository $stock,private readonly InventoryManagementService $inventory,private readonly TransactionManager $transactions,private readonly ?ModuleOperationGuard $modules=null,private readonly ?NotificationRepository $notifications=null){}
  private function authorized(int $branch,?array $allowed):void {if($allowed!==null&&!in_array($branch,$allowed,true))throw new OperationConflict('La sucursal está fuera de tu alcance para esta operación.');}
  private function duplicate(string $key,string $hash,?int $id=null):?array {$e=$this->transfers->operation($key);if($e&&(!hash_equals($e['request_hash'],$hash)||($id!==null&&(int)$e['transfer_id']!==$id)))throw new OperationConflict('La clave de operación ya fue usada con otros datos.');return $e;}
  public function create(array $input,array $rawItems,?array $allowed,int $actor,?callable $audit=null):int {
@@ -35,7 +35,7 @@ final class TransferManagementService {
    $event=$this->event($id,'create','requested','requested',$key,$hash,$actor,$destination,$reason);
    $snapshotId=null;if($quote&&$this->transfers->coverageInstalled()){$snapshotHash=QuoteManagementService::hash($quote,$quoteItems);$snapshotId=$this->transfers->createQuoteSnapshot($id,$version,$snapshotHash,json_encode(['version'=>$quote,'items'=>$quoteItems],JSON_THROW_ON_ERROR),$actor);}
    foreach($items as $variant=>[$unit,$qty]){$itemId=$this->transfers->addItem([$id,$variant,$unit,$qty]);$this->transfers->eventItem($event,$itemId,$qty,null);if($snapshotId!==null){$coverageId=$this->transfers->addCoverageItem($snapshotId,$itemId,$variant,$unit,(string)$quoted[$variant]['quantity']);$this->transfers->coverageEvent($id,$coverageId,'linked',$qty,$actor,'Cobertura vinculada al snapshot de la cotización.');}}
-   if($audit)$audit($id,$destination,'create');return $id;
+   $this->notifications?->createForAuthorizedRecipients(['event_type'=>'transfer.attention','source_type'=>'transfer_event','source_id'=>(string)$event,'resource_type'=>'transfer','resource_id'=>$id,'branch_id'=>$source,'importance'=>'high','title'=>'Transferencia por aprobar','message'=>'La transferencia requiere atención en la sucursal de origen.','required_permission'=>'transfers.approve','idempotency_key'=>'transfer.attention:'.$event],['transfers.approve']);if($audit)$audit($id,$destination,'create');return $id;
   });
  }
  private function validateQuote(int $version,int $destination):array {$q=$this->transfers->quoteVersion($version,true)??throw new EntityNotFound('La versión de cotización no existe.');$draft=$q['status']==='draft'&&in_array($q['quote_status'],['preparing','pending_approval'],true);$issued=$q['status']==='issued'&&in_array($q['quote_status'],['sent','accepted'],true);if((int)$q['branch_id']!==$destination||(!$draft&&!$issued)||(int)$q['version_number']!==(int)$q['current_version'])throw new OperationConflict('Selecciona el borrador actual o la versión emitida actual de una cotización del destino.');return $q;}
@@ -102,7 +102,7 @@ final class TransferManagementService {
    if($action==='receive'){$now=$this->transfers->items($id,true);$complete=!array_filter($now,fn($i)=>$i['approved_quantity']!==$i['received_quantity']);$to=$complete?'received':'in_transit';}
    $this->transfers->finishEvent($event,$to);
    $this->transfers->update($id,$to,$action==='approve'?$actor:null);
-   if($audit)$audit($id,$branch,$action);
+   if(in_array($action,['approve','dispatch','incident'],true)){$target=$action==='dispatch'?(int)$t['destination_branch_id']:(int)$t['source_branch_id'];$permission=match($action){'approve'=>'transfers.prepare','dispatch'=>'transfers.receive',default=>'transfers.view'};$this->notifications?->createForAuthorizedRecipients(['event_type'=>'transfer.'.$action,'source_type'=>'transfer_event','source_id'=>(string)$event,'resource_type'=>'transfer','resource_id'=>$id,'branch_id'=>$target,'importance'=>$action==='incident'?'high':'normal','title'=>'Transferencia requiere atención','message'=>'La transferencia #'.$id.' cambió a '.$to.'.','required_permission'=>$permission,'idempotency_key'=>'transfer.'.$action.':'.$event],[$permission]);}if($audit)$audit($id,$branch,$action);
    return $event;
   });
  }

@@ -8,6 +8,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Domain\Branches\Branch;
 use App\Domain\Branches\BranchHoursInterval;
+use App\Domain\Branches\BranchSpecialHours;
 
 final class BranchesController extends AdminController
 {
@@ -36,7 +37,9 @@ final class BranchesController extends AdminController
         if ($branch === null) return $this->adminView('admin/error', ['title' => 'Sucursal no encontrada', 'message' => 'El registro solicitado no existe.', 'user' => $user], 404);
         $canManageSchedule = AppKernel::access()->hasPermission($user->id ?? 0, 'branches.schedule.view', $id);
         $hours = $canManageSchedule ? AppKernel::branchReads()->regularHours($id) : null;
-        return $this->adminView('admin/branches/form', ['title' => 'Editar sucursal', 'activeNav' => 'branches', 'user' => $user, 'branch' => $branch, 'hours' => $hours, 'canManageSchedule' => $canManageSchedule, 'mapOptions' => $this->mapOptions()]);
+        $specialHours = $canManageSchedule ? AppKernel::branchReads()->specialHours($id) : null;
+        $canManageServices=AppKernel::access()->hasPermission($user->id??0,'branches.services.view',$id)&&AppKernel::access()->hasPermission($user->id??0,'branches.edit',$id);
+        return $this->adminView('admin/branches/form', ['title' => 'Editar sucursal', 'activeNav' => 'branches', 'user' => $user, 'branch' => $branch, 'hours' => $hours, 'specialHours'=>$specialHours,'canManageSchedule' => $canManageSchedule,'canManageServices'=>$canManageServices,'serviceOptions'=>$canManageServices?AppKernel::branchReads()->serviceOptions($id):[], 'mapOptions' => $this->mapOptions()]);
     }
 
     public function detail(Request $request): Response
@@ -47,8 +50,9 @@ final class BranchesController extends AdminController
         $branch = AppKernel::branches()->findById($id);
         if ($branch === null) return $this->adminView('admin/error', ['title' => 'Sucursal no encontrada', 'message' => 'El registro solicitado no existe.', 'user' => $user], 404);
         $hours = AppKernel::access()->hasPermission($user->id ?? 0, 'branches.schedule.view', $id) ? AppKernel::branchReads()->regularHours($id) : null;
+        $specialHours=AppKernel::access()->hasPermission($user->id??0,'branches.schedule.view',$id)?AppKernel::branchReads()->specialHours($id):null;
         $services = AppKernel::access()->hasPermission($user->id ?? 0, 'branches.services.view', $id) ? AppKernel::branchReads()->services($id) : null;
-        return $this->adminView('admin/branches/detail', compact('user', 'branch', 'hours', 'services') + ['title' => $branch->name, 'activeNav' => 'branches', 'mapOptions' => $this->mapOptions()]);
+        return $this->adminView('admin/branches/detail', compact('user', 'branch', 'hours','specialHours', 'services') + ['title' => $branch->name, 'activeNav' => 'branches', 'mapOptions' => $this->mapOptions()]);
     }
 
     public function create(Request $request): Response
@@ -121,6 +125,9 @@ final class BranchesController extends AdminController
             AppKernel::branchSchedule()->removeRegular($branchId, $hoursId, fn() => AppKernel::audit()->record($user->id, 'branches.hours.delete', 'branch_hours', $hoursId, $branchId, 'success'));
         }, 'Horario eliminado.', '/admin/branches/edit?id=' . $branchId, $user->id, 'branches.hours.delete', 'branch_hours', $hoursId, $branchId);
     }
+    public function addSpecialHours(Request$r):Response{$u=$this->requireUser();if($u instanceof Response)return$u;$id=$r->integer('id');if($d=$this->requirePermission($u,'branches.edit',$id))return$d;if($d=$this->requirePermission($u,'branches.schedule.view',$id))return$d;if($c=$this->requireCsrf($r,$u))return$c;return$this->run(function()use($r,$u,$id):void{$closed=$r->input('is_closed')==='1';$date=$r->input('local_date');$note=self::nullable($r->input('note'));if($closed)$special=BranchSpecialHours::closed($date,$note);else{$orders=array_map(static fn(array$row):int=>(int)$row['interval_order'],array_filter(AppKernel::branchReads()->specialHours($id),static fn(array$row):bool=>$row['local_date']===$date));$special=BranchSpecialHours::open($date,$r->input('opens_at'),$r->input('closes_at'),$r->input('crosses_midnight')==='1',($orders===[]?0:max($orders))+1,$note);}AppKernel::branchSchedule()->addSpecial($id,$special,fn(int$specialId)=>AppKernel::audit()->record($u->id,'branches.special.create','branch_special_hours',$specialId,$id,'success'));},'Excepción de horario agregada.','/admin/branches/edit?id='.$id,$u->id,'branches.special.create','branch_special_hours',null,$id);}
+    public function removeSpecialHours(Request$r):Response{$u=$this->requireUser();if($u instanceof Response)return$u;$id=$r->integer('id');$special=$r->integer('special_id');if($d=$this->requirePermission($u,'branches.edit',$id))return$d;if($d=$this->requirePermission($u,'branches.schedule.view',$id))return$d;if($c=$this->requireCsrf($r,$u))return$c;return$this->run(fn()=>AppKernel::branchSchedule()->removeSpecial($id,$special,fn()=>AppKernel::audit()->record($u->id,'branches.special.delete','branch_special_hours',$special,$id,'success')),'Excepción eliminada.','/admin/branches/edit?id='.$id,$u->id,'branches.special.delete','branch_special_hours',$special,$id);}
+    public function saveService(Request$r):Response{$u=$this->requireUser();if($u instanceof Response)return$u;$id=$r->integer('id');$service=$r->integer('service_id');if($d=$this->requirePermission($u,'branches.edit',$id))return$d;if($d=$this->requirePermission($u,'branches.services.view',$id))return$d;if($c=$this->requireCsrf($r,$u))return$c;return$this->run(fn()=>AppKernel::branchServiceManagement()->configureOrAssociate($id,$service,$r->input('enabled')==='1',(int)$r->input('display_order'),fn()=>AppKernel::audit()->record($u->id,'branches.service.configure','branch_service',$service,$id,'success')),'Servicio de sucursal actualizado.','/admin/branches/edit?id='.$id,$u->id,'branches.service.configure','branch_service',$service,$id);}
 
     private function mapOptions(): array
     {

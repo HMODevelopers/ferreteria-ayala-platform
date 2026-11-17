@@ -9,6 +9,7 @@ interface NotificationRepository
 {
     public function installed(): bool;
     public function createForAuthorizedRecipients(array $event, array $permissions): int;
+    public function createForUser(array $event, int $userId): int;
     public function recent(int $userId, int $limit = 6): array;
     public function page(int $userId, string $readFilter, string $type, int $offset, int $limit = 25): Page;
     public function unreadCount(int $userId): int;

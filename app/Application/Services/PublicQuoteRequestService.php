@@ -6,9 +6,10 @@ use App\Domain\Cms\CmsRules as Rules;
 use App\Domain\Quotes\QuoteRules;
 use App\Infrastructure\Persistence\{PdoCmsRepository,PdoAuditRepository};
 use App\Application\Exceptions\OperationConflict;
+use App\Application\Repositories\NotificationRepository;
 final class PublicQuoteRequestService
 {
-    public function __construct(private readonly PdoCmsRepository $repo,private readonly Connection $connection) {}
+    public function __construct(private readonly PdoCmsRepository $repo,private readonly Connection $connection,private readonly ?NotificationRepository $notifications=null) {}
     public function enabled(int $branch):bool
     {
         return $this->repo->one("SELECT b.id FROM branches b JOIN modules m ON m.code='M08' LEFT JOIN branch_modules bm ON bm.branch_id=b.id AND bm.module_id=m.id WHERE b.id=? AND b.is_active=1 AND m.is_globally_enabled=1 AND (m.requires_branch_enablement=0 OR bm.is_enabled=1) AND EXISTS(SELECT 1 FROM modules c WHERE c.code='M11' AND c.is_globally_enabled=1)",[$branch])!==null;
@@ -49,7 +50,7 @@ final class PublicQuoteRequestService
             $this->repo->query('INSERT INTO public_quote_requests(folio,operation_key,request_hash,branch_id,full_name,company,phone,email,contact_preference,comment) VALUES(?,?,?,?,?,?,?,?,?,?)',[$folio,$key,$hash,$branch,$name,$company,$phone,$email,$preference,$comment]);$id=$this->repo->insertedId();
             foreach($items as $v)$this->repo->query('INSERT INTO public_quote_request_items(request_id,variant_id,unit_id,quantity,sku,description) VALUES(?,?,?,?,?,?)',[$id,$v['id'],$v['unit_id'],$v['quantity'],$v['sku'],Rules::text($v['product_name'].' · '.$v['name'],400,true)]);
             $this->repo->query('INSERT INTO legal_acceptances(request_id,legal_document_version_id,content_hash) VALUES(?,?,?)',[$id,$version,$legal['content_hash']]);
-            (new PdoAuditRepository($this->connection))->record(null,'quote_request.received','public_quote_request',$id,$branch,'success');return ['folio'=>$folio];
+            (new PdoAuditRepository($this->connection))->record(null,'quote_request.received','public_quote_request',$id,$branch,'success');$this->notifications?->createForAuthorizedRecipients(['event_type'=>'quote_request.received','source_type'=>'public_request','source_id'=>(string)$id,'resource_type'=>'quote_request','resource_id'=>$id,'branch_id'=>$branch,'importance'=>'normal','title'=>'Nueva solicitud '.$folio,'message'=>'Una solicitud pública requiere asignación y seguimiento.','required_permission'=>'quote_requests.view','idempotency_key'=>'quote-request.received:'.$id],['quote_requests.view']);return ['folio'=>$folio];
         });
     }
     public function take(int $id,int $actor):void
@@ -60,6 +61,7 @@ final class PublicQuoteRequestService
             if($r['assigned_user_id']!==null){if((int)$r['assigned_user_id']===$actor)return;throw new OperationConflict('Otro vendedor ya tomó la solicitud.');}
             $this->repo->query('UPDATE public_quote_requests SET assigned_user_id=?,lock_version=lock_version+1 WHERE id=?',[$actor,$id]);
             (new PdoAuditRepository($this->connection))->record($actor,'quote_request.assigned','public_quote_request',$id,(int)$r['branch_id'],'success');
+            $this->notifications?->createForUser(['event_type'=>'quote_request.assigned','source_type'=>'public_request','source_id'=>(string)$id,'resource_type'=>'quote_request','resource_id'=>$id,'branch_id'=>(int)$r['branch_id'],'importance'=>'normal','title'=>'Solicitud asignada','message'=>'La solicitud '.$r['folio'].' quedó asignada para tu atención.','required_permission'=>'quote_requests.view','idempotency_key'=>'quote-request.assigned:'.$id.':'.$actor],$actor);
         });
     }
 

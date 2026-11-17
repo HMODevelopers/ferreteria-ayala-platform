@@ -29,6 +29,9 @@ $router->post('/admin/branches/update', [App\Controllers\Admin\BranchesControlle
 $router->post('/admin/branches/status', [App\Controllers\Admin\BranchesController::class, 'status']);
 $router->post('/admin/branches/hours/create', [App\Controllers\Admin\BranchesController::class, 'addHours']);
 $router->post('/admin/branches/hours/delete', [App\Controllers\Admin\BranchesController::class, 'removeHours']);
+$router->post('/admin/branches/special/create', [App\Controllers\Admin\BranchesController::class, 'addSpecialHours']);
+$router->post('/admin/branches/special/delete', [App\Controllers\Admin\BranchesController::class, 'removeSpecialHours']);
+$router->post('/admin/branches/services', [App\Controllers\Admin\BranchesController::class, 'saveService']);
 $router->get('/admin/branches/detail', [App\Controllers\Admin\BranchesController::class, 'detail']);
 $router->get('/admin/audit', [App\Controllers\Admin\AuditController::class, 'index']);
 $router->get('/admin/categories', [App\Controllers\Admin\CategoriesController::class, 'index']);
@@ -67,6 +70,8 @@ $router->post('/admin/products/variants/update', [App\Controllers\Admin\Products
 $router->post('/admin/products/variants/status', [App\Controllers\Admin\ProductsController::class, 'variantStatus']);
 $router->post('/admin/products/barcodes/create', [App\Controllers\Admin\ProductsController::class, 'addBarcode']);
 $router->post('/admin/products/barcodes/delete', [App\Controllers\Admin\ProductsController::class, 'removeBarcode']);
+$router->get('/admin/products/barcodes', [App\Controllers\Admin\ProductsController::class, 'barcodeLookup']);
+$router->get('/admin/products/labels', [App\Controllers\Admin\ProductsController::class, 'labels']);
 $router->post('/admin/products/conversions/create', [App\Controllers\Admin\ProductsController::class, 'addConversion']);
 $router->post('/admin/products/conversions/delete', [App\Controllers\Admin\ProductsController::class, 'removeConversion']);
 $router->post('/admin/products/attributes', [App\Controllers\Admin\ProductsController::class, 'attributes']);
@@ -92,6 +97,13 @@ $router->get('/admin/inventory/movements', [App\Controllers\Admin\InventoryContr
 $router->get('/admin/inventory/adjustments', [App\Controllers\Admin\InventoryController::class, 'adjustmentForm']);
 $router->post('/admin/inventory/adjustments', [App\Controllers\Admin\InventoryController::class, 'adjust']);
 $router->post('/admin/inventory/thresholds', [App\Controllers\Admin\InventoryController::class, 'threshold']);
+$router->get('/admin/inventory/counts', [App\Controllers\Admin\InventoryController::class, 'counts']);
+$router->post('/admin/inventory/counts/create', [App\Controllers\Admin\InventoryController::class, 'createCount']);
+$router->get('/admin/inventory/counts/detail', [App\Controllers\Admin\InventoryController::class, 'countDetail']);
+$router->post('/admin/inventory/counts/items', [App\Controllers\Admin\InventoryController::class, 'addCountItem']);
+$router->post('/admin/inventory/counts/complete', [App\Controllers\Admin\InventoryController::class, 'completeCount']);
+$router->post('/admin/inventory/counts/cancel', [App\Controllers\Admin\InventoryController::class, 'cancelCount']);
+$router->get('/admin/inventory/tracking', [App\Controllers\Admin\InventoryController::class, 'tracking']);
 $router->get('/admin/suppliers', [App\Controllers\Admin\SuppliersController::class, 'index']);
 $router->get('/admin/suppliers/create', [App\Controllers\Admin\SuppliersController::class, 'createForm']);
 $router->post('/admin/suppliers/create', [App\Controllers\Admin\SuppliersController::class, 'create']);

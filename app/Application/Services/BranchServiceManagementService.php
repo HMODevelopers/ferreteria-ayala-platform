@@ -76,6 +76,11 @@ final class BranchServiceManagementService
         });
     }
 
+    public function configureOrAssociate(int$branchId,int$serviceId,bool$enabled,int$displayOrder,?callable$audit=null):void
+    {
+        $this->transactions->transaction(function()use($branchId,$serviceId,$enabled,$displayOrder,$audit):void{$this->requiredLockedBranch($branchId);$this->requiredService($serviceId);$configuration=BranchServiceConfiguration::create($branchId,$serviceId,$displayOrder)->withEnabled($enabled);if($this->branchServices->find($branchId,$serviceId)===null)$this->branchServices->associate(BranchServiceConfiguration::create($branchId,$serviceId,$displayOrder));$this->branchServices->setDisplayOrder($branchId,$serviceId,$configuration->displayOrder);$this->branchServices->setEnabled($branchId,$serviceId,$configuration->enabled);if($audit)$audit();});
+    }
+
     public function isAvailable(int $branchId, int $serviceId): bool
     {
         return ServiceAvailability::isAvailable(

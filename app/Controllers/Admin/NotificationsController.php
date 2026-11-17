@@ -43,8 +43,9 @@ final class NotificationsController extends AdminController
         if ($user instanceof Response) return $user;
         $notification = AppKernel::notifications()->findAuthorized($user->id, $request->integer('id'));
         if ($notification === null) return $this->unavailable($user);
-        if ($notification['resource_type'] === 'delivery') return Response::redirect('/admin/deliveries/detail?id='.(int)$notification['resource_id']);
-        return $this->unavailable($user);
+        AppKernel::notifications()->markRead($user->id,(int)$notification['delivery_id']);
+        $url=match($notification['resource_type']){'delivery'=>'/admin/deliveries/detail?id='.(int)$notification['resource_id'],'transfer'=>'/admin/transfers/detail?id='.(int)$notification['resource_id'],'quote'=>'/admin/quotes/detail?id='.(int)$notification['resource_id'],'quote_request'=>'/admin/quote-requests','inventory'=>'/admin/inventory?branch_id='.(int)$notification['branch_id'].'&q='.rawurlencode('#'.(int)$notification['resource_id']),'purchase'=>'/admin/purchases/detail?id='.(int)$notification['resource_id'],default=>null};
+        return $url===null?$this->unavailable($user):Response::redirect($url);
     }
 
     public function status(Request $request): Response

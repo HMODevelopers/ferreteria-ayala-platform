@@ -42,6 +42,7 @@ interface CatalogRepository
     public function setVariantActive(int $id, bool $active): void;
     public function addBarcode(int $variantId, string $barcode, bool $primary): int;
     public function removeBarcode(int $barcodeId, int $variantId): void;
+    public function findByBarcode(string $barcode): ?array;
     public function addConversion(int $variantId, int $fromUnitId, int $toUnitId, string $factor): int;
     public function removeConversion(int $conversionId, int $variantId): void;
     public function attributes(string $search, ?bool $active, int $limit, int $offset): Page;

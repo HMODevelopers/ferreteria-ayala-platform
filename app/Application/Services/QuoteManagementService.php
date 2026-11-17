@@ -2,14 +2,14 @@
 declare(strict_types=1);
 namespace App\Application\Services;
 use App\Application\Exceptions\{EntityNotFound,OperationConflict};
-use App\Application\Repositories\{QuoteRepository,CustomerRepository,PricingRepository};
+use App\Application\Repositories\{QuoteRepository,CustomerRepository,PricingRepository,NotificationRepository};
 use App\Core\Persistence\TransactionManager;
 use App\Domain\Inventory\InventoryRules;
 use App\Domain\Pricing\{CommercialCalculator,Decimal,PricingRules};
 use App\Domain\Quotes\QuoteRules as Rules;
 final class QuoteManagementService
 {
-    public function __construct(private readonly QuoteRepository $quotes,private readonly CustomerRepository $customers,private readonly PricingRepository $pricing,private readonly PricingManagementService $prices,private readonly QuoteReservationService $reservations,private readonly TransactionManager $transactions,private readonly ?ModuleOperationGuard $modules=null){}
+    public function __construct(private readonly QuoteRepository $quotes,private readonly CustomerRepository $customers,private readonly PricingRepository $pricing,private readonly PricingManagementService $prices,private readonly QuoteReservationService $reservations,private readonly TransactionManager $transactions,private readonly ?ModuleOperationGuard $modules=null,private readonly ?NotificationRepository $notifications=null){}
     public static function hash(array $version,array $items):string {
         foreach(['id','quote_id','version_number','created_at','status','issued_at','issued_by','quote_status','branch_id','current_version']as $k)unset($version[$k]);
         foreach($items as &$item)foreach(['id','quote_version_id']as $k)unset($item[$k]);unset($item);
@@ -69,7 +69,7 @@ final class QuoteManagementService
             else{$number=(int)$q['current_version'];$version=$this->quotes->version($id,$number,true)??throw new \LogicException();if($version['status']!=='draft')throw new OperationConflict('Una versión emitida no admite edición. Crea una nueva versión.');if(!in_array($q['status'],['preparing','pending_approval'],true))throw new OperationConflict('El estado no permite editar.');$versionId=(int)$version['id'];$from=$q['status'];$expected=(int)$q['lock_version'];}
             if($q!==null)$this->reservations->invalidateChangedCoverage($versionId,$items,$actor);
             $this->quotes->saveVersion($versionId,$data,$items);$this->quotes->update($id,$expected,$state,$number,$q['assigned_user_id']??$actor);
-            $this->event($q,$from,$state,'save',$key,$requestHash,$actor,'',$audit);return $id;
+            $this->event($q,$from,$state,'save',$key,$requestHash,$actor,'',$audit);if($state==='pending_approval')$this->notifications?->createForAuthorizedRecipients(['event_type'=>'quote.approval_pending','source_type'=>'quote_operation','source_id'=>$key,'resource_type'=>'quote','resource_id'=>$id,'branch_id'=>$branch,'importance'=>'high','title'=>'Cotización pendiente de autorización','message'=>'La cotización #'.$id.' requiere autorización por su descuento.','required_permission'=>'quotes.approve','idempotency_key'=>'quote.approval:'.$key],['quotes.approve']);return $id;
         });
     }
     public function action(int $id,int $expected,string $action,?array $allowed,int $actor,string $key,string $reason='',?callable $audit=null):void {
@@ -109,7 +109,7 @@ final class QuoteManagementService
                 if(in_array($action,['cancelled','rejected','expired'],true))$this->reservations->closeCoverage((int)$version['id'],$actor,'La cotización fue '.match($action){'cancelled'=>'cancelada','rejected'=>'rechazada','expired'=>'marcada como vencida'}.'.');
             }
             $this->quotes->update($id,$expected,$state,$number,$assigned);$q['current_version']=$number;
-            $this->event($q,$q['status'],$state,$action,$key,$hash,$actor,$reason,$audit);
+            $this->event($q,$q['status'],$state,$action,$key,$hash,$actor,$reason,$audit);if($action==='assign')$this->notifications?->createForUser(['event_type'=>'quote.assigned','source_type'=>'quote_operation','source_id'=>$key,'resource_type'=>'quote','resource_id'=>$id,'branch_id'=>(int)$q['branch_id'],'importance'=>'normal','title'=>'Cotización asignada','message'=>'La cotización #'.$id.' quedó asignada para tu atención.','required_permission'=>'quotes.view','idempotency_key'=>'quote.assigned:'.$key],$actor);if($action==='approve'&&$assigned!==null)$this->notifications?->createForUser(['event_type'=>'quote.approved','source_type'=>'quote_operation','source_id'=>$key,'resource_type'=>'quote','resource_id'=>$id,'branch_id'=>(int)$q['branch_id'],'importance'=>'normal','title'=>'Cotización autorizada','message'=>'La cotización #'.$id.' fue autorizada y puede continuar.','required_permission'=>'quotes.view','idempotency_key'=>'quote.approved:'.$key],$assigned);
         });
     }
 }
