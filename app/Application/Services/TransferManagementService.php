@@ -61,7 +61,7 @@ final class TransferManagementService {
    if((int)$t['lock_version']!==$expected)throw new OperationConflict('La transferencia cambió en otra sesión. Recarga antes de continuar.');Rules::transition($t['status'],$action);
    if($action!=='cancel')$this->transfers->lockBranches([(int)$t['source_branch_id'],(int)$t['destination_branch_id']]);
    $items=$this->transfers->items($id,true);$byId=[];foreach($items as $item)$byId[(int)$item['id']]=$item;foreach($normalized as $itemId=>$raw)if(!isset($byId[$itemId]))throw new \InvalidArgumentException('La partida no pertenece a esta transferencia.');
-   if($action==='cancel'&&array_filter($items,fn($i)=>!Decimal::parse($i['dispatched_quantity'],6)->isZero()))throw new OperationConflict('Una salida física no se cancela. Registra la incidencia.');
+   if($action==='cancel'&&array_filter($items,fn($i)=>!Decimal::parse((string)$i['dispatched_quantity'],6)->isZero()))throw new OperationConflict('Una salida física no se cancela. Registra la incidencia.');
    if($action==='cancel'&&$quote&&$quote['quote_status']==='accepted'&&$t['status']!=='requested')throw new OperationConflict('Cancela primero la cotización para liberar la cobertura comprometida.');
    $coverage=[];if($quote){foreach($this->transfers->coverageItemsForTransfer($id,true)as $item)$coverage[(int)$item['transfer_item_id']]=$item;}
    if($action==='approve'&&$quote){$quote=$this->validateQuote((int)$quote['id'],(int)$t['destination_branch_id']);if($this->transfers->coverageInstalled()){$snapshot=$this->transfers->coverageSnapshot($id,true)??throw new OperationConflict('La transferencia vinculada no tiene un snapshot verificable.');$captured=json_decode($snapshot['snapshot_json'],true,512,JSON_THROW_ON_ERROR);if(!isset($captured['version'],$captured['items'])||!is_array($captured['version'])||!is_array($captured['items'])||!hash_equals($snapshot['content_hash'],QuoteManagementService::hash($captured['version'],$captured['items'])))throw new OperationConflict('El snapshot de la cobertura no supera la verificación de integridad.');}}
@@ -80,13 +80,13 @@ final class TransferManagementService {
      }
      if($action==='dispatch'){
       if($quote&&$this->transfers->coverageInstalled()&&(!isset($coverage[$itemId])||$coverage[$itemId]['status']!=='active'))throw new OperationConflict('La cobertura invalidada no puede iniciar un movimiento físico nuevo.');
-      if($d->compare(Decimal::parse($item['pending_dispatch'],6))>0)throw new OperationConflict('La salida supera lo autorizado pendiente.');
+      if($d->compare(Decimal::parse((string)$item['pending_dispatch'],6))>0)throw new OperationConflict('La salida supera lo autorizado pendiente.');
       $this->inventory->transferReservationWithinTransaction((int)$t['source_branch_id'],$variant,$qty,true);
       $movement=$this->inventory->recordTransferWithinTransaction(['branch_id'=>(int)$t['source_branch_id'],'variant_id'=>$variant,'unit_id'=>(int)$item['unit_id'],'quantity'=>rtrim(rtrim($qty,'0'),'.'),'reason'=>'Salida física '.$t['folio'],'operation_key'=>'m09-'.substr(hash('sha256',$key.':'.$itemId),0,59),'source_type'=>'transfer_event','source_id'=>$event.':'.$itemId],$actor,false);
       $fields=['dispatched_quantity'=>Decimal::parse($item['dispatched_quantity'],6)->add($d)->format(6)];
      }
      if($action==='receive'){
-      if($d->compare(Decimal::parse($item['in_transit'],6))>0)throw new OperationConflict('La recepción supera la mercancía en tránsito.');
+      if($d->compare(Decimal::parse((string)$item['in_transit'],6))>0)throw new OperationConflict('La recepción supera la mercancía en tránsito.');
       $movement=$this->inventory->recordTransferWithinTransaction(['branch_id'=>(int)$t['destination_branch_id'],'variant_id'=>$variant,'unit_id'=>(int)$item['unit_id'],'quantity'=>rtrim(rtrim($qty,'0'),'.'),'reason'=>'Recepción física '.$t['folio'],'operation_key'=>'m09-'.substr(hash('sha256',$key.':'.$itemId),0,59),'source_type'=>'transfer_event','source_id'=>$event.':'.$itemId],$actor,true);
       $fields=['received_quantity'=>Decimal::parse($item['received_quantity'],6)->add($d)->format(6)];
       if($quote&&$quote['quote_status']==='accepted'){$this->inventory->transferReservationWithinTransaction((int)$t['destination_branch_id'],$variant,$qty);$fields['destination_reserved']=Decimal::parse($item['destination_reserved'],6)->add($d)->format(6);}
@@ -94,7 +94,7 @@ final class TransferManagementService {
      $this->transfers->quantities($itemId,$fields);$this->transfers->eventItem($event,$itemId,$qty,$movement?(int)$movement['id']:null);$changed++;
     }elseif($action==='cancel'){
      $release=Decimal::zero(6);
-     if($t['status']!=='requested'){$release=Decimal::parse($item['approved_quantity'],6)->subtract(Decimal::parse($item['source_released_quantity'],6));if(!$release->isZero())$this->inventory->transferReservationWithinTransaction((int)$t['source_branch_id'],$variant,$release->format(6),true);}
+     if($t['status']!=='requested'){$release=Decimal::parse((string)$item['approved_quantity'],6)->subtract(Decimal::parse((string)$item['source_released_quantity'],6));if(!$release->isZero())$this->inventory->transferReservationWithinTransaction((int)$t['source_branch_id'],$variant,$release->format(6),true);}
      if($quote&&$this->transfers->coverageInstalled()&&isset($coverage[$itemId])&&$coverage[$itemId]['status']==='active'){$this->transfers->invalidateCoverageItem((int)$coverage[$itemId]['id'],$release->format(6),$actor,'La transferencia vinculada fue cancelada.');$this->transfers->coverageEvent($id,(int)$coverage[$itemId]['id'],'invalidated',$release->format(6),$actor,'La transferencia vinculada fue cancelada.');}
     }
    }

@@ -27,6 +27,9 @@ final class QuoteReservationService
         }
     }
     public function assertIssuable(int $version,int $branch,array $items):void {
+        // Before AY-04, a transfer could only be linked after the quote was issued.
+        // Acceptance still validates local stock plus approved historical coverage.
+        if($this->transfers&&!$this->transfers->coverageInstalled())return;
         usort($items,static fn(array $a,array $b):int=>(int)$a['variant_id']<=>(int)$b['variant_id']);
         foreach($items as $item){$variant=(int)$item['variant_id'];$this->inventory->lockScope($branch,$variant);$balance=$this->inventory->findBalance($branch,$variant,true);$available=$balance&&$balance['initialized_at']!==null?Decimal::parse($balance['available_quantity'],6):Decimal::zero(6);$coverage=$this->transfers?Decimal::parse($this->transfers->coverage($version,$variant),6):Decimal::zero(6);
             if($available->add($coverage)->compare(Decimal::parse($item['quantity'],6))<0)throw new OperationConflict('Existencia local y cobertura aprobada insuficientes para emitir. Revisa las partidas faltantes.');
