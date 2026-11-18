@@ -89,6 +89,26 @@ final class PdoBranchRepository extends PdoRepository implements BranchRepositor
         }, 'Unable to change branch activation.');
     }
 
+    public function receivesWebQuotes(int $id): bool
+    {
+        return $this->safely(function () use ($id): bool {
+            $statement = $this->pdo()->prepare('SELECT accepts_web_quotes FROM branches WHERE id = :id');
+            $statement->execute(['id' => self::id($id)]);
+            $value = $statement->fetchColumn();
+            return $value !== false && (int) $value === 1;
+        }, 'Unable to read branch web quote authorization.');
+    }
+
+    public function setReceivesWebQuotes(int $id, bool $enabled): void
+    {
+        $this->safely(function () use ($id, $enabled): void {
+            $statement = $this->pdo()->prepare('UPDATE branches SET accepts_web_quotes = :enabled WHERE id = :id');
+            $statement->bindValue('enabled', $enabled ? 1 : 0, PDO::PARAM_INT);
+            $statement->bindValue('id', self::id($id), PDO::PARAM_INT);
+            $statement->execute();
+        }, 'Unable to change branch web quote authorization.');
+    }
+
     public function lockById(int $id): ?Branch
     {
         return $this->findOne(

@@ -14,5 +14,7 @@ interface BranchRepository
     public function create(Branch $branch): Branch;
     public function updateDetails(Branch $branch): void;
     public function setActive(int $id, bool $active): void;
+    public function receivesWebQuotes(int $id): bool;
+    public function setReceivesWebQuotes(int $id, bool $enabled): void;
     public function lockById(int $id): ?Branch;
 }

@@ -17,16 +17,16 @@ $card=App\Core\View::partial('components/public/product-card',['product'=>$produ
 check(str_contains($card,'data-product')&&str_contains($card,'href="/solicitar-cotizacion?q=SKU-9"'),'Phase 1 published products are filterable and retain the quote link');
 
 $operation=str_repeat('a',48);
-$request=App\Core\View::partial('public/cms/request',[
-    'folio'=>null,'error'=>null,'branches'=>[['id'=>1,'name'=>'Sucursal de prueba']],
-    'branchId'=>1,'q'=>'SKU','csrf'=>'csrf-test','operationKey'=>$operation,
-    'legal'=>['id'=>3,'version_number'=>2],'values'=>[],
-    'variants'=>[['id'=>5,'product_name'=>'Material','name'=>'Presentación','sku'=>'SKU-5','available_quantity'=>'3.000000','symbol'=>'pza']],
-]);
-check(substr_count($request,'name="operation_key" value="'.$operation.'"')===2,'Phase 1 public searches preserve the same request operation key');
-check(str_contains($request,'la selección de esta sesión se conservará'),'Phase 1 request form explains cross-search selection');
+$request=App\Core\View::partial('public/cms/request',['quoteRequest'=>[
+    'folio'=>null,'error'=>null,'available'=>true,'branches'=>[['id'=>1,'name'=>'Sucursal de prueba']],
+    'branchId'=>1,'csrf'=>'csrf-test','operationKey'=>$operation,'legal'=>['id'=>3,'version_number'=>2],'values'=>[],
+    'lines'=>[['variant_id'=>'','description'=>'Material libre','quantity'=>'2','unit'=>'sacos','observations'=>'Gris']],
+    'variants'=>[['id'=>5,'product_name'=>'Material','name'=>'Presentación','sku'=>'SKU-5','unit_name'=>'Pieza']],
+]]);
+check(substr_count($request,'name="operation_key" value="'.$operation.'"')===1,'Public request retains one idempotency key');
+check(str_contains($request,'Material libre')&&str_contains($request,'name="description[]"')&&str_contains($request,'name="unit[]"'),'Public request accepts preserved free-form material lines');
 $selection=(string)file_get_contents($root.'/resources/js/components/public-quote-request.js');
-check(str_contains($selection,'sessionStorage')&&str_contains($selection,'quantity[${id}]'),'Phase 1 client selection restores and submits quantities from different searches');
+check(str_contains($selection,'data-quote-add-line')&&str_contains($selection,'data-quote-remove-line')&&str_contains($selection,"submit.disabled = true"),'Public request supports line editing and prevents duplicate submit clicks');
 
 $home=(string)file_get_contents($root.'/app/Data/CmsHomeData.php');
 check(!str_contains($home,'LIMIT 6')&&str_contains($home,'$limit=25')&&str_contains($home,'$catalogHasMore')&&str_contains($home,'COUNT(DISTINCT v.id)'),'Phase 1 published catalog uses counted server pagination instead of a fixed showcase truncation');

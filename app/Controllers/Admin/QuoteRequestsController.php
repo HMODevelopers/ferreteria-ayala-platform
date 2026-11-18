@@ -12,7 +12,7 @@ final class QuoteRequestsController extends AdminController
         if($id&&!$selected)return $this->adminView('admin/error',['title'=>'Solicitud no disponible','message'=>'No existe o está fuera de tu alcance.','user'=>$u],404);
         $branch=$selected?(int)$selected['branch_id']:null;
         return $this->adminView('admin/cms/requests',['title'=>'Solicitudes públicas','activeNav'=>'quote_requests','user'=>$u,'rows'=>$rows,'selected'=>$selected,'offset'=>$offset,
-            'items'=>$selected?AppKernel::cms()->query('SELECT * FROM public_quote_request_items WHERE request_id=? ORDER BY id',[$id])->fetchAll():[],
+            'items'=>$selected?AppKernel::cms()->query(AppKernel::cms()->one("SELECT id FROM schema_migrations WHERE id='20261116110000_enable_public_quote_intake'")?'SELECT *,unit_label unit FROM public_quote_request_lines WHERE request_id=? ORDER BY id':'SELECT *,\'\' unit,\'\' observations FROM public_quote_request_items WHERE request_id=? ORDER BY id',[$id])->fetchAll():[],
             'acceptance'=>$selected?AppKernel::cms()->one('SELECT a.*,v.title,v.version_number FROM legal_acceptances a JOIN legal_document_versions v ON v.id=a.legal_document_version_id WHERE a.request_id=?',[$id]):null,
             'canAssign'=>$branch!==null&&AppKernel::access()->hasPermission($u->id,'quote_requests.assign',$branch),
             'canPrepare'=>$branch!==null&&AppKernel::access()->hasPermission($u->id,'quote_requests.assign',$branch)&&AppKernel::access()->hasPermission($u->id,'quotes.create',$branch),

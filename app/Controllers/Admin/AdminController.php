@@ -64,6 +64,7 @@ abstract class AdminController extends Controller
             if (!$isFragment) $data['navAccess'] ??= [
                 'cms_settings' => AppKernel::access()->hasPermission($id,'cms.configure',null),
                 'cms' => AppKernel::access()->hasPermission($id,'cms.view',null),
+                'website_brands' => AppKernel::access()->hasPermission($id,'cms.media',null),
                 'legal' => AppKernel::access()->hasPermission($id,'cms.legal',null),
                 'terms' => AppKernel::access()->accessibleBranchIdsForPermission($id,'cms.terms') !== [],
                 'quote_requests' => AppKernel::access()->accessibleBranchIdsForPermission($id,'quote_requests.view') !== [],

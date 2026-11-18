@@ -256,6 +256,7 @@ final class M014Transactions implements TransactionManager
 final class M014Branches implements BranchRepository
 {
     public array $items = [];
+    public array $webQuotes = [];
     public array $events = [];
     public function findById(int $id): ?Branch { return $this->items[$id] ?? null; }
     public function findByCode(string $code): ?Branch { foreach ($this->items as $item) if ($item->code === $code) return $item; return null; }
@@ -263,6 +264,8 @@ final class M014Branches implements BranchRepository
     public function create(Branch $branch): Branch { $stored = Branch::rehydrate(count($this->items) + 1, $branch->code, $branch->name, $branch->address, $branch->phone, $branch->email, $branch->whatsapp, $branch->latitude, $branch->longitude, false); $this->items[$stored->id] = $stored; return $stored; }
     public function updateDetails(Branch $branch): void { $this->items[$branch->id] = $branch; }
     public function setActive(int $id, bool $active): void { $this->items[$id] = $this->items[$id]->withActive($active); }
+    public function receivesWebQuotes(int $id): bool { return $this->webQuotes[$id] ?? false; }
+    public function setReceivesWebQuotes(int $id, bool $enabled): void { $this->webQuotes[$id] = $enabled; }
     public function lockById(int $id): ?Branch { $this->events[] = 'lock:' . $id; return $this->items[$id] ?? null; }
 }
 
@@ -327,6 +330,8 @@ $transactions = new M014Transactions();
 $branchManagement = new BranchManagementService($memoryBranches, $transactions);
 $changedBranch = $branchManagement->update(1, Branch::create('CENTRO', 'Centro actualizado'));
 check($changedBranch->id === 1 && $changedBranch->name === 'Centro actualizado', 'Branch application service updates mutable fields while retaining identity');
+$branchManagement->setReceivesWebQuotes(1,true);
+check($memoryBranches->receivesWebQuotes(1),'Branch application service stores explicit web quote authorization');
 expectException(
     fn() => $branchManagement->update(1, Branch::create('OTRA', 'Otra')),
     'Branch application service rejects immutable code changes',

@@ -8,6 +8,10 @@
 <?php admin_component('branch-map', ['latitude'=>$branch?->latitude??'', 'longitude'=>$branch?->longitude??'', 'address'=>$branch?->address??'', 'mapOptions'=>$mapOptions, 'readOnly'=>false]); ?>
 <div class="admin-head-actions"><a class="admin-secondary-button" data-admin-modal-cancel href="/admin/branches">Cancelar</a><button class="admin-primary-button" type="submit"><?= $branch === null ? 'Crear sucursal inactiva' : 'Guardar cambios' ?></button></div></form></section>
 
+<?php if ($branch !== null): ?>
+<section class="admin-panel"><h2>Solicitudes desde el sitio web</h2><p>Esta autorización es independiente del estado activo de la sucursal y de su visibilidad pública.</p><form method="post" action="/admin/branches/web-quotes" class="admin-form"><input type="hidden" name="_token" value="<?= e($csrf) ?>"><input type="hidden" name="id" value="<?= e($branch->id) ?>"><label class="admin-check"><input type="checkbox" name="enabled" value="1" <?= !empty($receivesWebQuotes)?'checked':'' ?>><span><strong>Permitir recibir solicitudes de cotización desde el sitio web</strong><small>Solo se ofrecerá al visitante cuando la sucursal también esté activa y el módulo comercial esté disponible.</small></span></label><button class="admin-secondary-button" type="submit">Guardar autorización web</button></form></section>
+<?php endif ?>
+
 <?php if ($branch !== null && ($canManageSchedule ?? false)): ?>
 <?php $days = [1 => 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']; ?>
 <section class="admin-panel branch-hours-editor">

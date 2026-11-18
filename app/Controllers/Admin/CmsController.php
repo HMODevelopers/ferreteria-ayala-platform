@@ -70,7 +70,7 @@ final class CmsController extends AdminController
         $u=$this->requireUser();if($u instanceof Response)return $u;if($e=$this->requirePermission($u,'cms.configure'))return $e;
         $site=AppKernel::cms()->one("SELECT is_globally_enabled FROM modules WHERE code='M11'");
         $intake=AppKernel::cms()->one("SELECT is_globally_enabled FROM modules WHERE code='M08'");
-        $branches=AppKernel::cms()->query("SELECT b.id,b.name,COALESCE(bm.is_enabled,0) intake_enabled FROM branches b LEFT JOIN modules m ON m.code='M08' LEFT JOIN branch_modules bm ON bm.branch_id=b.id AND bm.module_id=m.id WHERE b.is_active=1 ORDER BY b.name,b.id LIMIT 100")->fetchAll();
+        $branches=AppKernel::cms()->query("SELECT b.id,b.name,b.accepts_web_quotes intake_enabled,COALESCE(bm.is_enabled,0) commercial_enabled FROM branches b LEFT JOIN modules m ON m.code='M08' LEFT JOIN branch_modules bm ON bm.branch_id=b.id AND bm.module_id=m.id WHERE b.is_active=1 ORDER BY b.name,b.id LIMIT 100")->fetchAll();
         return $this->adminView('admin/cms/settings',['privacyPublished'=>AppKernel::cms()->legal('privacy')!==null,'canViewContent'=>AppKernel::access()->hasPermission($u->id,'cms.view',null),'canManageLegal'=>AppKernel::access()->hasPermission($u->id,'cms.legal',null),'canCreateBranch'=>AppKernel::access()->hasPermission($u->id,'branches.create',null),'canViewBranches'=>AppKernel::access()->accessibleBranchIdsForPermission($u->id,'branches.view')!==[],'title'=>'Publicación del sitio','activeNav'=>'cms_settings','user'=>$u,'intakeEnabled'=>(bool)($intake['is_globally_enabled']??false),'siteEnabled'=>(bool)($site['is_globally_enabled']??false),'branches'=>$branches]);
     }
     public function configure(Request $r):Response

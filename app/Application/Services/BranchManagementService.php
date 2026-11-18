@@ -59,4 +59,14 @@ final class BranchManagementService
             return $updated;
         });
     }
+
+    public function setReceivesWebQuotes(int $id, bool $enabled, ?callable $afterWrite = null): void
+    {
+        $this->transactions->transaction(function () use ($id, $enabled, $afterWrite): void {
+            $branch = $this->branches->lockById($id);
+            if ($branch === null) throw new EntityNotFound('Branch was not found.');
+            $this->branches->setReceivesWebQuotes($id, $enabled);
+            if ($afterWrite !== null) $afterWrite($branch, $enabled);
+        });
+    }
 }

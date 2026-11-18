@@ -39,7 +39,7 @@ final class BranchesController extends AdminController
         $hours = $canManageSchedule ? AppKernel::branchReads()->regularHours($id) : null;
         $specialHours = $canManageSchedule ? AppKernel::branchReads()->specialHours($id) : null;
         $canManageServices=AppKernel::access()->hasPermission($user->id??0,'branches.services.view',$id)&&AppKernel::access()->hasPermission($user->id??0,'branches.edit',$id);
-        return $this->adminView('admin/branches/form', ['title' => 'Editar sucursal', 'activeNav' => 'branches', 'user' => $user, 'branch' => $branch, 'hours' => $hours, 'specialHours'=>$specialHours,'canManageSchedule' => $canManageSchedule,'canManageServices'=>$canManageServices,'serviceOptions'=>$canManageServices?AppKernel::branchReads()->serviceOptions($id):[], 'mapOptions' => $this->mapOptions()]);
+        return $this->adminView('admin/branches/form', ['title' => 'Editar sucursal', 'activeNav' => 'branches', 'user' => $user, 'branch' => $branch, 'hours' => $hours, 'specialHours'=>$specialHours,'canManageSchedule' => $canManageSchedule,'canManageServices'=>$canManageServices,'serviceOptions'=>$canManageServices?AppKernel::branchReads()->serviceOptions($id):[], 'receivesWebQuotes'=>AppKernel::branches()->receivesWebQuotes($id), 'mapOptions' => $this->mapOptions()]);
     }
 
     public function detail(Request $request): Response
@@ -88,6 +88,20 @@ final class BranchesController extends AdminController
         return $this->run(fn() => AppKernel::branchManagement()->setActive(
             $id, $active, fn(Branch $updated) => AppKernel::audit()->record($user->id, $active ? 'branches.activate' : 'branches.deactivate', 'branch', $updated->id, $updated->id, 'success'),
         ), $active ? 'Sucursal activada.' : 'Sucursal desactivada.', '/admin/branches', $user->id, $active ? 'branches.activate' : 'branches.deactivate', 'branch', $id, $id);
+    }
+
+    public function webQuotes(Request $request): Response
+    {
+        $user = $this->requireUser(); if ($user instanceof Response) return $user;
+        $id = $request->integer('id');
+        if (($denied = $this->requirePermission($user, 'branches.edit', $id)) !== null) return $denied;
+        if (($csrf = $this->requireCsrf($request, $user)) !== null) return $csrf;
+        $enabled = $request->input('enabled') === '1';
+        return $this->run(function () use ($id, $enabled, $user): void {
+            AppKernel::branchManagement()->setReceivesWebQuotes($id, $enabled, function (Branch $branch, bool $state) use ($user): void {
+                AppKernel::audit()->record($user->id, $state ? 'branches.web_quotes.enable' : 'branches.web_quotes.disable', 'branch', $branch->id, $branch->id, 'success');
+            });
+        }, $enabled ? 'La sucursal puede recibir solicitudes del sitio web.' : 'La recepción de solicitudes web quedó deshabilitada.', '/admin/branches/edit?id=' . $id, $user->id, 'branches.edit', 'branch', $id, $id);
     }
 
     public function addHours(Request $request): Response

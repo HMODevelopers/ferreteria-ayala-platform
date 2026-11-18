@@ -2,9 +2,13 @@ import { navigation } from './components/navigation.js';
 import { interactions } from './components/interactions.js';
 import { admin } from './components/admin.js';
 import { publicQuoteRequest } from './components/public-quote-request.js';
+import { brandCarousels } from './components/brand-carousel.js';
+import { backToTop } from './components/back-to-top.js';
 navigation();
 interactions();
 publicQuoteRequest();
+brandCarousels();
+backToTop();
 admin();
 if (document.querySelector('.hero-swiper')) import('./components/sliders.js').then(({ sliders }) => sliders()).catch(() => {
   document.querySelector('.hero-controls').hidden = true;

@@ -10,9 +10,16 @@ use App\Application\Repositories\NotificationRepository;
 final class PublicQuoteRequestService
 {
     public function __construct(private readonly PdoCmsRepository $repo,private readonly Connection $connection,private readonly ?NotificationRepository $notifications=null) {}
+    private function webIntakeInstalled():bool
+    {
+        return $this->repo->one("SELECT id FROM schema_migrations WHERE id='20261116110000_enable_public_quote_intake'")!==null;
+    }
     public function enabled(int $branch):bool
     {
-        return $this->repo->one("SELECT b.id FROM branches b JOIN modules m ON m.code='M08' LEFT JOIN branch_modules bm ON bm.branch_id=b.id AND bm.module_id=m.id WHERE b.id=? AND b.is_active=1 AND m.is_globally_enabled=1 AND (m.requires_branch_enablement=0 OR bm.is_enabled=1) AND EXISTS(SELECT 1 FROM modules c WHERE c.code='M11' AND c.is_globally_enabled=1)",[$branch])!==null;
+        $installed=$this->webIntakeInstalled();
+        if(!$installed&&getenv('APP_ENV')!=='testing')return false;
+        $authorization=$installed?' AND b.accepts_web_quotes=1':'';
+        return $this->repo->one("SELECT b.id FROM branches b JOIN modules m ON m.code='M08' LEFT JOIN branch_modules bm ON bm.branch_id=b.id AND bm.module_id=m.id WHERE b.id=? AND b.is_active=1".$authorization." AND m.is_globally_enabled=1 AND (m.requires_branch_enablement=0 OR bm.is_enabled=1) AND EXISTS(SELECT 1 FROM modules c WHERE c.code='M11' AND c.is_globally_enabled=1)",[$branch])!==null;
     }
     /** Rate limiting commits independently so rejected submissions also consume an attempt. */
     public function throttle(string $fingerprint):void
@@ -26,7 +33,7 @@ final class PublicQuoteRequestService
         });
         if($blocked)throw new OperationConflict('Se alcanzó el límite de intentos. Espera quince minutos.');
     }
-    public function receive(array $input,array $quantities,string $fingerprint):array
+    public function receive(array $input,array $rawLines,string $fingerprint):array
     {
         $this->throttle($fingerprint);
         $branch=Rules::id($input['branch_id']??0);$version=Rules::id($input['legal_version_id']??0);
@@ -35,8 +42,19 @@ final class PublicQuoteRequestService
         if(!preg_match('/^[0-9+() .-]{7,40}$/D',$phone)||!filter_var($email,FILTER_VALIDATE_EMAIL))throw new \InvalidArgumentException('Revisa teléfono y correo.');
         $preference=(string)($input['contact_preference']??'');if(!in_array($preference,['phone','email','whatsapp'],true))throw new \InvalidArgumentException('Selecciona cómo prefieres ser contactado.');
         $key=(string)($input['operation_key']??'');if(!preg_match('/^[a-f0-9]{48}$/D',$key))throw new \InvalidArgumentException('Actualiza el formulario.');
-        if(count($quantities)<1||count($quantities)>100)throw new \InvalidArgumentException('Selecciona de una a cien variantes del catálogo.');
-        $normalized=[];foreach($quantities as $id=>$qty){$id=Rules::id($id);$normalized[$id]=Rules::text($qty,32,true);}ksort($normalized);
+        if(count($rawLines)<1||count($rawLines)>20)throw new \InvalidArgumentException('Agrega de uno a veinte materiales.');
+        $normalized=[];
+        foreach($rawLines as $key=>$raw){
+            if(!is_array($raw)){
+                $raw=['variant_id'=>(string)$key,'quantity'=>(string)$raw,'description'=>'','unit'=>'','observations'=>''];
+            }
+            $variantRaw=trim((string)($raw['variant_id']??''));$variantId=$variantRaw===''?null:Rules::id($variantRaw);
+            $description=Rules::text($raw['description']??'',400,$variantId===null);
+            $unit=Rules::text($raw['unit']??'',80,$variantId===null);
+            $observations=Rules::text($raw['observations']??'',400);
+            $quantity=Rules::text($raw['quantity']??'',32,true);
+            $normalized[]=['variant_id'=>$variantId,'quantity'=>$quantity,'unit'=>$unit,'description'=>$description,'observations'=>$observations];
+        }
         $hash=hash('sha256',json_encode([$branch,$version,$name,$company,$phone,$email,$comment,$preference,$normalized],JSON_THROW_ON_ERROR));
         return $this->connection->transaction(function()use($branch,$version,$name,$company,$phone,$email,$comment,$preference,$key,$hash,$normalized):array{
             $this->repo->one('SELECT id FROM branches WHERE id=? FOR UPDATE',[$branch]);
@@ -45,11 +63,15 @@ final class PublicQuoteRequestService
             // Serialize with publication of the next privacy version to bind exactly the notice accepted.
             $this->repo->one("SELECT id FROM legal_documents WHERE code='privacy' FOR UPDATE");
             $legal=$this->repo->legal('privacy');if(!$legal||(int)$legal['id']!==$version)throw new OperationConflict('El aviso de privacidad cambió. Lee la versión vigente y vuelve a aceptar.');
-            $items=[];foreach($normalized as $id=>$raw){$v=$this->repo->one('SELECT v.id,v.sku,v.unit_id,v.name,p.name product_name,u.decimal_places FROM product_variants v JOIN products p ON p.id=v.product_id JOIN units u ON u.id=v.unit_id WHERE v.id=? AND v.is_active=1 AND p.is_active=1 AND u.is_active=1 FOR UPDATE',[$id]);if(!$v)throw new OperationConflict('Una variante ya no está disponible en el catálogo.');$v['quantity']=QuoteRules::quantity($raw,(int)$v['decimal_places']);$items[]=$v;}
+            $items=[];foreach($normalized as $line){$v=null;if($line['variant_id']!==null){$v=$this->repo->one('SELECT v.id,v.sku,v.unit_id,v.name,p.name product_name,u.name unit_name,u.symbol,u.decimal_places FROM product_variants v JOIN products p ON p.id=v.product_id JOIN units u ON u.id=v.unit_id WHERE v.id=? AND v.is_active=1 AND p.is_active=1 AND u.is_active=1 FOR UPDATE',[$line['variant_id']]);if(!$v)throw new OperationConflict('Un producto seleccionado ya no está disponible en el catálogo.');}
+                $precision=$v?(int)$v['decimal_places']:6;$quantity=QuoteRules::quantity($line['quantity'],$precision);$description=$line['description']!==''?$line['description']:Rules::text($v['product_name'].' · '.$v['name'],400,true);$unit=$line['unit']!==''?$line['unit']:Rules::text($v['unit_name']?:$v['symbol'],80,true);
+                $items[]=['variant_id'=>$v?(int)$v['id']:null,'unit_id'=>$v?(int)$v['unit_id']:null,'quantity'=>$quantity,'unit'=>$unit,'sku'=>$v?$v['sku']:null,'description'=>$description,'observations'=>$line['observations']];}
             $folio='SOL-'.strtoupper(bin2hex(random_bytes(12)));
             $this->repo->query('INSERT INTO public_quote_requests(folio,operation_key,request_hash,branch_id,full_name,company,phone,email,contact_preference,comment) VALUES(?,?,?,?,?,?,?,?,?,?)',[$folio,$key,$hash,$branch,$name,$company,$phone,$email,$preference,$comment]);$id=$this->repo->insertedId();
-            foreach($items as $v)$this->repo->query('INSERT INTO public_quote_request_items(request_id,variant_id,unit_id,quantity,sku,description) VALUES(?,?,?,?,?,?)',[$id,$v['id'],$v['unit_id'],$v['quantity'],$v['sku'],Rules::text($v['product_name'].' · '.$v['name'],400,true)]);
+            if($this->webIntakeInstalled())foreach($items as $item)$this->repo->query('INSERT INTO public_quote_request_lines(request_id,variant_id,quantity,unit_label,sku,description,observations) VALUES(?,?,?,?,?,?,?)',[$id,$item['variant_id'],$item['quantity'],$item['unit'],$item['sku'],$item['description'],$item['observations']]);
+            else foreach($items as $item){if($item['variant_id']===null||$item['unit_id']===null)throw new OperationConflict('Actualiza el módulo público antes de recibir materiales libres.');$this->repo->query('INSERT INTO public_quote_request_items(request_id,variant_id,unit_id,quantity,sku,description) VALUES(?,?,?,?,?,?)',[$id,$item['variant_id'],$item['unit_id'],$item['quantity'],$item['sku'],$item['description']]);}
             $this->repo->query('INSERT INTO legal_acceptances(request_id,legal_document_version_id,content_hash) VALUES(?,?,?)',[$id,$version,$legal['content_hash']]);
+            if($this->webIntakeInstalled()&&$this->repo->one("SELECT id FROM schema_migrations WHERE id='20261104200100_create_quote_workflows'"))$this->repo->query("INSERT INTO quote_workflows(folio,operation_key,request_hash,branch_id,request_id,origin,stage,full_name,email,phone,requested_items,notes) VALUES(?,?,?,?,?,'web','received',?,?,?,?,?)",[$folio,'web-'.$key,$hash,$branch,$id,$name,$email,$phone,json_encode($items,JSON_THROW_ON_ERROR),$comment]);
             (new PdoAuditRepository($this->connection))->record(null,'quote_request.received','public_quote_request',$id,$branch,'success');$this->notifications?->createForAuthorizedRecipients(['event_type'=>'quote_request.received','source_type'=>'public_request','source_id'=>(string)$id,'resource_type'=>'quote_request','resource_id'=>$id,'branch_id'=>$branch,'importance'=>'normal','title'=>'Nueva solicitud '.$folio,'message'=>'Una solicitud pública requiere asignación y seguimiento.','required_permission'=>'quote_requests.view','idempotency_key'=>'quote-request.received:'.$id],['quote_requests.view']);return ['folio'=>$folio];
         });
     }
@@ -72,7 +94,7 @@ final class PublicQuoteRequestService
         if((int)$r['assigned_user_id']!==$actor)throw new OperationConflict('Toma la solicitud antes de preparar su cotización.');
         if($r['quote_id']!==null)return (int)$r['quote_id'];
         $input['branch_id']=(string)$r['branch_id'];$input['operation_key']='request-'.substr(hash('sha256',(string)$id),0,56);$input['lock_version']='';
-        $items=[];foreach($this->repo->query('SELECT variant_id,quantity FROM public_quote_request_items WHERE request_id=? ORDER BY id',[$id]) as $item)$items[]=['variant_id'=>(string)$item['variant_id'],'quantity'=>rtrim(rtrim($item['quantity'],'0'),'.'),'discount_rate'=>'0'];
+        $table=$this->webIntakeInstalled()?'public_quote_request_lines':'public_quote_request_items';$items=[];foreach($this->repo->query('SELECT variant_id,quantity FROM '.$table.' WHERE request_id=? ORDER BY id',[$id]) as $item){if($item['variant_id']===null)throw new OperationConflict('Relaciona los materiales libres con el catálogo antes de preparar la cotización.');$items[]=['variant_id'=>(string)$item['variant_id'],'quantity'=>rtrim(rtrim($item['quantity'],'0'),'.'),'discount_rate'=>'0'];}
         return $quotes->save($input,$items,$allowed,$actor,null,function(int $quote,int $branch,string $action)use($id,$actor):void{
             $r=$this->repo->one('SELECT * FROM public_quote_requests WHERE id=? FOR UPDATE',[$id])??throw new OperationConflict('Solicitud no disponible.');
             if((int)$r['assigned_user_id']!==$actor||(int)$r['branch_id']!==$branch||$r['quote_id']!==null)throw new OperationConflict('La solicitud cambió. Recarga antes de continuar.');

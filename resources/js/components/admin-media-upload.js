@@ -21,11 +21,18 @@ export function initMediaUpload(form) {
       feedback.textContent = message;
       return;
     }
-    feedback.textContent = file.name + ' · ' + (file.size / 1048576).toFixed(2) + ' MiB. Revisa la vista previa y completa la descripción.';
+    feedback.textContent = file.name + ' · ' + (file.size / 1048576).toFixed(2) + ' MiB. ' + (form.dataset.mediaFeedbackContext || 'Revisa la vista previa y completa la descripción.');
     image.onload = () => {
       if (!active) return;
       preview.hidden = false;
       caption.textContent = file.name + ' · ' + image.naturalWidth + ' × ' + image.naturalHeight + ' px';
+      const minWidth = Number(form.dataset.mediaMinWidth || 0);
+      const minHeight = Number(form.dataset.mediaMinHeight || 0);
+      if (image.naturalWidth < minWidth || image.naturalHeight < minHeight) {
+        const message = `La imagen debe medir al menos ${minWidth} × ${minHeight} px.`;
+        input.setCustomValidity(message);
+        feedback.textContent = message;
+      }
     };
     image.onerror = () => { if (active) feedback.textContent = 'No se pudo mostrar la vista previa. Al subir, el sistema comprobará si el archivo es una imagen válida.'; };
     reader = new FileReader();

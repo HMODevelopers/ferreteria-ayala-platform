@@ -27,6 +27,7 @@ $router->post('/admin/branches/create', [App\Controllers\Admin\BranchesControlle
 $router->get('/admin/branches/edit', [App\Controllers\Admin\BranchesController::class, 'editForm']);
 $router->post('/admin/branches/update', [App\Controllers\Admin\BranchesController::class, 'update']);
 $router->post('/admin/branches/status', [App\Controllers\Admin\BranchesController::class, 'status']);
+$router->post('/admin/branches/web-quotes', [App\Controllers\Admin\BranchesController::class, 'webQuotes']);
 $router->post('/admin/branches/hours/create', [App\Controllers\Admin\BranchesController::class, 'addHours']);
 $router->post('/admin/branches/hours/delete', [App\Controllers\Admin\BranchesController::class, 'removeHours']);
 $router->post('/admin/branches/special/create', [App\Controllers\Admin\BranchesController::class, 'addSpecialHours']);
@@ -46,6 +47,11 @@ $router->post('/admin/brands/create', [App\Controllers\Admin\BrandsController::c
 $router->get('/admin/brands/edit', [App\Controllers\Admin\BrandsController::class, 'editForm']);
 $router->post('/admin/brands/update', [App\Controllers\Admin\BrandsController::class, 'update']);
 $router->post('/admin/brands/status', [App\Controllers\Admin\BrandsController::class, 'status']);
+$router->post('/admin/brands/logo', [App\Controllers\Admin\BrandsController::class, 'logo']);
+$router->get('/admin/cms/brands', [App\Controllers\Admin\WebsiteBrandsController::class, 'index']);
+$router->post('/admin/cms/brands/create', [App\Controllers\Admin\WebsiteBrandsController::class, 'create']);
+$router->post('/admin/cms/brands/visibility', [App\Controllers\Admin\WebsiteBrandsController::class, 'visibility']);
+$router->post('/admin/cms/brands/order', [App\Controllers\Admin\WebsiteBrandsController::class, 'order']);
 $router->get('/admin/units', [App\Controllers\Admin\UnitsController::class, 'index']);
 $router->get('/admin/units/create', [App\Controllers\Admin\UnitsController::class, 'createForm']);
 $router->post('/admin/units/create', [App\Controllers\Admin\UnitsController::class, 'create']);

@@ -18,10 +18,11 @@ final class CmsController extends Controller
         $data['navigation']=AppKernel::cms()->publicContent('navigation_items',$data['branchId']??null);
         return new Response(\App\Core\View::render($template,$data,'layouts/cms'),$status,['Cache-Control'=>'no-store']);
     }
-    public function home(Request $r):Response
+    public function home(Request $r,array $quoteValues=[],?string $quoteError=null,?string $quoteFolio=null,int $status=200):Response
     {
         if(!self::enabled())return $this->missing();$branch=$r->integer('branch_id')?:null;$search=substr(trim($r->query('q')),0,100);$category=substr(trim($r->query('category')),0,80);$offset=max(0,(int)$r->query('offset','0'));$data=CmsHomeData::from(AppKernel::cms(),$branch,$search,$category,$offset);
-        return new Response(\App\Core\View::render('public/home',$data,'layouts/public'),200,['Cache-Control'=>'no-store']);
+        $data['quoteRequest']=$this->quoteData($r,$quoteValues,$quoteError,$quoteFolio);
+        return new Response(\App\Core\View::render('public/home',$data,'layouts/public'),$status,['Cache-Control'=>'no-store']);
     }
     public function page(Request $r):Response
     {
@@ -39,30 +40,33 @@ final class CmsController extends Controller
         $width=$r->integer('width');if($width){$v=AppKernel::cms()->one('SELECT storage_key,byte_size,sha256 FROM media_variants WHERE media_id=? AND width=?',[$m['id'],$width]);if(!$v)return $this->missing();$m=array_replace($m,$v);}
         try{$bytes=AppKernel::imageStorage()->read($m);return new Response($bytes,200,['Content-Type'=>'image/webp','Content-Length'=>(string)strlen($bytes),'Cache-Control'=>'no-store','Content-Disposition'=>'inline; filename="imagen.webp"']);}catch(\Throwable){return $this->missing();}
     }
-    public function requestForm(Request $r,array $values=[],?string $error=null,?string $folio=null):Response
+    private function quoteData(Request $r,array $values=[],?string $error=null,?string $folio=null):array
     {
-        if(!self::enabled())return $this->missing();$legal=AppKernel::cms()->legal('privacy');$branch=$r->integer('branch_id')?:null;$q=CmsRules::text($r->query('q'),120);$branches=array_values(array_filter(AppKernel::cms()->branches(),static fn($b)=>AppKernel::publicRequests()->enabled((int)$b['id'])));
+        $legal=AppKernel::cms()->legal('privacy');$branch=isset($values['branch_id'])&&ctype_digit((string)$values['branch_id'])?(int)$values['branch_id']:($r->integer('branch_id')?:null);$q=CmsRules::text($r->query('q'),120);$branches=array_values(array_filter(AppKernel::cms()->branches(),static fn($b)=>AppKernel::publicRequests()->enabled((int)$b['id'])));
         if($branch!==null&&!array_filter($branches,static fn($b)=>(int)$b['id']===$branch))$branch=null;
-        $category=$r->integer('category_id')?:null;$offset=max(0,(int)$r->query('offset','0'));$limit=25;$categories=AppKernel::cms()->query('SELECT id,name FROM categories WHERE is_active=1 ORDER BY name,id LIMIT 250')->fetchAll();if($category!==null&&!array_filter($categories,static fn($c)=>(int)$c['id']===$category))$category=null;
-        $attributes=AppKernel::cms()->query("SELECT DISTINCT ad.id,ad.name FROM attribute_definitions ad JOIN category_attributes ca ON ca.attribute_id=ad.id JOIN categories c ON c.id=ca.category_id AND c.is_active=1 WHERE ad.is_active=1 AND ca.is_visible=1 AND ca.is_filterable=1 AND ad.value_type='option'".($category!==null?' AND c.id=?':'').' ORDER BY ad.name,ad.id LIMIT 50',$category!==null?[$category]:[])->fetchAll();$selectedAttributes=[];
-        foreach($attributes as &$attribute){$attribute['options']=AppKernel::cms()->query('SELECT id,value FROM attribute_options WHERE attribute_id=? AND is_active=1 ORDER BY display_order,id LIMIT 250',[(int)$attribute['id']])->fetchAll();$selected=$r->integer('attribute_'.(int)$attribute['id'])?:null;if($selected!==null&&!array_filter($attribute['options'],static fn($o)=>(int)$o['id']===$selected))$selected=null;$attribute['selected']=$selected;if($selected!==null)$selectedAttributes[(int)$attribute['id']]=$selected;}unset($attribute);
-        $variants=[];$total=0;$hasMore=false;if($branch!==null){$term='%'.str_replace(['\\','%','_'],['\\\\','\\%','\\_'],$q).'%';$where=['v.is_active=1','p.is_active=1','c.is_active=1','u.is_active=1','(p.name LIKE ? OR v.sku LIKE ? OR v.name LIKE ?)'];$params=[$term,$term,$term];if($category!==null){$where[]='p.category_id=?';$params[]=$category;}foreach($selectedAttributes as $attributeId=>$optionId){$where[]='EXISTS(SELECT 1 FROM variant_attribute_values av WHERE av.variant_id=v.id AND av.attribute_id=? AND av.option_id=?)';array_push($params,$attributeId,$optionId);}$base=' FROM product_variants v JOIN products p ON p.id=v.product_id JOIN categories c ON c.id=p.category_id JOIN units u ON u.id=v.unit_id LEFT JOIN inventory_balances ib ON ib.variant_id=v.id AND ib.branch_id=? AND ib.initialized_at IS NOT NULL';$baseParams=array_merge([$branch],$params);$total=(int)AppKernel::cms()->query('SELECT COUNT(*)'.$base.' WHERE '.implode(' AND ',$where),$baseParams)->fetchColumn();$price=" LEFT JOIN branch_variant_prices bp ON bp.id=(SELECT bp2.id FROM branch_variant_prices bp2 JOIN price_lists pl2 ON pl2.id=bp2.price_list_id AND pl2.is_active=1 AND pl2.is_public=1 WHERE bp2.branch_id=? AND bp2.variant_id=v.id AND bp2.is_active=1 AND bp2.valid_from<=CURRENT_DATE AND (bp2.valid_until IS NULL OR bp2.valid_until>=CURRENT_DATE) ORDER BY bp2.valid_from DESC,bp2.id DESC LIMIT 1)";$rows=AppKernel::cms()->query('SELECT v.id,v.sku,v.name,p.name product_name,u.symbol,u.decimal_places,ib.physical_quantity-ib.reserved_quantity available_quantity,bp.amount public_price,bp.tax_included'.$base.$price.' WHERE '.implode(' AND ',$where).' ORDER BY p.name,v.sku,v.id LIMIT '.($limit+1).' OFFSET '.$offset,array_merge([$branch,$branch],$params))->fetchAll();$hasMore=count($rows)>$limit;if($hasMore)array_pop($rows);$variants=$rows;}
+        $variants=AppKernel::cms()->query("SELECT v.id,v.sku,v.name,p.name product_name,u.name unit_name,u.symbol,c.id category_id,c.name category_name FROM product_variants v JOIN products p ON p.id=v.product_id JOIN categories c ON c.id=p.category_id JOIN units u ON u.id=v.unit_id WHERE v.is_active=1 AND p.is_active=1 AND c.is_active=1 AND u.is_active=1 ORDER BY c.name,p.name,v.name,v.id LIMIT 250")->fetchAll();
         $csrf=AppKernel::session()->csrfToken();$_SESSION['public_quote_forms']??=[];$candidate=(string)($values['operation_key']??$r->query('operation_key'));
         $key=preg_match('/^[a-f0-9]{48}$/D',$candidate)&&isset($_SESSION['public_quote_forms'][$candidate])?$candidate:bin2hex(random_bytes(24));
         if(!isset($_SESSION['public_quote_forms'][$key]))$_SESSION['public_quote_forms'][$key]=time();if(count($_SESSION['public_quote_forms'])>20)array_shift($_SESSION['public_quote_forms']);
-        return $this->render('public/cms/request',['title'=>'Solicitar cotización','noIndex'=>true,'canonicalPath'=>'/solicitar-cotizacion','branches'=>$branches,'branchId'=>$branch,'q'=>$q,'categories'=>$categories,'categoryId'=>$category,'attributes'=>$attributes,'offset'=>$offset,'limit'=>$limit,'hasMore'=>$hasMore,'total'=>$total,'variants'=>$variants,'legal'=>$legal,'csrf'=>$csrf,'operationKey'=>$key,'values'=>$values,'error'=>$error,'folio'=>$folio],$error?422:200);
+        $lines=$values['lines']??[];if(!$lines&&$q!==''){foreach($variants as $variant)if(hash_equals(strtolower((string)$variant['sku']),strtolower($q))){$lines=[['variant_id'=>(string)$variant['id'],'description'=>$variant['product_name'].' · '.$variant['name'],'quantity'=>'1','unit'=>$variant['unit_name'],'observations'=>'']];break;}}
+        return ['branches'=>$branches,'branchId'=>$branch,'variants'=>$variants,'legal'=>$legal,'csrf'=>$csrf,'operationKey'=>$key,'values'=>$values,'lines'=>$lines,'error'=>$error,'folio'=>$folio,'available'=>$legal!==null&&$branches!==[]];
+    }
+    public function requestForm(Request $r,array $values=[],?string $error=null,?string $folio=null):Response
+    {
+        if(!self::enabled())return $this->missing();
+        return $this->render('public/cms/request',['title'=>'Solicitar cotización','noIndex'=>true,'canonicalPath'=>'/solicitar-cotizacion','quoteRequest'=>$this->quoteData($r,$values,$error,$folio)],$error?422:200);
     }
     public function receive(Request $r):Response
     {
-        if(!self::enabled())return $this->missing();$key=$r->input('operation_key');$in=[];foreach(['branch_id','legal_version_id','full_name','company','phone','email','contact_preference','comment','consent','website','operation_key'] as $k)$in[$k]=$r->input($k);
+        if(!self::enabled())return $this->missing();$key=$r->input('operation_key');$in=[];foreach(['branch_id','legal_version_id','full_name','company','phone','email','contact_preference','comment','consent','website','operation_key','modal'] as $k)$in[$k]=$r->input($k);
+        $descriptions=$r->values('description');$quantities=$r->values('quantity');$units=$r->values('unit');$observations=$r->values('observations');$variants=$r->values('variant_id');$lines=[];$count=max(count($descriptions),count($quantities),count($units),count($observations),count($variants));for($i=0;$i<$count;$i++)$lines[]=['variant_id'=>$variants[$i]??'','description'=>$descriptions[$i]??'','quantity'=>$quantities[$i]??'','unit'=>$units[$i]??'','observations'=>$observations[$i]??''];
         try{
             if(!AppKernel::session()->verifyCsrf($r->input('_token')))return new Response('El formulario caducó. Actualiza la página.',419,['Cache-Control'=>'no-store']);
             $created=$_SESSION['public_quote_forms'][$key]??0;if(!is_int($created)||time()-$created<2||time()-$created>7200)throw new \InvalidArgumentException('Actualiza el formulario y revisa tus datos antes de enviarlo.');
-            $items=array_filter($r->keyedValues('quantity'),static fn($v)=>trim($v)!=='');
             $fingerprint=\App\Infrastructure\Media\RequestFingerprint::forIp($r->ip(),AppKernel::cmsPrivateDirectory());
-            $result=AppKernel::publicRequests()->receive($in,$items,$fingerprint);return $this->requestForm($r,['operation_key'=>$key],null,$result['folio']);
+            $result=AppKernel::publicRequests()->receive($in,$lines,$fingerprint);$values=['operation_key'=>$key];return $in['modal']==='1'?$this->home($r,$values,null,$result['folio']):$this->requestForm($r,$values,null,$result['folio']);
         }catch(\InvalidArgumentException|\App\Application\Exceptions\ApplicationException $e){$error=$e->getMessage();}catch(\Throwable){$error='No pudimos registrar la solicitud. Conserva tus datos e intenta nuevamente.';}
-        $in['quantities']=$r->keyedValues('quantity');return $this->requestForm($r,$in,$error);
+        $in['lines']=$lines;return $in['modal']==='1'?$this->home($r,$in,$error,null,422):$this->requestForm($r,$in,$error);
     }
 
     public function sitemap(Request $r):Response

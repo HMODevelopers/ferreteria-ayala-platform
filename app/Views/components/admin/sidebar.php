@@ -54,6 +54,7 @@
                 ]],
                 'website'=>['Sitio web',[
                     ['cms','/admin/cms','Contenido y medios','cms'],
+                    ['website_brands','/admin/cms/brands','Carrusel de marcas','catalog'],
                     ['legal','/admin/cms/legal','Documentos legales','legal'],
                     ['cms_settings','/admin/cms/settings','Publicación del sitio','publication'],
                 ]],

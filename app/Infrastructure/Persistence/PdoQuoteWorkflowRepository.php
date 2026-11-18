@@ -33,7 +33,8 @@ final class PdoQuoteWorkflowRepository
   if($kind==='case'){$w=$this->one('SELECT w.*,b.name branch_name,u.display_name assigned_name FROM quote_workflows w JOIN branches b ON b.id=w.branch_id LEFT JOIN users u ON u.id=w.assigned_user_id WHERE w.id=?',[$id]);if(!$w)return null;$w['workflow_id']=$w['id'];if($w['request_id']!==null&&$w['quote_id']===null){$linked=$this->one('SELECT quote_id FROM public_quote_requests WHERE id=?',[$w['request_id']]);$w['quote_id']=$linked['quote_id']??null;}$w['kind']='case';$w['source_id']=$id;return $w;}
   if($kind==='request'){
    $r=$this->one('SELECT p.*,b.name branch_name,u.display_name assigned_name FROM public_quote_requests p JOIN branches b ON b.id=p.branch_id LEFT JOIN users u ON u.id=p.assigned_user_id WHERE p.id=?',[$id]);if(!$r)return null;$w=$this->one('SELECT * FROM quote_workflows WHERE request_id=?',[$id]);
-   $items=$this->query('SELECT variant_id,description,quantity,sku FROM public_quote_request_items WHERE request_id=? ORDER BY id',[$id])->fetchAll();
+   $modern=$this->one("SELECT id FROM schema_migrations WHERE id='20261116110000_enable_public_quote_intake'")!==null;
+   $items=$this->query($modern?'SELECT variant_id,description,quantity,sku,unit_label unit,observations FROM public_quote_request_lines WHERE request_id=? ORDER BY id':'SELECT variant_id,description,quantity,sku,\'\' unit,\'\' observations FROM public_quote_request_items WHERE request_id=? ORDER BY id',[$id])->fetchAll();
    return array_replace(['workflow_id'=>null,'lock_version'=>0,'stage'=>'received','origin'=>'web','requested_items'=>json_encode($items,JSON_THROW_ON_ERROR),'prepared_items'=>null,'verified_hash'=>null,'sent_version_id'=>null,'notes'=>$r['comment']],$r,$w??[],['workflow_id'=>$w['id']??null,'request_id'=>$id,'quote_id'=>$r['quote_id'],'kind'=>'request','source_id'=>$id,'lock_version'=>$w['lock_version']??0]);
   }
   if($kind!=='quote')return null;

@@ -54,7 +54,7 @@
     </aside>
 
     <section class="publication-branches" aria-labelledby="publication-branches-title">
-        <header class="publication-branches-head"><div><h2 id="publication-branches-title">Recepción por sucursal</h2><p>Elige cuáles participarán cuando la recepción esté disponible.</p></div><?php if($branches):?><span class="publication-branch-count"><?= e($configuredBranches) ?> de <?= e(count($branches)) ?> habilitadas</span><?php endif?></header>
+        <header class="publication-branches-head"><div><h2 id="publication-branches-title">Recepción web por sucursal</h2><p>Autoriza expresamente cuáles sucursales aparecerán en el formulario público.</p></div><?php if($branches):?><span class="publication-branch-count"><?= e($configuredBranches) ?> de <?= e(count($branches)) ?> autorizadas</span><?php endif?></header>
         <?php if(!$branches):?>
             <div class="publication-empty">
                 <span class="publication-empty-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M7 17h26v17H7zM5 17l4-9h22l4 9M15 34V23h10v11M7 17c0 5 6 5 6 0 0 5 7 5 7 0 0 5 7 5 7 0 0 5 6 5 6 0"/></svg></span>
@@ -65,7 +65,7 @@
             <div class="publication-branch-list"><?php foreach($branches as $b):?><form method="post" action="/admin/cms/settings" class="publication-branch" aria-labelledby="publication-branch-<?= e($b['id']) ?>">
                 <input type="hidden" name="_token" value="<?= e($csrf) ?>"><input type="hidden" name="target" value="intake"><input type="hidden" name="branch_id" value="<?= e($b['id']) ?>"><input type="hidden" name="expected" value="<?= e($b['intake_enabled']) ?>">
                 <div class="publication-branch-name"><span class="publication-branch-icon" aria-hidden="true"><?= icon('pin') ?></span><div><h3 id="publication-branch-<?= e($b['id']) ?>"><?= e($b['name']) ?></h3><span class="publication-state <?= (int)$b['intake_enabled']?'is-on':'is-off' ?>"><?= (int)$b['intake_enabled']?'Habilitada':'Deshabilitada' ?></span></div></div>
-                <label class="admin-field publication-select"><span>Recepción en esta sucursal</span><select name="enabled"><option value="0">No recibe solicitudes</option><option value="1" <?= (int)$b['intake_enabled']?'selected':'' ?>>Recibe solicitudes</option></select></label>
+                <label class="admin-field publication-select"><span>Autorización desde el sitio web</span><select name="enabled"><option value="0">No recibe solicitudes web</option><option value="1" <?= (int)$b['intake_enabled']?'selected':'' ?>>Recibe solicitudes web</option></select></label>
                 <button type="submit" class="admin-secondary-button">Guardar sucursal</button>
             </form><?php endforeach?></div>
         <?php endif?>

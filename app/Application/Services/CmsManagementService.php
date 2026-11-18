@@ -77,11 +77,15 @@ final class CmsManagementService
                 $current=(bool)$row['is_globally_enabled'];if($current===$enabled){if($created)$this->audit($actor,'cms.configure.'.$target,'module',$id);return;}
                 if($current!==$expected)throw new OperationConflict('La publicación cambió en otra sesión. Recarga antes de continuar.');$modules->setGloballyEnabled($id,$enabled);
             }else{
-                if(!$this->repo->one('SELECT id FROM branches WHERE id=? AND is_active=1 FOR UPDATE',[$branch]))throw new OperationConflict('Sucursal inactiva o inexistente.');
-                $association=$this->repo->one('SELECT is_enabled FROM branch_modules WHERE branch_id=? AND module_id=? FOR UPDATE',[$branch,$id]);$current=(bool)($association['is_enabled']??false);
-                if($current===$enabled){if($created)$this->audit($actor,'cms.configure.'.$target,'module',$id,$branch);return;}
-                if($current!==$expected)throw new OperationConflict('La recepción cambió en otra sesión. Recarga antes de continuar.');
-                if($association===null)$modules->associateWithBranch($branch,$id);$modules->setBranchEnabled($branch,$id,$enabled);
+                $branchRow=$this->repo->one('SELECT id,accepts_web_quotes FROM branches WHERE id=? AND is_active=1 FOR UPDATE',[$branch]);
+                if(!$branchRow)throw new OperationConflict('Sucursal inactiva o inexistente.');
+                $association=$this->repo->one('SELECT is_enabled FROM branch_modules WHERE branch_id=? AND module_id=? FOR UPDATE',[$branch,$id]);
+                $commercialEnabled=(bool)($association['is_enabled']??false);$webEnabled=(bool)$branchRow['accepts_web_quotes'];
+                if($webEnabled!==$expected)throw new OperationConflict('La autorización web cambió en otra sesión. Recarga antes de continuar.');
+                if($association===null)$modules->associateWithBranch($branch,$id);
+                if($commercialEnabled!==$enabled)$modules->setBranchEnabled($branch,$id,$enabled);
+                if($webEnabled!==$enabled)$this->repo->query('UPDATE branches SET accepts_web_quotes=? WHERE id=?',[$enabled?1:0,$branch]);
+                if($commercialEnabled===$enabled&&$webEnabled===$enabled){if($created)$this->audit($actor,'cms.configure.'.$target,'module',$id,$branch);return;}
             }
             $this->audit($actor,'cms.configure.'.$target,'module',$id,$target==='intake'?$branch:null);
         });
