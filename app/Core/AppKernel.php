@@ -79,6 +79,7 @@ final class AppKernel
 
     public static function cms(): \App\Infrastructure\Persistence\PdoCmsRepository {return new \App\Infrastructure\Persistence\PdoCmsRepository(self::connection());}
     public static function brandLogos(): \App\Application\Services\BrandLogoService {return new \App\Application\Services\BrandLogoService(self::cms(),self::connection());}
+    public static function categoryImages(): \App\Application\Services\CategoryImageService {return new \App\Application\Services\CategoryImageService(self::cms(),self::connection());}
     public static function websiteBrandCarousel(): \App\Application\Services\WebsiteBrandCarouselService {return new \App\Application\Services\WebsiteBrandCarouselService(self::cms(),self::connection(),self::mediaManagement());}
     public static function cmsManagement(): \App\Application\Services\CmsManagementService {return new \App\Application\Services\CmsManagementService(self::cms(),self::connection());}
     public static function mediaDirectory(): string {return getenv('APP_ENV')==='testing'&&getenv('M11_MEDIA_DIRECTORY')?getenv('M11_MEDIA_DIRECTORY'):dirname(__DIR__,2).'/storage/media';}

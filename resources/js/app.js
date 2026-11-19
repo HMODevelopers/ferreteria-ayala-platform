@@ -1,6 +1,7 @@
 import { navigation } from './components/navigation.js';
 import { interactions } from './components/interactions.js';
 import { admin } from './components/admin.js';
+import { initAdminCatalogDirectory } from './components/admin-catalog-directory.js';
 import { publicQuoteRequest } from './components/public-quote-request.js';
 import { brandCarousels } from './components/brand-carousel.js';
 import { backToTop } from './components/back-to-top.js';
@@ -10,6 +11,7 @@ publicQuoteRequest();
 brandCarousels();
 backToTop();
 admin();
+initAdminCatalogDirectory();
 if (document.querySelector('.hero-swiper')) import('./components/sliders.js').then(({ sliders }) => sliders()).catch(() => {
   document.querySelector('.hero-controls').hidden = true;
 });

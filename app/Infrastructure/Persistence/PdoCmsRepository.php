@@ -59,6 +59,7 @@ final class PdoCmsRepository
         foreach(array_keys(CmsRules::TYPES) as $t)if($this->one('SELECT c.id FROM '.$t.' c WHERE media_id=? AND '.self::visibleSql().' AND (c.branch_id IS NULL OR EXISTS(SELECT 1 FROM branches b WHERE b.id=c.branch_id AND b.is_active=1)) LIMIT 1',[$m['id']]))return $m;
         if($m['purpose']==='public'&&$this->one('SELECT id FROM schema_migrations WHERE id=?',[\App\Application\Services\WebsiteBrandCarouselService::MIGRATION])&&$this->one('SELECT id FROM website_brand_slides WHERE media_id=? AND is_published=1 LIMIT 1',[$m['id']]))return $m;
         if($m['purpose']==='public'&&$this->one('SELECT id FROM schema_migrations WHERE id=?',[\App\Application\Services\BrandLogoService::MIGRATION])&&$this->one('SELECT b.id FROM brand_logos bl JOIN brands b ON b.id=bl.brand_id WHERE bl.media_id=? AND b.is_active=1 LIMIT 1',[$m['id']]))return $m;
+        if($m['purpose']==='public'&&$this->one('SELECT id FROM schema_migrations WHERE id=?',[\App\Application\Services\CategoryImageService::MIGRATION])&&$this->one('SELECT c.id FROM category_images ci JOIN categories c ON c.id=ci.category_id WHERE ci.media_id=? AND c.is_active=1 LIMIT 1',[$m['id']]))return $m;
         if($m['purpose']==='product'&&$this->one('SELECT i.id FROM product_images i JOIN products p ON p.id=i.product_id WHERE i.media_id=? AND p.is_active=1 LIMIT 1',[$m['id']]))return $m;
         return null;
     }

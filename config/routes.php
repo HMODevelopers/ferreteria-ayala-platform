@@ -41,6 +41,7 @@ $router->post('/admin/categories/create', [App\Controllers\Admin\CategoriesContr
 $router->get('/admin/categories/edit', [App\Controllers\Admin\CategoriesController::class, 'editForm']);
 $router->post('/admin/categories/update', [App\Controllers\Admin\CategoriesController::class, 'update']);
 $router->post('/admin/categories/status', [App\Controllers\Admin\CategoriesController::class, 'status']);
+$router->post('/admin/categories/image', [App\Controllers\Admin\CategoriesController::class, 'image']);
 $router->get('/admin/brands', [App\Controllers\Admin\BrandsController::class, 'index']);
 $router->get('/admin/brands/create', [App\Controllers\Admin\BrandsController::class, 'createForm']);
 $router->post('/admin/brands/create', [App\Controllers\Admin\BrandsController::class, 'create']);

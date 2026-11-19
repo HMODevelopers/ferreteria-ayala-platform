@@ -100,7 +100,7 @@ export function admin() {
 
   const isFormLink = link => {
     const url = new URL(link.href, window.location.href);
-    return url.origin === window.location.origin && ((link.hasAttribute('data-admin-form-link') && ['/admin/branches/create','/admin/branches/edit','/admin/branches/detail','/admin/prices/create','/admin/prices/edit','/admin/prices/calculate','/admin/products/create','/admin/products/edit','/admin/products/detail','/admin/categories/create','/admin/categories/edit','/admin/brands/create','/admin/brands/edit','/admin/units/create','/admin/units/edit','/admin/attributes','/admin/deliveries/create','/admin/deliveries/detail','/admin/deliveries/resources','/admin/returns/create','/admin/returns/detail','/admin/transfers/create','/admin/transfers/detail','/admin/purchases/create','/admin/purchases/edit','/admin/purchases/detail','/admin/purchases/receipts/create','/admin/suppliers/create','/admin/suppliers/edit','/admin/inventory/adjustments','/admin/inventory/movements','/admin/cms','/admin/cms/terms','/admin/media','/admin/customers/create','/admin/customers/edit','/admin/customers/detail','/admin/customers/status','/admin/quotes/intake','/admin/quotes/workflow','/admin/quotes/workflow/action','/admin/quotes/workflow/prepare','/admin/quotes/create','/admin/quotes/edit','/admin/quotes/detail','/admin/quotes/action'].includes(url.pathname)) || /\/admin\/(?:users|branches|categories|brands|units|products|prices|roles)\/(?:create|edit)$/.test(url.pathname));
+    return url.origin === window.location.origin && ((link.hasAttribute('data-admin-form-link') && ['/admin/branches/create','/admin/branches/edit','/admin/branches/detail','/admin/prices/create','/admin/prices/edit','/admin/prices/calculate','/admin/products/create','/admin/products/edit','/admin/products/detail','/admin/products/barcodes','/admin/products/import','/admin/categories/create','/admin/categories/edit','/admin/brands/create','/admin/brands/edit','/admin/units/create','/admin/units/edit','/admin/attributes','/admin/deliveries/create','/admin/deliveries/detail','/admin/deliveries/resources','/admin/returns/create','/admin/returns/detail','/admin/transfers/create','/admin/transfers/detail','/admin/purchases/create','/admin/purchases/edit','/admin/purchases/detail','/admin/purchases/receipts/create','/admin/suppliers/create','/admin/suppliers/edit','/admin/inventory/adjustments','/admin/inventory/movements','/admin/cms','/admin/cms/terms','/admin/media','/admin/customers/create','/admin/customers/edit','/admin/customers/detail','/admin/customers/status','/admin/quotes/intake','/admin/quotes/workflow','/admin/quotes/workflow/action','/admin/quotes/workflow/prepare','/admin/quotes/create','/admin/quotes/edit','/admin/quotes/detail','/admin/quotes/action'].includes(url.pathname)) || /\/admin\/(?:users|branches|categories|brands|units|products|prices|roles)\/(?:create|edit)$/.test(url.pathname));
   };
 
   const skeleton = () => {
@@ -217,7 +217,7 @@ export function admin() {
       const requestId=++activeModalRequest;const url=new URL(form.getAttribute('action') || window.location.href, window.location.href);url.search=new URLSearchParams(new FormData(form)).toString();modalContent.setAttribute('aria-busy','true');
       try{const html=await loadForm(url.href);if(html!==null&&requestId===activeModalRequest&&modal.open){renderModalContent(html);restorePreparation();}}catch{if(requestId===activeModalRequest){const alert=document.createElement('p');alert.className='admin-alert admin-alert-error';alert.setAttribute('role','alert');alert.textContent='No se pudo actualizar la búsqueda. Intenta nuevamente.';form.prepend(alert);modalContent.removeAttribute('aria-busy');}}return;
     }
-    if (!form.matches('[data-cms-editor-form],[data-media-upload-form],[data-customer-form],[data-quote-workflow-form],[data-purchasing-form],[data-transfer-create],[data-transfer-event],[data-delivery-create],[data-delivery-event],[data-delivery-resource],form[action="/admin/returns/create"],form[action="/admin/returns/action"],[data-catalog-form],[data-pricing-form],[data-branch-form],[data-branch-schedule],[data-role-form]')) return;
+    if (!form.matches('[data-cms-editor-form],[data-media-upload-form],[data-customer-form],[data-quote-workflow-form],[data-purchasing-form],[data-transfer-create],[data-transfer-event],[data-delivery-create],[data-delivery-event],[data-delivery-resource],form[action="/admin/returns/create"],form[action="/admin/returns/action"],[data-catalog-form],[data-catalog-import-form],[data-pricing-form],[data-branch-form],[data-branch-schedule],[data-role-form]')) return;
     event.preventDefault();
     if (form.dataset.submitting === '1') return;
     form.dataset.submitting = '1';
@@ -271,10 +271,16 @@ export function admin() {
         const html = await response.text();
         if (requestId !== activeModalRequest || !modal.open) return;
         renderModalContent(html);
-        const fileInput = modalContent.querySelector('[data-media-upload-form] input[type=file]');
+        const fileInput = modalContent.querySelector('[data-media-upload-form] input[type=file], [data-catalog-import-form] input[type=file]');
         if (fileInput && retainedFiles?.length) { fileInput.files = retainedFiles; fileInput.dispatchEvent(new Event('change')); }
         const alert = modalContent.querySelector('[role="alert"]');
         if (alert) { alert.tabIndex = -1; alert.focus(); }
+        return;
+      }
+      if (response.ok && form.matches('[data-catalog-import-form]')) {
+        const html = await response.text();
+        if (requestId !== activeModalRequest || !modal.open) return;
+        renderModalContent(html);
         return;
       }
       throw new Error('No se pudo confirmar el guardado. Conservamos tus datos; revisa la conexión antes de volver a intentarlo.');
@@ -332,6 +338,10 @@ export function admin() {
     else if (control instanceof HTMLAnchorElement) window.location.assign(control.href);
   });
   confirmation?.addEventListener('close', () => { confirmation.pendingControl = null; });
+  document.addEventListener('admin:content-updated', event => {
+    const root = event.detail?.root instanceof Element ? event.detail.root : document;
+    root.querySelectorAll('[data-confirm]').forEach(control => bindConfirmation(control));
+  });
   document.querySelectorAll('[data-confirm]').forEach(control => {
     bindConfirmation(control);
   });
